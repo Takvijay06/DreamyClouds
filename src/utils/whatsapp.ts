@@ -3,6 +3,8 @@ import { Pricing, Product, Design, CustomerDetails } from '../features/order/ord
 interface WhatsAppPayload {
   product: Product;
   design: Design;
+  productImageUrl: string;
+  designImageUrl: string;
   quantity: number;
   giftWrap: boolean;
   personalizedNote: string;
@@ -14,6 +16,8 @@ interface WhatsAppPayload {
 export const buildWhatsAppMessage = ({
   product,
   design,
+  productImageUrl,
+  designImageUrl,
   quantity,
   giftWrap,
   personalizedNote,
@@ -22,30 +26,35 @@ export const buildWhatsAppMessage = ({
   upiId
 }: WhatsAppPayload): string => {
   return [
-    '*New Order Request - DreamyClouds*',
+    '*New Order Request - Dreamy Clouds By Daisy*',
     '',
-    `Product: ${product.name}`,
-    `Design: ${design.name}`,
-    `Quantity: ${quantity}`,
-    `Gift Wrap: ${giftWrap ? 'Yes' : 'No'}`,
-    `Personalized Note: ${personalizedNote.trim() || 'N/A'}`,
+    '*Selected Product Details*',
+    `- Product: ${product.name}`,
+    `- Design: ${design.name}`,
+    `- Quantity: ${quantity}`,
+    `- Gift Wrap: ${giftWrap ? 'Yes' : 'No'}`,
+    `- Personalized Note: ${personalizedNote.trim() || 'N/A'}`,
+    '',
+    '*Selected Images*',
+    `- Product Image: ${productImageUrl}`,
+    `- Design Image: ${designImageUrl}`,
     '',
     '*Pricing*',
-    `Unit Price: INR ${pricing.unitPrice}`,
-    `Items Total: INR ${pricing.quantityTotal}`,
-    `Gift Wrap Charge: INR ${pricing.giftWrapCharge}`,
-    `Delivery Charge: INR ${pricing.deliveryCharge}`,
-    `Grand Total: INR ${pricing.grandTotal}`,
+    `- Unit Price: INR ${pricing.unitPrice}`,
+    `- Items Total: INR ${pricing.quantityTotal}`,
+    `- Gift Wrap Charge: INR ${pricing.giftWrapCharge}`,
+    `- Delivery Charge: INR ${pricing.deliveryCharge}`,
+    `- Grand Total: INR ${pricing.grandTotal}`,
     '',
     '*Customer Details*',
-    `Name: ${customerDetails.fullName}`,
-    `Address: ${customerDetails.address}`,
-    `Contact Number: ${customerDetails.contactNumber}`,
-    `Alternative Number: ${customerDetails.alternateNumber || 'N/A'}`,
-    `Email: ${customerDetails.email}`,
+    `- Name: ${customerDetails.fullName}`,
+    `- Address: ${customerDetails.address}`,
+    `- Contact Number: +91 ${customerDetails.contactNumber}`,
+    `- Alternative Number: ${customerDetails.alternateNumber ? `+91 ${customerDetails.alternateNumber}` : 'N/A'}`,
+    `- Email: ${customerDetails.email}`,
     '',
     '*Payment Instructions*',
-    `Please pay via UPI to: ${upiId}`,
+    `- Please pay via UPI to: ${upiId}`,
     'After payment, share screenshot for manual verification.'
   ].join('\n');
 };
