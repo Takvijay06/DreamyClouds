@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Product } from '../features/order/orderTypes';
 
 interface ProductPreviewModalProps {
@@ -13,6 +14,9 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
       return;
     }
 
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
@@ -20,15 +24,18 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
     };
 
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
   }, [open, onClose]);
 
   if (!open || !product) {
     return null;
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <button
         type="button"
         aria-label="Close preview"
@@ -36,8 +43,8 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
         onClick={onClose}
       />
 
-      <div className="relative z-10 w-full max-w-2xl overflow-hidden rounded-3xl border border-lavender-200 bg-white shadow-2xl">
-        <div className="flex items-center justify-between border-b border-lavender-100 px-4 py-3">
+      <div className="relative z-10 flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-lavender-200 bg-white shadow-2xl">
+        <div className="sticky top-0 flex items-center justify-between border-b border-lavender-100 bg-white px-4 py-3">
           <h3 className="font-['Sora'] text-base font-bold text-lavender-900">{product.name}</h3>
           <button
             type="button"
@@ -48,8 +55,11 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
           </button>
         </div>
 
-        <img src={product.image} alt={product.name} className="h-[70vh] w-full object-contain bg-lavender-50" />
+        <div className="overflow-auto bg-lavender-50">
+          <img src={product.image} alt={product.name} className="mx-auto max-h-[75vh] w-full object-contain" />
+        </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

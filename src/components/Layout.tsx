@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import brandLogo from '../data/Logos/Logo_4.jpeg';
 import { StepProgress } from './StepProgress';
 
 interface LayoutProps {
@@ -15,7 +16,12 @@ export const Layout = ({ children, currentStep }: LayoutProps) => {
       <section className="hero-glow relative overflow-hidden rounded-3xl border border-lavender-200/70 p-5 shadow-soft sm:p-7">
         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="text-center sm:text-left">
-            <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-lavender-600">Dreamy Clouds By Daisy</p>
+            <div className="flex items-center justify-center gap-2.5 sm:justify-start">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 p-0.5 shadow-sm ring-1 ring-lavender-200">
+                <img src={brandLogo} alt="Dreamy Clouds logo" className="h-full w-full rounded-full object-cover" />
+              </span>
+              <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-lavender-600">Dreamy Clouds By Daisy</p>
+            </div>
             <h1 className="mt-2 font-['Sora'] text-2xl font-extrabold leading-tight text-lavender-900 sm:text-3xl">
               Design it. Preview it. Order in minutes.
             </h1>

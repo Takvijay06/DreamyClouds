@@ -7,7 +7,7 @@ import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PRODUCTS } from '../data/products';
 import { setProduct, setQuantity } from '../features/order/orderSlice';
 import { selectOrder, selectSelectedProduct } from '../features/order/selectors';
-import { ProductCategory } from '../features/order/orderTypes';
+import { Product, ProductCategory } from '../features/order/orderTypes';
 
 const CATEGORY_TABS: Array<{ key: ProductCategory; label: string }> = [
   { key: 'tumblers', label: 'Tumblers' },
@@ -21,7 +21,7 @@ export const ProductSelectionPage = () => {
   const order = useAppSelector(selectOrder);
   const selectedProduct = useAppSelector(selectSelectedProduct);
   const [activeCategory, setActiveCategory] = useState<ProductCategory>(selectedProduct?.category ?? 'tumblers');
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
 
   const filteredProducts = useMemo(
     () => PRODUCTS.filter((item) => item.category === activeCategory),
@@ -68,6 +68,7 @@ export const ProductSelectionPage = () => {
                 product={product}
                 selected={order.productId === product.id}
                 onSelect={(id) => dispatch(setProduct(id))}
+                onPreview={(item) => setPreviewProduct(item)}
               />
             ))}
           </div>
@@ -99,28 +100,18 @@ export const ProductSelectionPage = () => {
         </section>
 
         <div className="flex justify-end">
-          <div className="flex flex-wrap justify-end gap-3">
-            <button
-              className="btn-secondary"
-              type="button"
-              disabled={!selectedProduct}
-              onClick={() => setPreviewOpen(true)}
-            >
-              Preview Selected Product
-            </button>
-            <button
-              className="btn-primary"
-              type="button"
-              disabled={!selectedProduct}
-              onClick={() => navigate('/design')}
-            >
-              Next: Select Design
-            </button>
-          </div>
+          <button
+            className="btn-primary"
+            type="button"
+            disabled={!selectedProduct}
+            onClick={() => navigate('/design')}
+          >
+            Next: Select Design
+          </button>
         </div>
       </div>
 
-      <ProductPreviewModal product={selectedProduct} open={previewOpen} onClose={() => setPreviewOpen(false)} />
+      <ProductPreviewModal product={previewProduct} open={!!previewProduct} onClose={() => setPreviewProduct(null)} />
     </Layout>
   );
 };
