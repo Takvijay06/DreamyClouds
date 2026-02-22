@@ -21,6 +21,7 @@ export const SummaryPage = () => {
   const product = useAppSelector(selectSelectedProduct);
   const design = useAppSelector(selectSelectedDesign);
   const pricing = useAppSelector(selectPricing);
+  const isBookmarkProduct = product?.category === 'bookmarks';
 
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({
@@ -35,10 +36,10 @@ export const SummaryPage = () => {
       return;
     }
 
-    if (!design) {
+    if (!isBookmarkProduct && !design) {
       navigate('/design');
     }
-  }, [product, design, navigate]);
+  }, [product, design, isBookmarkProduct, navigate]);
 
   const canSubmit = useMemo(() => {
     const details = order.customerDetails;
@@ -56,7 +57,7 @@ export const SummaryPage = () => {
     return hasRequiredFields && hasValidContact && hasValidAlt && hasValidEmail;
   }, [order.customerDetails]);
 
-  if (!product || !design) {
+  if (!product || (!isBookmarkProduct && !design)) {
     return null;
   }
 
@@ -103,7 +104,7 @@ export const SummaryPage = () => {
       product,
       design,
       productImageUrl: toAbsoluteAssetUrl(product.image),
-      designImageUrl: toAbsoluteAssetUrl(design.image),
+      designImageUrl: design ? toAbsoluteAssetUrl(design.image) : undefined,
       quantity: order.quantity,
       giftWrap: order.giftWrap,
       personalizedNote: order.personalizedNote,
@@ -119,7 +120,7 @@ export const SummaryPage = () => {
   };
 
   return (
-    <Layout currentStep={4}>
+    <Layout currentStep={4} crossedSteps={isBookmarkProduct ? [2] : undefined}>
       <form className="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]" onSubmit={handleSubmit}>
         <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/75 p-4 sm:p-5">
           <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">Customer Details</h2>
@@ -225,7 +226,7 @@ export const SummaryPage = () => {
               Product: <span className="font-semibold text-lavender-900">{product.name}</span>
             </p>
             <p className="text-lavender-700">
-              Design: <span className="font-semibold text-lavender-900">{design.name}</span>
+              Design: <span className="font-semibold text-lavender-900">{design?.name ?? 'Not required for bookmarks'}</span>
             </p>
             <p className="text-lavender-700">
               Quantity: <span className="font-semibold text-lavender-900">{order.quantity}</span>

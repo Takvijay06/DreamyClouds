@@ -14,6 +14,7 @@ export const PreviewPage = () => {
   const product = useAppSelector(selectSelectedProduct);
   const design = useAppSelector(selectSelectedDesign);
   const pricing = useAppSelector(selectPricing);
+  const isBookmarkProduct = product?.category === 'bookmarks';
 
   useEffect(() => {
     if (!product) {
@@ -21,12 +22,12 @@ export const PreviewPage = () => {
       return;
     }
 
-    if (!design) {
+    if (!isBookmarkProduct && !design) {
       navigate('/design');
     }
-  }, [product, design, navigate]);
+  }, [product, design, isBookmarkProduct, navigate]);
 
-  if (!product || !design) {
+  if (!product || (!isBookmarkProduct && !design)) {
     return null;
   }
 
@@ -36,16 +37,18 @@ export const PreviewPage = () => {
   };
 
   return (
-    <Layout currentStep={3}>
+    <Layout currentStep={3} crossedSteps={isBookmarkProduct ? [2] : undefined}>
       <form className="grid gap-6 lg:grid-cols-2" onSubmit={handleSubmit}>
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-3xl border border-lavender-200/80 bg-white p-2">
             <img src={product.image} alt={product.name} className="h-72 w-full rounded-2xl object-cover" loading="lazy" />
-            <img
-              src={design.image}
-              alt={design.name}
-              className={`absolute rounded-lg border-2 border-white/80 object-cover shadow-lg ${product.overlayClassName}`}
-            />
+            {design ? (
+              <img
+                src={design.image}
+                alt={design.name}
+                className={`absolute rounded-lg border-2 border-white/80 object-cover shadow-lg ${product.overlayClassName}`}
+              />
+            ) : null}
             <div className="absolute left-5 top-5 rounded-full bg-black/55 px-3 py-1 text-[11px] font-semibold text-white">
               Live Preview
             </div>
@@ -56,7 +59,7 @@ export const PreviewPage = () => {
               <span className="font-semibold">Product:</span> {product.name}
             </p>
             <p>
-              <span className="font-semibold">Design:</span> {design.name}
+              <span className="font-semibold">Design:</span> {design?.name ?? 'Not required for bookmarks'}
             </p>
             <p>
               <span className="font-semibold">Quantity:</span> {order.quantity}
@@ -89,7 +92,7 @@ export const PreviewPage = () => {
           <PriceBreakdown pricing={pricing} quantity={order.quantity} />
 
           <div className="flex justify-between gap-3">
-            <button className="btn-secondary" type="button" onClick={() => navigate('/design')}>
+            <button className="btn-secondary" type="button" onClick={() => navigate(isBookmarkProduct ? '/' : '/design')}>
               Back
             </button>
             <button className="btn-primary" type="submit">

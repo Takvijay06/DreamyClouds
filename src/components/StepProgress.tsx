@@ -2,9 +2,10 @@ const STEPS = ['Product', 'Design', 'Preview', 'Summary'];
 
 interface StepProgressProps {
   currentStep: number;
+  crossedSteps?: number[];
 }
 
-export const StepProgress = ({ currentStep }: StepProgressProps) => {
+export const StepProgress = ({ currentStep, crossedSteps = [] }: StepProgressProps) => {
   return (
     <>
       <div className="rounded-2xl border border-lavender-200/80 bg-white/90 p-3 shadow-soft sm:hidden">
@@ -24,12 +25,15 @@ export const StepProgress = ({ currentStep }: StepProgressProps) => {
           const step = index + 1;
           const isActive = currentStep === step;
           const isComplete = currentStep > step;
+          const isCrossed = crossedSteps.includes(step);
 
           return (
             <div
               key={label}
               className={`rounded-2xl border px-3 py-3 text-center transition sm:py-3.5 ${
-                isActive
+                isCrossed
+                  ? 'border-red-200 bg-red-50 text-red-500'
+                  : isActive
                   ? 'border-lavender-600 bg-gradient-to-r from-lavender-700 to-lavender-500 text-white shadow-lg shadow-lavender-300/50'
                   : isComplete
                     ? 'border-lavender-300 bg-lavender-100 text-lavender-800'
@@ -39,7 +43,7 @@ export const StepProgress = ({ currentStep }: StepProgressProps) => {
               <p className="mx-auto mb-1 flex h-6 w-6 items-center justify-center rounded-full border border-current text-[11px] font-bold sm:h-7 sm:w-7 sm:text-xs">
                 {step}
               </p>
-              <p className="text-xs font-semibold sm:text-sm">{label}</p>
+              <p className={`text-xs font-semibold sm:text-sm ${isCrossed ? 'line-through' : ''}`}>{label}</p>
             </div>
           );
         })}

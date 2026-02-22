@@ -27,6 +27,7 @@ export const ProductSelectionPage = () => {
     () => PRODUCTS.filter((item) => item.category === activeCategory),
     [activeCategory]
   );
+  const isBookmarkProduct = selectedProduct?.category === 'bookmarks';
 
   return (
     <Layout currentStep={1}>
@@ -77,7 +78,11 @@ export const ProductSelectionPage = () => {
         <section className="flex flex-col gap-4 rounded-3xl border border-lavender-200/80 bg-gradient-to-r from-white to-lavender-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div>
             <p className="font-['Sora'] text-base font-bold text-lavender-900">How many pieces do you need?</p>
-            <p className="text-xs text-lavender-600 sm:text-sm">Adjust quantity before moving to design selection.</p>
+            <p className="text-xs text-lavender-600 sm:text-sm">
+              {isBookmarkProduct
+                ? 'Bookmarks skip design selection. You will go directly to preview.'
+                : 'Adjust quantity before moving to design selection.'}
+            </p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -104,9 +109,9 @@ export const ProductSelectionPage = () => {
             className="btn-primary"
             type="button"
             disabled={!selectedProduct}
-            onClick={() => navigate('/design')}
+            onClick={() => navigate(isBookmarkProduct ? '/preview' : '/design')}
           >
-            Next: Select Design
+            {isBookmarkProduct ? 'Next: Preview' : 'Next: Select Design'}
           </button>
         </div>
       </div>

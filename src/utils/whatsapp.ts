@@ -2,9 +2,9 @@ import { Pricing, Product, Design, CustomerDetails } from '../features/order/ord
 
 interface WhatsAppPayload {
   product: Product;
-  design: Design;
+  design: Design | null;
   productImageUrl: string;
-  designImageUrl: string;
+  designImageUrl?: string;
   quantity: number;
   giftWrap: boolean;
   personalizedNote: string;
@@ -30,14 +30,14 @@ export const buildWhatsAppMessage = ({
     '',
     '*Selected Product Details*',
     `- Product: ${product.name}`,
-    `- Design: ${design.name}`,
+    `- Design: ${design?.name ?? 'Not required for bookmarks'}`,
     `- Quantity: ${quantity}`,
     `- Gift Wrap: ${giftWrap ? 'Yes' : 'No'}`,
     `- Personalized Note: ${personalizedNote.trim() || 'N/A'}`,
     '',
     '*Selected Images*',
     `- Product Image: ${productImageUrl}`,
-    `- Design Image: ${designImageUrl}`,
+    `- Design Image: ${designImageUrl ?? 'N/A'}`,
     '',
     '*Pricing*',
     `- Unit Price: INR ${pricing.unitPrice}`,

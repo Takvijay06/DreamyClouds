@@ -5,9 +5,10 @@ import { StepProgress } from './StepProgress';
 interface LayoutProps {
   children: ReactNode;
   currentStep: 1 | 2 | 3 | 4;
+  crossedSteps?: number[];
 }
 
-export const Layout = ({ children, currentStep }: LayoutProps) => {
+export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => {
   return (
     <main className="page-shell animate-fadeInUp">
       <div className="floating-orb left-[-18px] top-20 h-16 w-16 bg-lavender-200/70" />
@@ -37,7 +38,7 @@ export const Layout = ({ children, currentStep }: LayoutProps) => {
       </section>
 
       <section className="mt-5">
-        <StepProgress currentStep={currentStep} />
+        <StepProgress currentStep={currentStep} crossedSteps={crossedSteps} />
       </section>
 
       <section className="mt-6 card p-4 sm:p-6">{children}</section>

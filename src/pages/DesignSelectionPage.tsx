@@ -22,10 +22,15 @@ export const DesignSelectionPage = () => {
   useEffect(() => {
     if (!product) {
       navigate('/');
+      return;
+    }
+
+    if (product.category === 'bookmarks') {
+      navigate('/preview');
     }
   }, [product, navigate]);
 
-  if (!product) {
+  if (!product || product.category === 'bookmarks') {
     return null;
   }
 
