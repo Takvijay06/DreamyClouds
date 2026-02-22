@@ -51,62 +51,61 @@ body::before {
   @apply inline-flex items-center justify-center rounded-2xl border border-lavender-300 bg-white/90 px-5 py-3 text-sm font-semibold text-lavender-700 transition duration-200 hover:-translate-y-0.5 hover:border-lavender-400 hover:bg-lavender-100;
 }
 
-.contact-us-cta-wrap {
-  position: relative;
+.contact-fab {
+  position: fixed;
+  right: clamp(12px, 2.2vw, 24px);
+  bottom: clamp(12px, 2.2vw, 24px);
+  z-index: 35;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.contact-fab-icon {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: clamp(58px, 7vw, 68px);
+  height: clamp(58px, 7vw, 68px);
+  border-radius: 9999px;
+  border: 1px solid rgba(188, 156, 255, 0.85);
+  background: radial-gradient(circle at 35% 25%, #ffffff 0%, #f0e2ff 56%, #e3d0ff 100%);
+  box-shadow: 0 12px 28px -14px rgba(92, 50, 162, 0.85);
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.contact-us-cta {
-  position: relative;
-  overflow: visible;
-  box-shadow: 0 10px 22px -16px rgba(97, 57, 171, 0.75);
+.contact-fab-icon span {
+  font-size: clamp(2.2rem, 5vw, 2.75rem);
+  line-height: 1;
+  animation: contactEmojiBounce 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 7px 12px rgba(92, 50, 162, 0.32));
 }
 
-.contact-us-cta::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.58), transparent);
-  transform: translateX(-130%);
-  animation: contactShine 2.8s ease-in-out infinite;
+.contact-fab-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px -14px rgba(92, 50, 162, 0.95);
 }
 
-.contact-us-emoji-overflow {
-  position: absolute;
-  right: calc(100% + 8px);
-  top: 50%;
-  display: inline-flex;
-  transform: translateY(-52%);
-  font-size: clamp(2.7rem, 4.6vw, 3.2rem);
-  line-height: 0.9;
-  pointer-events: none;
-  filter: drop-shadow(0 8px 14px rgba(89, 52, 153, 0.28));
-  animation: contactEmojiBounce 1.3s ease-in-out infinite;
-}
-
-.contact-us-label {
-  position: relative;
-  z-index: 1;
+.contact-fab-text {
+  font-family: 'Sora', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #5c32a2;
+  text-transform: capitalize;
 }
 
 @media (max-width: 640px) {
-  .contact-us-cta-wrap {
-    width: 100%;
-    justify-content: center;
+  .contact-fab {
+    right: 10px;
+    bottom: 10px;
   }
 
-  .contact-us-emoji-overflow {
-    right: auto;
-    left: -2px;
+  .contact-fab-text {
+    font-size: 0.7rem;
   }
-}
-
-.contact-us-arrow {
-  display: inline-flex;
-  font-size: 0.95rem;
-  font-weight: 800;
-  animation: contactArrowNudge 1.3s ease-in-out infinite;
 }
 
 .input {
@@ -385,26 +384,6 @@ body::before {
   }
   50% {
     transform: translateY(-2px) rotate(-8deg);
-  }
-}
-
-@keyframes contactArrowNudge {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  50% {
-    transform: translateX(3px);
-  }
-}
-
-@keyframes contactShine {
-  0% {
-    transform: translateX(-130%);
-  }
-  45%,
-  100% {
-    transform: translateX(130%);
   }
 }
 
