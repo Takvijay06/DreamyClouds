@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { Layout } from '../components/Layout';
@@ -22,12 +22,33 @@ export const ProductSelectionPage = () => {
   const selectedProduct = useAppSelector(selectSelectedProduct);
   const [activeCategory, setActiveCategory] = useState<ProductCategory>(selectedProduct?.category ?? 'tumblers');
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
+  const nextSectionRef = useRef<HTMLDivElement | null>(null);
 
   const filteredProducts = useMemo(
     () => PRODUCTS.filter((item) => item.category === activeCategory),
     [activeCategory]
   );
   const isBookmarkProduct = selectedProduct?.category === 'bookmarks';
+
+  const handleProductSelect = (id: string) => {
+    dispatch(setProduct(id));
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const isMobile = window.matchMedia('(max-width: 639px)').matches;
+    if (!isMobile) {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      nextSectionRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    });
+  };
 
   return (
     <Layout currentStep={1}>
@@ -68,7 +89,7 @@ export const ProductSelectionPage = () => {
                 key={product.id}
                 product={product}
                 selected={order.productId === product.id}
-                onSelect={(id) => dispatch(setProduct(id))}
+                onSelect={handleProductSelect}
                 onPreview={(item) => setPreviewProduct(item)}
               />
             ))}
@@ -104,7 +125,7 @@ export const ProductSelectionPage = () => {
           </div>
         </section>
 
-        <div className="flex justify-end">
+        <div ref={nextSectionRef} className="flex justify-end">
           <button
             className="btn-primary"
             type="button"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import faviconDd from './data/Logos/favicon_dd.png';
+import { ContactUsPage } from './pages/ContactUsPage';
 import { DesignSelectionPage } from './pages/DesignSelectionPage';
 import { PreviewPage } from './pages/PreviewPage';
 import { ProductSelectionPage } from './pages/ProductSelectionPage';
@@ -64,6 +65,7 @@ const App = () => {
           <Route path="/design" element={<DesignSelectionPage />} />
           <Route path="/preview" element={<PreviewPage />} />
           <Route path="/summary" element={<SummaryPage />} />
+          <Route path="/contact-us" element={<ContactUsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

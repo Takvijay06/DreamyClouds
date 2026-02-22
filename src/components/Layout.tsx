@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import brandLogo from '../data/Logos/Logo_4.jpeg';
 import { StepProgress } from './StepProgress';
 
@@ -30,9 +31,24 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
               Custom UV TF printed tumblers, mugs, and bookmarks with instant WhatsApp checkout.
             </p>
           </div>
-          <div className="mx-auto rounded-2xl border border-lavender-300/60 bg-white/85 px-4 py-3 text-center shadow-sm sm:mx-0 sm:text-right">
-            <p className="text-xs font-semibold uppercase tracking-wide text-lavender-500">Flow</p>
-            <p className="font-['Sora'] text-lg font-bold text-lavender-900">4-step quick order</p>
+
+          <div className="mx-auto flex flex-col gap-2 sm:mx-0 sm:items-end">
+            <div className="contact-us-cta-wrap w-full sm:w-auto">
+              <span className="contact-us-emoji-overflow" aria-hidden="true">
+                {'\u{1F964}'}
+              </span>
+              <Link to="/contact-us" className="btn-secondary contact-us-cta w-full justify-start gap-2 sm:w-auto">
+                <span className="contact-us-label">Contact us</span>
+                <span className="contact-us-arrow" aria-hidden="true">
+                  →
+                </span>
+              </Link>
+            </div>
+
+            <div className="rounded-2xl border border-lavender-300/60 bg-white/85 px-4 py-3 text-center shadow-sm sm:text-right">
+              <p className="text-xs font-semibold uppercase tracking-wide text-lavender-500">Flow</p>
+              <p className="font-['Sora'] text-lg font-bold text-lavender-900">4-step quick order</p>
+            </div>
           </div>
         </div>
       </section>

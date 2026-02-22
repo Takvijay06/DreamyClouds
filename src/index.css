@@ -51,6 +51,64 @@ body::before {
   @apply inline-flex items-center justify-center rounded-2xl border border-lavender-300 bg-white/90 px-5 py-3 text-sm font-semibold text-lavender-700 transition duration-200 hover:-translate-y-0.5 hover:border-lavender-400 hover:bg-lavender-100;
 }
 
+.contact-us-cta-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.contact-us-cta {
+  position: relative;
+  overflow: visible;
+  box-shadow: 0 10px 22px -16px rgba(97, 57, 171, 0.75);
+}
+
+.contact-us-cta::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.58), transparent);
+  transform: translateX(-130%);
+  animation: contactShine 2.8s ease-in-out infinite;
+}
+
+.contact-us-emoji-overflow {
+  position: absolute;
+  right: calc(100% + 8px);
+  top: 50%;
+  display: inline-flex;
+  transform: translateY(-52%);
+  font-size: clamp(2.7rem, 4.6vw, 3.2rem);
+  line-height: 0.9;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 14px rgba(89, 52, 153, 0.28));
+  animation: contactEmojiBounce 1.3s ease-in-out infinite;
+}
+
+.contact-us-label {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .contact-us-cta-wrap {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .contact-us-emoji-overflow {
+    right: auto;
+    left: -2px;
+  }
+}
+
+.contact-us-arrow {
+  display: inline-flex;
+  font-size: 0.95rem;
+  font-weight: 800;
+  animation: contactArrowNudge 1.3s ease-in-out infinite;
+}
+
 .input {
   @apply w-full rounded-2xl border border-lavender-200 bg-white/95 px-3.5 py-2.5 text-sm text-lavender-900 outline-none transition placeholder:text-lavender-400 focus:border-lavender-500 focus:ring-2 focus:ring-lavender-200;
 }
@@ -317,6 +375,36 @@ body::before {
   }
   to {
     transform: translateX(130vw);
+  }
+}
+
+@keyframes contactEmojiBounce {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(-8deg);
+  }
+}
+
+@keyframes contactArrowNudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+}
+
+@keyframes contactShine {
+  0% {
+    transform: translateX(-130%);
+  }
+  45%,
+  100% {
+    transform: translateX(130%);
   }
 }
 
