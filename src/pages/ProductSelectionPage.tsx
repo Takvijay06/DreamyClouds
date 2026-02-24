@@ -5,8 +5,8 @@ import { Layout } from '../components/Layout';
 import { ProductCard } from '../components/ProductCard';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PRODUCTS } from '../data/products';
-import { setProduct, setQuantity, setSelectedColor } from '../features/order/orderSlice';
-import { selectOrder, selectSelectedProduct } from '../features/order/selectors';
+import { addToCart, setProduct, setQuantity, setSelectedColor } from '../features/order/orderSlice';
+import { selectCartItemCount, selectOrder, selectResolvedCartItems, selectSelectedProduct } from '../features/order/selectors';
 import { Product, ProductCategory, TumblerSubCategory } from '../features/order/orderTypes';
 
 const CATEGORY_TABS: Array<{ key: ProductCategory; label: string }> = [
@@ -37,6 +37,8 @@ export const ProductSelectionPage = () => {
   const dispatch = useAppDispatch();
   const order = useAppSelector(selectOrder);
   const selectedProduct = useAppSelector(selectSelectedProduct);
+  const cartItems = useAppSelector(selectResolvedCartItems);
+  const cartItemCount = useAppSelector(selectCartItemCount);
   const [activeCategory, setActiveCategory] = useState<ProductCategory>(selectedProduct?.category ?? 'tumblers');
   const [activeTumblerSubCategory, setActiveTumblerSubCategory] = useState<TumblerSubCategory>(
     selectedProduct?.category === 'tumblers' && selectedProduct.subCategory ? selectedProduct.subCategory : 'steel-tumbler'
@@ -60,6 +62,7 @@ export const ProductSelectionPage = () => {
     [activeCategory, activeTumblerSubCategory]
   );
   const isBookmarkProduct = selectedProduct?.category === 'bookmarks';
+  const isBookmarkCart = cartItems.length > 0 && cartItems.every((item) => item.product.category === 'bookmarks');
   const selectedColorOptions = useMemo(() => {
     if (!selectedProduct) {
       return [];
@@ -100,6 +103,20 @@ export const ProductSelectionPage = () => {
         block: 'start'
       });
     });
+  };
+
+  const handleAddToCart = () => {
+    if (!selectedProduct) {
+      return;
+    }
+
+    dispatch(
+      addToCart({
+        productId: selectedProduct.id,
+        quantity: order.quantity,
+        selectedColor: order.selectedColor || selectedColorOptions[0] || 'N/A'
+      })
+    );
   };
 
   return (
@@ -238,14 +255,28 @@ export const ProductSelectionPage = () => {
           </section>
         ) : null}
 
+        <section className="rounded-3xl border border-lavender-200/80 bg-white/85 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Cart Action</p>
+              <p className="text-xs text-lavender-600 sm:text-sm">
+                Add current selection to cart. Manage full cart from Summary page.
+              </p>
+            </div>
+            <button className="btn-primary px-4 py-2 text-xs sm:text-sm" type="button" disabled={!selectedProduct} onClick={handleAddToCart}>
+              Add Current Selection
+            </button>
+          </div>
+        </section>
+
         <div ref={nextSectionRef} className="flex justify-end">
           <button
             className="btn-primary"
             type="button"
-            disabled={!selectedProduct}
-            onClick={() => navigate(isBookmarkProduct ? '/preview' : '/design')}
+            disabled={cartItemCount === 0}
+            onClick={() => navigate(isBookmarkCart ? '/preview' : '/design')}
           >
-            {isBookmarkProduct ? 'Next: Preview' : 'Next: Select Design'}
+            {isBookmarkCart ? 'Next: Preview' : 'Next: Select Design'}
           </button>
         </div>
       </div>

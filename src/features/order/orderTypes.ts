@@ -30,6 +30,13 @@ export interface CustomerDetails {
   email: string;
 }
 
+export interface CartItem {
+  id: string;
+  productId: string;
+  quantity: number;
+  selectedColor: string;
+}
+
 export interface Pricing {
   unitPrice: number;
   quantityTotal: number;
@@ -49,6 +56,7 @@ export interface OrderState {
   selectedColor: string;
   couponCode: string;
   quantity: number;
+  cartItems: CartItem[];
   designId: string | null;
   giftWrap: boolean;
   personalizedNote: string;

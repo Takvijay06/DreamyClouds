@@ -97,6 +97,71 @@ body::before {
   text-transform: capitalize;
 }
 
+.cart-fab {
+  position: fixed;
+  left: clamp(12px, 2.2vw, 24px);
+  bottom: clamp(12px, 2.2vw, 24px);
+  z-index: 35;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.cart-fab-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(58px, 7vw, 68px);
+  height: clamp(58px, 7vw, 68px);
+  border-radius: 9999px;
+  border: 1px solid rgba(188, 156, 255, 0.85);
+  background: radial-gradient(circle at 35% 25%, #ffffff 0%, #f0e2ff 56%, #e3d0ff 100%);
+  box-shadow: 0 12px 28px -14px rgba(92, 50, 162, 0.85);
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cart-fab-icon span {
+  font-size: clamp(1.95rem, 4.5vw, 2.4rem);
+  line-height: 1;
+  animation: cartIconPulse 1.35s ease-in-out infinite;
+  filter: drop-shadow(0 7px 12px rgba(92, 50, 162, 0.32));
+}
+
+.cart-fab-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px -14px rgba(92, 50, 162, 0.95);
+}
+
+.cart-fab-badge {
+  position: absolute;
+  top: -2px;
+  right: -1px;
+  min-width: 1.3rem;
+  height: 1.3rem;
+  padding: 0 0.25rem;
+  border-radius: 9999px;
+  background: #5c32a2;
+  color: #fff;
+  border: 2px solid #f6efff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cart-fab-text {
+  font-family: 'Sora', sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #5c32a2;
+  text-transform: capitalize;
+}
+
 @media (max-width: 640px) {
   .contact-fab {
     right: 10px;
@@ -104,6 +169,15 @@ body::before {
   }
 
   .contact-fab-text {
+    font-size: 0.7rem;
+  }
+
+  .cart-fab {
+    left: 10px;
+    bottom: 10px;
+  }
+
+  .cart-fab-text {
     font-size: 0.7rem;
   }
 }
@@ -384,6 +458,16 @@ body::before {
   }
   50% {
     transform: translateY(-2px) rotate(-8deg);
+  }
+}
+
+@keyframes cartIconPulse {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-2px) scale(1.05);
   }
 }
 

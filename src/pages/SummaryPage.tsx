@@ -4,8 +4,22 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { FormInput } from '../components/FormInput';
 import { Layout } from '../components/Layout';
 import { PriceBreakdown } from '../components/PriceBreakdown';
-import { clearOrder, clearPersistedOrder, setCustomerDetails } from '../features/order/orderSlice';
-import { selectOrder, selectPricing, selectSelectedDesign, selectSelectedProduct } from '../features/order/selectors';
+import {
+  clearOrder,
+  clearPersistedOrder,
+  removeFromCart,
+  setCustomerDetails,
+  updateCartItemQuantity
+} from '../features/order/orderSlice';
+import {
+  selectCartTotalQuantity,
+  selectOrder,
+  selectPricing,
+  selectResolvedCartItems,
+  selectSelectedDesign,
+  selectSelectedProduct
+} from '../features/order/selectors';
+import { formatRupee } from '../utils/currency';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../utils/whatsapp';
 
 const BUSINESS_WHATSAPP_NUMBER = '6350422134';
@@ -30,17 +44,22 @@ export const SummaryPage = () => {
 
   const order = useAppSelector(selectOrder);
   const product = useAppSelector(selectSelectedProduct);
+  const cartItems = useAppSelector(selectResolvedCartItems);
+  const cartTotalQuantity = useAppSelector(selectCartTotalQuantity);
   const design = useAppSelector(selectSelectedDesign);
   const pricing = useAppSelector(selectPricing);
   const isBookmarkProduct = product?.category === 'bookmarks';
+  const hasCartItems = cartItems.length > 0;
+  const isBookmarkCart = cartItems.length > 0 && cartItems.every((item) => item.product.category === 'bookmarks');
+  const displayProduct = product ?? cartItems[0]?.product ?? null;
 
   const [fieldErrors, setFieldErrors] = useState<ValidationErrors>(EMPTY_VALIDATION_ERRORS);
 
   useEffect(() => {
-    if (!product) {
+    if (!displayProduct && !hasCartItems) {
       navigate('/');
     }
-  }, [product, navigate]);
+  }, [displayProduct, hasCartItems, navigate]);
 
   const canSubmit = useMemo(() => {
     const details = order.customerDetails;
@@ -51,14 +70,16 @@ export const SummaryPage = () => {
       details.email.trim()
     );
     const hasValidContact = INDIAN_MOBILE_REGEX.test(details.contactNumber);
-    const hasValidAlt =
-      !details.alternateNumber.trim() || INDIAN_MOBILE_REGEX.test(details.alternateNumber);
+    const hasValidAlt = !details.alternateNumber.trim() || INDIAN_MOBILE_REGEX.test(details.alternateNumber);
     const hasValidEmail = EMAIL_REGEX.test(details.email.trim());
 
     return hasRequiredFields && hasValidContact && hasValidAlt && hasValidEmail;
   }, [order.customerDetails]);
 
-  if (!product) {
+  if (!displayProduct && !hasCartItems) {
+    return null;
+  }
+  if (!displayProduct) {
     return null;
   }
 
@@ -115,12 +136,15 @@ export const SummaryPage = () => {
     }
 
     const message = buildWhatsAppMessage({
-      product,
+      product: displayProduct,
       design,
-      productImageUrl: toAbsoluteAssetUrl(product.image),
+      productImageUrl: toAbsoluteAssetUrl(displayProduct.image),
       designImageUrl: design ? toAbsoluteAssetUrl(design.image) : undefined,
       selectedColor: order.selectedColor,
-      quantity: order.quantity,
+      quantity: cartTotalQuantity || order.quantity,
+      cartItems: cartItems.map(
+        (item) => `- ${item.product.name} (${item.selectedColor}) x ${item.quantity} = ${formatRupee(item.lineTotal)}`
+      ),
       giftWrap: order.giftWrap,
       personalizedNote: order.personalizedNote,
       customerDetails: details,
@@ -135,7 +159,7 @@ export const SummaryPage = () => {
   };
 
   return (
-    <Layout currentStep={4} crossedSteps={isBookmarkProduct ? [2] : undefined}>
+    <Layout currentStep={4} crossedSteps={isBookmarkCart || isBookmarkProduct ? [2] : undefined}>
       <form className="grid gap-6 lg:grid-cols-[1.1fr,0.9fr]" onSubmit={handleSubmit}>
         <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/75 p-4 sm:p-5">
           <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">Customer Details</h2>
@@ -253,7 +277,7 @@ export const SummaryPage = () => {
           <div className="rounded-3xl border border-lavender-200/80 bg-white p-4 text-sm sm:p-5">
             <h3 className="font-['Sora'] text-base font-bold text-lavender-900">Order Snapshot</h3>
             <p className="mt-2 text-lavender-700">
-              Product: <span className="font-semibold text-lavender-900">{product.name}</span>
+              Product: <span className="font-semibold text-lavender-900">{displayProduct.name}</span>
             </p>
             <p className="text-lavender-700">
               Color: <span className="font-semibold text-lavender-900">{order.selectedColor || 'N/A'}</span>
@@ -262,7 +286,7 @@ export const SummaryPage = () => {
               Design: <span className="font-semibold text-lavender-900">{design?.name ?? 'Not selected'}</span>
             </p>
             <p className="text-lavender-700">
-              Quantity: <span className="font-semibold text-lavender-900">{order.quantity}</span>
+              Quantity: <span className="font-semibold text-lavender-900">{cartTotalQuantity || order.quantity}</span>
             </p>
             <p className="text-lavender-700">
               Gift Wrap: <span className="font-semibold text-lavender-900">{order.giftWrap ? 'Yes' : 'No'}</span>
@@ -276,12 +300,78 @@ export const SummaryPage = () => {
             <p className="text-lavender-700">
               Personalized Name: <span className="font-semibold text-lavender-900">{order.personalizedNote.trim() || 'N/A'}</span>
             </p>
+            {cartItems.length > 0 ? (
+              <div className="mt-2 space-y-1 border-t border-lavender-100 pt-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-lavender-600">Cart Items</p>
+                {cartItems.map((item) => (
+                  <p key={item.id} className="text-xs text-lavender-700">
+                    {item.product.name} ({item.selectedColor}) x {item.quantity} = {formatRupee(item.lineTotal)}
+                  </p>
+                ))}
+              </div>
+            ) : null}
             <p className="text-lavender-700">
-              Contact: <span className="font-semibold text-lavender-900">+91 {order.customerDetails.contactNumber || '—'}</span>
+              Contact: <span className="font-semibold text-lavender-900">+91 {order.customerDetails.contactNumber || '-'}</span>
             </p>
           </div>
 
-          <PriceBreakdown pricing={pricing} quantity={order.quantity} />
+          {cartItems.length > 0 ? (
+            <div className="rounded-3xl border border-lavender-200/80 bg-white p-4 text-sm sm:p-5">
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="font-['Sora'] text-base font-bold text-lavender-900">Current Cart</h3>
+                <span className="rounded-full bg-lavender-100 px-2.5 py-1 text-xs font-semibold text-lavender-700">
+                  {cartItems.length} items
+                </span>
+              </div>
+              <div className="space-y-2">
+                {cartItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex flex-col gap-2 rounded-2xl border border-lavender-200 bg-lavender-50/60 p-3 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-lavender-900">{item.product.name}</p>
+                      <p className="text-xs text-lavender-700">
+                        Color: {item.selectedColor} | Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotal)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="btn-secondary h-9 w-9 p-0 text-lg"
+                        onClick={() => dispatch(updateCartItemQuantity({ id: item.id, quantity: item.quantity - 1 }))}
+                      >
+                        -
+                      </button>
+                      <span className="w-8 text-center text-sm font-bold text-lavender-900">{item.quantity}</span>
+                      <button
+                        type="button"
+                        className="btn-secondary h-9 w-9 p-0 text-lg"
+                        onClick={() => dispatch(updateCartItemQuantity({ id: item.id, quantity: item.quantity + 1 }))}
+                      >
+                        +
+                      </button>
+                      <button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => dispatch(removeFromCart(item.id))}>
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="rounded-3xl border border-lavender-200/80 bg-lavender-50/60 p-4 sm:p-5">
+            <p className="text-sm font-semibold text-lavender-900">Want to add more products?</p>
+            <p className="mt-1 text-xs text-lavender-700 sm:text-sm">
+              Continue shopping to add more items to the same cart. Your current cart is preserved.
+            </p>
+            <button className="btn-secondary mt-3 w-full sm:w-auto" type="button" onClick={() => navigate('/')}>
+              Continue Shopping
+            </button>
+          </div>
+
+          <PriceBreakdown pricing={pricing} quantity={cartTotalQuantity || order.quantity} />
 
           <div className="flex justify-between gap-3">
             <button className="btn-secondary" type="button" onClick={() => navigate('/preview')}>

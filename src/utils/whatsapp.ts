@@ -7,6 +7,7 @@ interface WhatsAppPayload {
   designImageUrl?: string;
   selectedColor: string;
   quantity: number;
+  cartItems?: string[];
   giftWrap: boolean;
   personalizedNote: string;
   customerDetails: CustomerDetails;
@@ -21,6 +22,7 @@ export const buildWhatsAppMessage = ({
   designImageUrl,
   selectedColor,
   quantity,
+  cartItems,
   giftWrap,
   personalizedNote,
   customerDetails,
@@ -37,6 +39,7 @@ export const buildWhatsAppMessage = ({
     `- Quantity: ${quantity}`,
     `- Gift Wrap: ${giftWrap ? 'Yes' : 'No'}`,
     `- Personalized Name: ${personalizedNote.trim() || 'N/A'}`,
+    ...(cartItems && cartItems.length > 0 ? ['', '*Cart Items*', ...cartItems] : []),
     '',
     '*Selected Images*',
     `- Product Image: ${productImageUrl}`,

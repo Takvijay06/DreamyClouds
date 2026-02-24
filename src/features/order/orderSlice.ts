@@ -18,10 +18,21 @@ const defaultState: OrderState = {
   selectedColor: '',
   couponCode: '',
   quantity: 1,
+  cartItems: [],
   designId: null,
   giftWrap: false,
   personalizedNote: '',
   customerDetails: initialCustomerDetails
+};
+
+const resetSelectionAndPricingState = (state: OrderState) => {
+  state.productId = null;
+  state.selectedColor = '';
+  state.quantity = 1;
+  state.designId = null;
+  state.giftWrap = false;
+  state.personalizedNote = '';
+  state.couponCode = '';
 };
 
 const hydrateState = (): OrderState => {
@@ -70,6 +81,39 @@ const orderSlice = createSlice({
     setQuantity(state, action: PayloadAction<number>) {
       state.quantity = Math.max(1, action.payload);
     },
+    addToCart(state, action: PayloadAction<{ productId: string; quantity: number; selectedColor: string }>) {
+      const { productId, quantity, selectedColor } = action.payload;
+      const normalizedQty = Math.max(1, quantity);
+      const existing = state.cartItems.find((item) => item.productId === productId && item.selectedColor === selectedColor);
+      if (existing) {
+        existing.quantity += normalizedQty;
+        return;
+      }
+
+      state.cartItems.push({
+        id: `${productId}-${selectedColor}-${Date.now()}`,
+        productId,
+        quantity: normalizedQty,
+        selectedColor
+      });
+    },
+    removeFromCart(state, action: PayloadAction<string>) {
+      state.cartItems = state.cartItems.filter((item) => item.id !== action.payload);
+      if (state.cartItems.length === 0) {
+        resetSelectionAndPricingState(state);
+      }
+    },
+    updateCartItemQuantity(state, action: PayloadAction<{ id: string; quantity: number }>) {
+      const item = state.cartItems.find((entry) => entry.id === action.payload.id);
+      if (!item) {
+        return;
+      }
+      item.quantity = Math.max(1, action.payload.quantity);
+    },
+    clearCart(state) {
+      state.cartItems = [];
+      resetSelectionAndPricingState(state);
+    },
     setDesign(state, action: PayloadAction<string>) {
       state.designId = action.payload;
     },
@@ -97,6 +141,10 @@ export const {
   setCouponCode,
   clearCouponCode,
   setQuantity,
+  addToCart,
+  removeFromCart,
+  updateCartItemQuantity,
+  clearCart,
   setDesign,
   clearDesignSelection,
   setGiftWrap,

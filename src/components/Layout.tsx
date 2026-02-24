@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { useAppSelector } from '../app/hooks';
 import brandLogo from '../data/Logos/Logo_4.jpeg';
+import { selectCartItemCount } from '../features/order/selectors';
 import { FestivalBanner } from './FestivalBanner';
 import { StepProgress } from './StepProgress';
 
@@ -11,6 +13,8 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => {
+  const cartItemCount = useAppSelector(selectCartItemCount);
+
   return (
     <main className="page-shell animate-fadeInUp">
       <div className="floating-orb left-[-18px] top-20 h-16 w-16 bg-lavender-200/70" />
@@ -59,6 +63,14 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
           <span aria-hidden="true">{'\u{1F964}'}</span>
         </Link>
         <span className="contact-fab-text">Contact Us</span>
+      </div>
+
+      <div className="cart-fab" aria-label="Cart">
+        <Link to="/summary" className="cart-fab-icon" aria-label="Go to cart summary page">
+          <span aria-hidden="true">{'\u{1F6D2}'}</span>
+          {cartItemCount > 0 ? <span className="cart-fab-badge">{cartItemCount}</span> : null}
+        </Link>
+        <span className="cart-fab-text">Cart</span>
       </div>
     </main>
   );

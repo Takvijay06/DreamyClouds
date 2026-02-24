@@ -5,9 +5,11 @@ import { Layout } from '../components/Layout';
 import { PriceBreakdown } from '../components/PriceBreakdown';
 import { clearCouponCode, setCouponCode, setGiftWrap, setPersonalizedNote } from '../features/order/orderSlice';
 import {
+  selectCartTotalQuantity,
   selectCouponEvaluation,
   selectOrder,
   selectPricing,
+  selectResolvedCartItems,
   selectSelectedDesign,
   selectSelectedProduct
 } from '../features/order/selectors';
@@ -20,16 +22,21 @@ export const PreviewPage = () => {
 
   const order = useAppSelector(selectOrder);
   const product = useAppSelector(selectSelectedProduct);
+  const cartItems = useAppSelector(selectResolvedCartItems);
+  const cartTotalQuantity = useAppSelector(selectCartTotalQuantity);
   const design = useAppSelector(selectSelectedDesign);
   const pricing = useAppSelector(selectPricing);
   const couponEvaluation = useAppSelector(selectCouponEvaluation);
   const isBookmarkProduct = product?.category === 'bookmarks';
+  const hasCartItems = cartItems.length > 0;
+  const isBookmarkCart = cartItems.length > 0 && cartItems.every((item) => item.product.category === 'bookmarks');
+  const displayProduct = product ?? cartItems[0]?.product ?? null;
 
   useEffect(() => {
-    if (!product) {
+    if (!product && !hasCartItems) {
       navigate('/');
     }
-  }, [product, navigate]);
+  }, [product, hasCartItems, navigate]);
 
   useEffect(() => {
     if (!isLivePreviewOpen) {
@@ -56,7 +63,10 @@ export const PreviewPage = () => {
     setCouponInput(order.couponCode);
   }, [order.couponCode]);
 
-  if (!product) {
+  if (!displayProduct && !hasCartItems) {
+    return null;
+  }
+  if (!displayProduct) {
     return null;
   }
 
@@ -66,13 +76,13 @@ export const PreviewPage = () => {
   };
 
   return (
-    <Layout currentStep={3} crossedSteps={isBookmarkProduct ? [2] : undefined}>
+    <Layout currentStep={3} crossedSteps={isBookmarkCart || isBookmarkProduct ? [2] : undefined}>
       <form className="grid gap-6 lg:grid-cols-2" onSubmit={handleSubmit}>
         <div className="space-y-4">
           <div className="relative overflow-hidden rounded-3xl border border-lavender-200/80 bg-white p-2">
             <img
-              src={product.image}
-              alt={product.name}
+              src={displayProduct.image}
+              alt={displayProduct.name}
               className="h-72 w-full rounded-2xl bg-lavender-50/40 object-contain p-2"
               loading="lazy"
             />
@@ -80,7 +90,7 @@ export const PreviewPage = () => {
               <img
                 src={design.image}
                 alt={design.name}
-                className={`absolute rounded-lg border-2 border-white/80 bg-white/40 object-contain shadow-lg ${product.overlayClassName}`}
+                className={`absolute rounded-lg border-2 border-white/80 bg-white/40 object-contain shadow-lg ${displayProduct.overlayClassName}`}
               />
             ) : null}
             <button
@@ -94,7 +104,7 @@ export const PreviewPage = () => {
 
           <div className="rounded-3xl border border-lavender-200/80 bg-gradient-to-r from-lavender-50 to-white p-4 text-sm text-lavender-800">
             <p>
-              <span className="font-semibold">Product:</span> {product.name}
+              <span className="font-semibold">Products in Cart:</span> {cartItems.length || 1}
             </p>
             <p>
               <span className="font-semibold">Color:</span> {order.selectedColor || 'N/A'}
@@ -103,7 +113,7 @@ export const PreviewPage = () => {
               <span className="font-semibold">Design:</span> {design?.name ?? 'Not selected'}
             </p>
             <p>
-              <span className="font-semibold">Quantity:</span> {order.quantity}
+              <span className="font-semibold">Quantity:</span> {cartTotalQuantity || order.quantity}
             </p>
           </div>
         </div>
@@ -174,10 +184,10 @@ export const PreviewPage = () => {
             ) : null}
           </div>
 
-          <PriceBreakdown pricing={pricing} quantity={order.quantity} />
+          <PriceBreakdown pricing={pricing} quantity={cartTotalQuantity || order.quantity} />
 
           <div className="flex justify-between gap-3">
-            <button className="btn-secondary" type="button" onClick={() => navigate(isBookmarkProduct ? '/' : '/design')}>
+            <button className="btn-secondary" type="button" onClick={() => navigate(isBookmarkCart || isBookmarkProduct ? '/' : '/design')}>
               Back
             </button>
             <button className="btn-primary" type="submit">
@@ -204,12 +214,12 @@ export const PreviewPage = () => {
               Close
             </button>
             <div className="relative mx-auto flex h-full w-full items-center justify-center overflow-hidden rounded-2xl bg-lavender-50/45 p-2">
-              <img src={product.image} alt={product.name} className="mx-auto max-h-[82vh] w-full object-contain" />
+              <img src={displayProduct.image} alt={displayProduct.name} className="mx-auto max-h-[82vh] w-full object-contain" />
               {design ? (
                 <img
                   src={design.image}
                   alt={design.name}
-                  className={`absolute rounded-lg border-2 border-white/80 bg-white/40 object-contain shadow-lg ${product.overlayClassName}`}
+                  className={`absolute rounded-lg border-2 border-white/80 bg-white/40 object-contain shadow-lg ${displayProduct.overlayClassName}`}
                 />
               ) : null}
             </div>
