@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { DesignCard } from '../components/DesignCard';
 import { Layout } from '../components/Layout';
-import { setDesign } from '../features/order/orderSlice';
+import { clearDesignSelection, setDesign } from '../features/order/orderSlice';
 import {
   selectFilteredDesigns,
   selectOrder,
@@ -59,14 +59,21 @@ export const DesignSelectionPage = () => {
           <button className="btn-secondary" type="button" onClick={() => navigate('/')}>
             Back
           </button>
-          <button
-            className="btn-primary"
-            type="button"
-            disabled={!selectedDesign}
-            onClick={() => navigate('/preview')}
-          >
-            Next: Preview
-          </button>
+          <div className="flex gap-2">
+            <button
+              className="btn-secondary"
+              type="button"
+              onClick={() => {
+                dispatch(clearDesignSelection());
+                navigate('/preview');
+              }}
+            >
+              Continue without Design
+            </button>
+            <button className="btn-primary" type="button" disabled={!selectedDesign} onClick={() => navigate('/preview')}>
+              Next: Preview
+            </button>
+          </div>
         </div>
       </div>
     </Layout>

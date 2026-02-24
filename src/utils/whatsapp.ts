@@ -5,6 +5,7 @@ interface WhatsAppPayload {
   design: Design | null;
   productImageUrl: string;
   designImageUrl?: string;
+  selectedColor: string;
   quantity: number;
   giftWrap: boolean;
   personalizedNote: string;
@@ -18,6 +19,7 @@ export const buildWhatsAppMessage = ({
   design,
   productImageUrl,
   designImageUrl,
+  selectedColor,
   quantity,
   giftWrap,
   personalizedNote,
@@ -30,10 +32,11 @@ export const buildWhatsAppMessage = ({
     '',
     '*Selected Product Details*',
     `- Product: ${product.name}`,
-    `- Design: ${design?.name ?? 'Not required for bookmarks'}`,
+    `- Color: ${selectedColor || 'N/A'}`,
+    `- Design: ${design?.name ?? 'Not selected'}`,
     `- Quantity: ${quantity}`,
     `- Gift Wrap: ${giftWrap ? 'Yes' : 'No'}`,
-    `- Personalized Note: ${personalizedNote.trim() || 'N/A'}`,
+    `- Personalized Name: ${personalizedNote.trim() || 'N/A'}`,
     '',
     '*Selected Images*',
     `- Product Image: ${productImageUrl}`,
@@ -43,6 +46,10 @@ export const buildWhatsAppMessage = ({
     `- Unit Price: INR ${pricing.unitPrice}`,
     `- Items Total: INR ${pricing.quantityTotal}`,
     `- Gift Wrap Charge: INR ${pricing.giftWrapCharge}`,
+    `- Personalized Name Charge (${pricing.personalizedNameLetterCount} letters): INR ${pricing.personalizedNameCharge}`,
+    `- Subtotal (Excl. Delivery): INR ${pricing.subtotalBeforeDiscount}`,
+    `- Coupon: ${pricing.appliedCouponCode ?? 'N/A'}`,
+    `- Discount: INR ${pricing.discountAmount}`,
     `- Delivery Charge: INR ${pricing.deliveryCharge}`,
     `- Grand Total: INR ${pricing.grandTotal}`,
     '',
@@ -62,3 +69,4 @@ export const buildWhatsAppMessage = ({
 export const buildWhatsAppUrl = (businessNumber: string, message: string): string => {
   return `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
 };
+

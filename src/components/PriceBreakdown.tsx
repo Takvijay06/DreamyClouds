@@ -24,6 +24,20 @@ export const PriceBreakdown = ({ pricing, quantity }: PriceBreakdownProps) => {
           <span className="font-semibold text-lavender-900">{formatRupee(pricing.giftWrapCharge)}</span>
         </div>
         <div className="flex justify-between gap-4">
+          <span className="text-lavender-700">Personalized Name ({pricing.personalizedNameLetterCount} letters)</span>
+          <span className="font-semibold text-lavender-900">{formatRupee(pricing.personalizedNameCharge)}</span>
+        </div>
+        <div className="flex justify-between gap-4 border-t border-lavender-100 pt-2">
+          <span className="text-lavender-700">Subtotal (Excl. Delivery)</span>
+          <span className="font-semibold text-lavender-900">{formatRupee(pricing.subtotalBeforeDiscount)}</span>
+        </div>
+        {pricing.discountAmount > 0 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-emerald-700">Coupon ({pricing.appliedCouponCode})</span>
+            <span className="font-semibold text-emerald-700">- {formatRupee(pricing.discountAmount)}</span>
+          </div>
+        ) : null}
+        <div className="flex justify-between gap-4">
           <span className="text-lavender-700">Delivery</span>
           <span className="font-semibold text-lavender-900">{formatRupee(pricing.deliveryCharge)}</span>
         </div>

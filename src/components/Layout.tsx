@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import brandLogo from '../data/Logos/Logo_4.jpeg';
+import { FestivalBanner } from './FestivalBanner';
 import { StepProgress } from './StepProgress';
 
 interface LayoutProps {
@@ -40,6 +41,8 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
           </div>
         </div>
       </section>
+
+      <FestivalBanner />
 
       <section className="mt-5">
         <StepProgress currentStep={currentStep} crossedSteps={crossedSteps} />

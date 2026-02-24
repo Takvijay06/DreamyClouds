@@ -13,6 +13,17 @@ const BUSINESS_UPI_ID = 'dreamyclouds@upi';
 const INDIAN_MOBILE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 
+type ValidationField = 'fullName' | 'address' | 'contactNumber' | 'alternateNumber' | 'email';
+type ValidationErrors = Record<ValidationField, string>;
+
+const EMPTY_VALIDATION_ERRORS: ValidationErrors = {
+  fullName: '',
+  address: '',
+  contactNumber: '',
+  alternateNumber: '',
+  email: ''
+};
+
 export const SummaryPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -23,23 +34,13 @@ export const SummaryPage = () => {
   const pricing = useAppSelector(selectPricing);
   const isBookmarkProduct = product?.category === 'bookmarks';
 
-  const [error, setError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState({
-    contactNumber: '',
-    alternateNumber: '',
-    email: ''
-  });
+  const [fieldErrors, setFieldErrors] = useState<ValidationErrors>(EMPTY_VALIDATION_ERRORS);
 
   useEffect(() => {
     if (!product) {
       navigate('/');
-      return;
     }
-
-    if (!isBookmarkProduct && !design) {
-      navigate('/design');
-    }
-  }, [product, design, isBookmarkProduct, navigate]);
+  }, [product, navigate]);
 
   const canSubmit = useMemo(() => {
     const details = order.customerDetails;
@@ -57,7 +58,7 @@ export const SummaryPage = () => {
     return hasRequiredFields && hasValidContact && hasValidAlt && hasValidEmail;
   }, [order.customerDetails]);
 
-  if (!product || (!isBookmarkProduct && !design)) {
+  if (!product) {
     return null;
   }
 
@@ -69,34 +70,47 @@ export const SummaryPage = () => {
     return `${window.location.origin}${assetPath.startsWith('/') ? assetPath : `/${assetPath}`}`;
   };
 
+  const validateField = (field: ValidationField, details = order.customerDetails): string => {
+    if (field === 'fullName') {
+      return details.fullName.trim() ? '' : 'Full Name is required.';
+    }
+    if (field === 'address') {
+      return details.address.trim() ? '' : 'Address is required.';
+    }
+    if (field === 'contactNumber') {
+      if (!details.contactNumber.trim()) {
+        return 'Contact Number is required.';
+      }
+      return INDIAN_MOBILE_REGEX.test(details.contactNumber) ? '' : 'Enter a valid 10-digit Indian mobile number.';
+    }
+    if (field === 'alternateNumber') {
+      if (!details.alternateNumber.trim()) {
+        return '';
+      }
+      return INDIAN_MOBILE_REGEX.test(details.alternateNumber) ? '' : 'Alternative Number must be a valid 10-digit Indian number.';
+    }
+    if (!details.email.trim()) {
+      return 'Email Address is required.';
+    }
+    return EMAIL_REGEX.test(details.email.trim()) ? '' : 'Enter a valid email address.';
+  };
+
+  const validateDetails = (): ValidationErrors => ({
+    fullName: validateField('fullName'),
+    address: validateField('address'),
+    contactNumber: validateField('contactNumber'),
+    alternateNumber: validateField('alternateNumber'),
+    email: validateField('email')
+  });
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setError('');
-
     const details = order.customerDetails;
-    const nextFieldErrors = {
-      contactNumber: '',
-      alternateNumber: '',
-      email: ''
-    };
-
-    if (!details.fullName || !details.address || !details.contactNumber || !details.email) {
-      setError('Please fill all required fields before proceeding.');
-      return;
-    }
-    if (!INDIAN_MOBILE_REGEX.test(details.contactNumber)) {
-      nextFieldErrors.contactNumber = 'Enter a valid 10-digit Indian mobile number.';
-    }
-    if (details.alternateNumber && !INDIAN_MOBILE_REGEX.test(details.alternateNumber)) {
-      nextFieldErrors.alternateNumber = 'Alternative number must be a valid 10-digit Indian number.';
-    }
-    if (!EMAIL_REGEX.test(details.email.trim())) {
-      nextFieldErrors.email = 'Enter a valid email address.';
-    }
+    const nextFieldErrors = validateDetails();
 
     setFieldErrors(nextFieldErrors);
-    if (nextFieldErrors.contactNumber || nextFieldErrors.alternateNumber || nextFieldErrors.email) {
-      setError('Please correct highlighted fields before proceeding.');
+    const hasAnyFieldError = (Object.keys(nextFieldErrors) as ValidationField[]).some((field) => !!nextFieldErrors[field]);
+    if (hasAnyFieldError) {
       return;
     }
 
@@ -105,6 +119,7 @@ export const SummaryPage = () => {
       design,
       productImageUrl: toAbsoluteAssetUrl(product.image),
       designImageUrl: design ? toAbsoluteAssetUrl(design.image) : undefined,
+      selectedColor: order.selectedColor,
       quantity: order.quantity,
       giftWrap: order.giftWrap,
       personalizedNote: order.personalizedNote,
@@ -125,13 +140,20 @@ export const SummaryPage = () => {
         <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/75 p-4 sm:p-5">
           <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">Customer Details</h2>
           <div className="grid gap-3 sm:grid-cols-2">
-            <FormInput
-              label="Full Name"
-              required
-              value={order.customerDetails.fullName}
-              onChange={(fullName) => dispatch(setCustomerDetails({ ...order.customerDetails, fullName }))}
-              placeholder="Enter full name"
-            />
+            <div>
+              <FormInput
+                label="Full Name"
+                required
+                value={order.customerDetails.fullName}
+                onChange={(fullName) => {
+                  const nextDetails = { ...order.customerDetails, fullName };
+                  setFieldErrors((prev) => ({ ...prev, fullName: validateField('fullName', nextDetails) }));
+                  dispatch(setCustomerDetails(nextDetails));
+                }}
+                placeholder="Enter full name"
+              />
+              {fieldErrors.fullName ? <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.fullName}</p> : null}
+            </div>
 
             <label className="block space-y-1.5">
               <span className="text-sm font-semibold text-lavender-800">Contact Number *</span>
@@ -147,8 +169,9 @@ export const SummaryPage = () => {
                   value={order.customerDetails.contactNumber}
                   onChange={(event) => {
                     const normalized = event.target.value.replace(/\D/g, '').slice(0, 10);
-                    setFieldErrors((prev) => ({ ...prev, contactNumber: '' }));
-                    dispatch(setCustomerDetails({ ...order.customerDetails, contactNumber: normalized }));
+                    const nextDetails = { ...order.customerDetails, contactNumber: normalized };
+                    setFieldErrors((prev) => ({ ...prev, contactNumber: validateField('contactNumber', nextDetails) }));
+                    dispatch(setCustomerDetails(nextDetails));
                   }}
                   placeholder="10-digit mobile number"
                   required
@@ -164,9 +187,14 @@ export const SummaryPage = () => {
                 label="Address"
                 required
                 value={order.customerDetails.address}
-                onChange={(address) => dispatch(setCustomerDetails({ ...order.customerDetails, address }))}
+                onChange={(address) => {
+                  const nextDetails = { ...order.customerDetails, address };
+                  setFieldErrors((prev) => ({ ...prev, address: validateField('address', nextDetails) }));
+                  dispatch(setCustomerDetails(nextDetails));
+                }}
                 placeholder="Complete shipping address"
               />
+              {fieldErrors.address ? <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.address}</p> : null}
             </div>
 
             <label className="block space-y-1.5">
@@ -183,8 +211,9 @@ export const SummaryPage = () => {
                   value={order.customerDetails.alternateNumber}
                   onChange={(event) => {
                     const normalized = event.target.value.replace(/\D/g, '').slice(0, 10);
-                    setFieldErrors((prev) => ({ ...prev, alternateNumber: '' }));
-                    dispatch(setCustomerDetails({ ...order.customerDetails, alternateNumber: normalized }));
+                    const nextDetails = { ...order.customerDetails, alternateNumber: normalized };
+                    setFieldErrors((prev) => ({ ...prev, alternateNumber: validateField('alternateNumber', nextDetails) }));
+                    dispatch(setCustomerDetails(nextDetails));
                   }}
                   placeholder="Optional"
                 />
@@ -194,21 +223,22 @@ export const SummaryPage = () => {
               ) : null}
             </label>
 
-            <FormInput
-              label="Email Address"
-              required
-              type="email"
-              value={order.customerDetails.email}
-              onChange={(email) => {
-                setFieldErrors((prev) => ({ ...prev, email: '' }));
-                dispatch(setCustomerDetails({ ...order.customerDetails, email }));
-              }}
-              placeholder="name@example.com"
-            />
-            {fieldErrors.email ? <p className="text-xs font-medium text-red-600 sm:col-span-2">{fieldErrors.email}</p> : null}
+            <div>
+              <FormInput
+                label="Email Address"
+                required
+                type="email"
+                value={order.customerDetails.email}
+                onChange={(email) => {
+                  const nextDetails = { ...order.customerDetails, email };
+                  setFieldErrors((prev) => ({ ...prev, email: validateField('email', nextDetails) }));
+                  dispatch(setCustomerDetails(nextDetails));
+                }}
+                placeholder="name@example.com"
+              />
+              {fieldErrors.email ? <p className="mt-1 text-xs font-medium text-red-600">{fieldErrors.email}</p> : null}
+            </div>
           </div>
-
-          {error ? <p className="text-sm font-semibold text-red-600">{error}</p> : null}
 
           <div className="rounded-2xl border border-lavender-200/80 bg-gradient-to-r from-lavender-50 to-white p-4 text-sm text-lavender-800">
             <p className="font-bold text-lavender-900">Manual Payment Flow</p>
@@ -226,7 +256,10 @@ export const SummaryPage = () => {
               Product: <span className="font-semibold text-lavender-900">{product.name}</span>
             </p>
             <p className="text-lavender-700">
-              Design: <span className="font-semibold text-lavender-900">{design?.name ?? 'Not required for bookmarks'}</span>
+              Color: <span className="font-semibold text-lavender-900">{order.selectedColor || 'N/A'}</span>
+            </p>
+            <p className="text-lavender-700">
+              Design: <span className="font-semibold text-lavender-900">{design?.name ?? 'Not selected'}</span>
             </p>
             <p className="text-lavender-700">
               Quantity: <span className="font-semibold text-lavender-900">{order.quantity}</span>
@@ -235,7 +268,13 @@ export const SummaryPage = () => {
               Gift Wrap: <span className="font-semibold text-lavender-900">{order.giftWrap ? 'Yes' : 'No'}</span>
             </p>
             <p className="text-lavender-700">
-              Note: <span className="font-semibold text-lavender-900">{order.personalizedNote.trim() || 'N/A'}</span>
+              Coupon:{' '}
+              <span className="font-semibold text-lavender-900">
+                {pricing.appliedCouponCode ? `${pricing.appliedCouponCode} (-INR ${pricing.discountAmount})` : 'N/A'}
+              </span>
+            </p>
+            <p className="text-lavender-700">
+              Personalized Name: <span className="font-semibold text-lavender-900">{order.personalizedNote.trim() || 'N/A'}</span>
             </p>
             <p className="text-lavender-700">
               Contact: <span className="font-semibold text-lavender-900">+91 {order.customerDetails.contactNumber || '—'}</span>

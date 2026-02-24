@@ -17,11 +17,11 @@ export const DesignCard = ({ design, selected, onSelect }: DesignCardProps) => {
           : 'border-lavender-200 bg-white hover:-translate-y-1 hover:border-lavender-400 hover:shadow-soft'
       }`}
     >
-      <div className="relative overflow-hidden">
+      <div className="relative overflow-hidden bg-lavender-50/40">
         <img
           src={design.image}
           alt={design.name}
-          className="h-40 w-full object-cover transition duration-300 group-hover:scale-105"
+          className="h-40 w-full object-contain p-2 transition duration-300 group-hover:scale-[1.02]"
           loading="lazy"
         />
         {selected ? (

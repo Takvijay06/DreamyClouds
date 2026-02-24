@@ -1,19 +1,36 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { Layout } from '../components/Layout';
 import { ProductCard } from '../components/ProductCard';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PRODUCTS } from '../data/products';
-import { setProduct, setQuantity } from '../features/order/orderSlice';
+import { setProduct, setQuantity, setSelectedColor } from '../features/order/orderSlice';
 import { selectOrder, selectSelectedProduct } from '../features/order/selectors';
-import { Product, ProductCategory } from '../features/order/orderTypes';
+import { Product, ProductCategory, TumblerSubCategory } from '../features/order/orderTypes';
 
 const CATEGORY_TABS: Array<{ key: ProductCategory; label: string }> = [
   { key: 'tumblers', label: 'Tumblers' },
   { key: 'mugs', label: 'Mugs' },
-  { key: 'bookmarks', label: 'Bookmarks' }
+  { key: 'bookmarks', label: 'Bookmarks' },
+  { key: 'candles', label: 'Candles' },
+  { key: 'gift-hampers', label: 'Gift Hampers' },
+  { key: 'accessories', label: 'Accessories' }
 ];
+
+const TUMBLER_SUBCATEGORY_TABS: Array<{ key: TumblerSubCategory; label: string }> = [
+  { key: 'steel-tumbler', label: 'Steel Tumbler' },
+  { key: 'glass-tumbler', label: 'Glass Tumbler' }
+];
+
+const DEFAULT_COLORS_BY_CATEGORY: Record<ProductCategory, string[]> = {
+  tumblers: ['White', 'Black', 'Pink', 'Sky Blue'],
+  mugs: ['White', 'Matte Black', 'Red', 'Navy Blue'],
+  bookmarks: ['Ivory', 'Blush Pink', 'Sage Green', 'Lavender'],
+  candles: ['Cream', 'Rose Gold', 'Sand Beige', 'Olive'],
+  'gift-hampers': ['Classic Red', 'Royal Blue', 'Emerald', 'Pastel Peach'],
+  accessories: ['Silver', 'Gold', 'Rose Gold', 'Black']
+};
 
 export const ProductSelectionPage = () => {
   const navigate = useNavigate();
@@ -21,14 +38,49 @@ export const ProductSelectionPage = () => {
   const order = useAppSelector(selectOrder);
   const selectedProduct = useAppSelector(selectSelectedProduct);
   const [activeCategory, setActiveCategory] = useState<ProductCategory>(selectedProduct?.category ?? 'tumblers');
+  const [activeTumblerSubCategory, setActiveTumblerSubCategory] = useState<TumblerSubCategory>(
+    selectedProduct?.category === 'tumblers' && selectedProduct.subCategory ? selectedProduct.subCategory : 'steel-tumbler'
+  );
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const nextSectionRef = useRef<HTMLDivElement | null>(null);
 
   const filteredProducts = useMemo(
-    () => PRODUCTS.filter((item) => item.category === activeCategory),
-    [activeCategory]
+    () =>
+      PRODUCTS.filter((item) => {
+        if (item.category !== activeCategory) {
+          return false;
+        }
+
+        if (activeCategory !== 'tumblers') {
+          return true;
+        }
+
+        return item.subCategory === activeTumblerSubCategory;
+      }),
+    [activeCategory, activeTumblerSubCategory]
   );
   const isBookmarkProduct = selectedProduct?.category === 'bookmarks';
+  const selectedColorOptions = useMemo(() => {
+    if (!selectedProduct) {
+      return [];
+    }
+
+    if (selectedProduct.colors && selectedProduct.colors.length > 0) {
+      return selectedProduct.colors;
+    }
+
+    return DEFAULT_COLORS_BY_CATEGORY[selectedProduct.category];
+  }, [selectedProduct]);
+
+  useEffect(() => {
+    if (!selectedProduct || selectedColorOptions.length === 0) {
+      return;
+    }
+
+    if (!order.selectedColor || !selectedColorOptions.includes(order.selectedColor)) {
+      dispatch(setSelectedColor(selectedColorOptions[0]));
+    }
+  }, [dispatch, order.selectedColor, selectedColorOptions, selectedProduct]);
 
   const handleProductSelect = (id: string) => {
     dispatch(setProduct(id));
@@ -61,7 +113,16 @@ export const ProductSelectionPage = () => {
                 <button
                   key={tab.key}
                   type="button"
-                  onClick={() => setActiveCategory(tab.key)}
+                  onClick={() => {
+                    setActiveCategory(tab.key);
+                    if (tab.key === 'tumblers') {
+                      setActiveTumblerSubCategory(
+                        selectedProduct?.category === 'tumblers' && selectedProduct.subCategory
+                          ? selectedProduct.subCategory
+                          : 'steel-tumbler'
+                      );
+                    }
+                  }}
                   className={`rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
                     isActive
                       ? 'border-lavender-600 bg-gradient-to-r from-lavender-700 to-lavender-500 text-white shadow-lg shadow-lavender-300/50'
@@ -74,9 +135,36 @@ export const ProductSelectionPage = () => {
             })}
           </div>
 
+          {activeCategory === 'tumblers' ? (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-wide text-lavender-600">SUB CATEGORY</p>
+              <div className="flex flex-wrap gap-2">
+                {TUMBLER_SUBCATEGORY_TABS.map((tab) => {
+                  const isActive = tab.key === activeTumblerSubCategory;
+                  return (
+                    <button
+                      key={tab.key}
+                      type="button"
+                      onClick={() => setActiveTumblerSubCategory(tab.key)}
+                      className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
+                        isActive
+                          ? 'border-lavender-500 bg-lavender-100 text-lavender-800'
+                          : 'border-lavender-200 bg-white text-lavender-600 hover:border-lavender-400 hover:bg-lavender-50'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           <div className="flex items-center justify-between">
             <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">
-              {CATEGORY_TABS.find((tab) => tab.key === activeCategory)?.label}
+              {activeCategory === 'tumblers'
+                ? TUMBLER_SUBCATEGORY_TABS.find((tab) => tab.key === activeTumblerSubCategory)?.label
+                : CATEGORY_TABS.find((tab) => tab.key === activeCategory)?.label}
             </h2>
             <span className="rounded-full bg-lavender-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-lavender-700">
               {filteredProducts.length} options
@@ -124,6 +212,31 @@ export const ProductSelectionPage = () => {
             </button>
           </div>
         </section>
+
+        {selectedProduct ? (
+          <section className="space-y-3 rounded-3xl border border-lavender-200/80 bg-white/85 p-4 sm:p-5">
+            <p className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Select Color</p>
+            <div className="flex flex-wrap gap-2">
+              {selectedColorOptions.map((color) => {
+                const isActive = order.selectedColor === color;
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => dispatch(setSelectedColor(color))}
+                    className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
+                      isActive
+                        ? 'border-lavender-500 bg-lavender-100 text-lavender-800'
+                        : 'border-lavender-200 bg-white text-lavender-600 hover:border-lavender-400 hover:bg-lavender-50'
+                    }`}
+                  >
+                    {color}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
         <div ref={nextSectionRef} className="flex justify-end">
           <button
