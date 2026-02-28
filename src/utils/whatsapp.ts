@@ -5,6 +5,10 @@ interface WhatsAppPayload {
   design: Design | null;
   productImageUrl: string;
   designImageUrl?: string;
+  stickerFromGallery: '' | 'yes' | 'no';
+  placementPreference: 'design-yourself' | 'decide-by-daisy';
+  customDesignImageName: string;
+  designCustomerName: string;
   selectedColor: string;
   quantity: number;
   cartItems?: string[];
@@ -20,6 +24,10 @@ export const buildWhatsAppMessage = ({
   design,
   productImageUrl,
   designImageUrl,
+  stickerFromGallery,
+  placementPreference,
+  customDesignImageName,
+  designCustomerName,
   selectedColor,
   quantity,
   cartItems,
@@ -36,6 +44,12 @@ export const buildWhatsAppMessage = ({
     `- Product: ${product.name}`,
     `- Color: ${selectedColor || 'N/A'}`,
     `- Design: ${design?.name ?? 'Not selected'}`,
+    `- Select Sticker From Gallery: ${stickerFromGallery === 'yes' ? 'Yes' : stickerFromGallery === 'no' ? 'No' : 'N/A'}`,
+    `- Sticker Choice: ${design?.name ?? 'N/A'}`,
+    `- Placement: ${
+      stickerFromGallery === 'yes' ? 'N/A' : placementPreference === 'design-yourself' ? 'Design Yourself' : 'Decide By Daisy'
+    }`,
+    `- Name: ${designCustomerName.trim() || 'N/A'}`,
     `- Quantity: ${quantity}`,
     `- Gift Wrap: ${giftWrap ? 'Yes' : 'No'}`,
     `- Personalized Name: ${personalizedNote.trim() || 'N/A'}`,
@@ -65,7 +79,10 @@ export const buildWhatsAppMessage = ({
     '',
     '*Payment Instructions*',
     `- Please pay via UPI to: ${upiId}`,
-    'After payment, share screenshot for manual verification.'
+    'After payment, share screenshot for manual verification.',
+    '',
+    '*Uploaded Image (At Checkout)*',
+    `- ${customDesignImageName || 'N/A'}`
   ].join('\n');
 };
 

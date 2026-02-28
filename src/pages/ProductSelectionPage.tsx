@@ -75,6 +75,13 @@ export const ProductSelectionPage = () => {
     return DEFAULT_COLORS_BY_CATEGORY[selectedProduct.category];
   }, [selectedProduct]);
 
+  const resolveColorOptions = (product: Product): string[] => {
+    if (product.colors && product.colors.length > 0) {
+      return product.colors;
+    }
+    return DEFAULT_COLORS_BY_CATEGORY[product.category];
+  };
+
   useEffect(() => {
     if (!selectedProduct || selectedColorOptions.length === 0) {
       return;
@@ -105,16 +112,15 @@ export const ProductSelectionPage = () => {
     });
   };
 
-  const handleAddToCart = () => {
-    if (!selectedProduct) {
-      return;
-    }
-
+  const handleAddProductCardToCart = (product: Product) => {
+    const cardColorOptions = resolveColorOptions(product);
+    dispatch(setProduct(product.id));
+    dispatch(setSelectedColor(cardColorOptions[0] || 'N/A'));
     dispatch(
       addToCart({
-        productId: selectedProduct.id,
+        productId: product.id,
         quantity: order.quantity,
-        selectedColor: order.selectedColor || selectedColorOptions[0] || 'N/A'
+        selectedColor: cardColorOptions[0] || 'N/A'
       })
     );
   };
@@ -196,6 +202,7 @@ export const ProductSelectionPage = () => {
                 selected={order.productId === product.id}
                 onSelect={handleProductSelect}
                 onPreview={(item) => setPreviewProduct(item)}
+                onAddToCart={handleAddProductCardToCart}
               />
             ))}
           </div>
@@ -254,20 +261,6 @@ export const ProductSelectionPage = () => {
             </div>
           </section>
         ) : null}
-
-        <section className="rounded-3xl border border-lavender-200/80 bg-white/85 p-4 sm:p-5">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Cart Action</p>
-              <p className="text-xs text-lavender-600 sm:text-sm">
-                Add current selection to cart. Manage full cart from Summary page.
-              </p>
-            </div>
-            <button className="btn-primary px-4 py-2 text-xs sm:text-sm" type="button" disabled={!selectedProduct} onClick={handleAddToCart}>
-              Add Current Selection
-            </button>
-          </div>
-        </section>
 
         <div ref={nextSectionRef} className="flex justify-end">
           <button

@@ -20,6 +20,10 @@ const defaultState: OrderState = {
   quantity: 1,
   cartItems: [],
   designId: null,
+  stickerFromGallery: '',
+  placementPreference: 'design-yourself',
+  customDesignImageName: '',
+  designCustomerName: '',
   giftWrap: false,
   personalizedNote: '',
   customerDetails: initialCustomerDetails
@@ -30,6 +34,10 @@ const resetSelectionAndPricingState = (state: OrderState) => {
   state.selectedColor = '';
   state.quantity = 1;
   state.designId = null;
+  state.stickerFromGallery = '';
+  state.placementPreference = 'design-yourself';
+  state.customDesignImageName = '';
+  state.designCustomerName = '';
   state.giftWrap = false;
   state.personalizedNote = '';
   state.couponCode = '';
@@ -68,6 +76,10 @@ const orderSlice = createSlice({
       state.productId = action.payload;
       state.designId = null;
       state.selectedColor = '';
+      state.stickerFromGallery = '';
+      state.placementPreference = 'design-yourself';
+      state.customDesignImageName = '';
+      state.designCustomerName = '';
     },
     setSelectedColor(state, action: PayloadAction<string>) {
       state.selectedColor = action.payload;
@@ -120,6 +132,28 @@ const orderSlice = createSlice({
     clearDesignSelection(state) {
       state.designId = null;
     },
+    setStickerFromGallery(state, action: PayloadAction<'' | 'yes' | 'no'>) {
+      state.stickerFromGallery = action.payload;
+      if (action.payload === 'yes') {
+        state.placementPreference = 'design-yourself';
+        state.customDesignImageName = '';
+      }
+      if (action.payload === 'no') {
+        state.designId = null;
+      }
+    },
+    setPlacementPreference(state, action: PayloadAction<'design-yourself' | 'decide-by-daisy'>) {
+      state.placementPreference = action.payload;
+      if (action.payload !== 'design-yourself') {
+        state.customDesignImageName = '';
+      }
+    },
+    setCustomDesignImageName(state, action: PayloadAction<string>) {
+      state.customDesignImageName = action.payload;
+    },
+    setDesignCustomerName(state, action: PayloadAction<string>) {
+      state.designCustomerName = action.payload;
+    },
     setGiftWrap(state, action: PayloadAction<boolean>) {
       state.giftWrap = action.payload;
     },
@@ -147,6 +181,10 @@ export const {
   clearCart,
   setDesign,
   clearDesignSelection,
+  setStickerFromGallery,
+  setPlacementPreference,
+  setCustomDesignImageName,
+  setDesignCustomerName,
   setGiftWrap,
   setPersonalizedNote,
   setCustomerDetails,

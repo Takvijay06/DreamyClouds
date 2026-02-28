@@ -113,6 +113,21 @@ export const PreviewPage = () => {
               <span className="font-semibold">Design:</span> {design?.name ?? 'Not selected'}
             </p>
             <p>
+              <span className="font-semibold">Select Sticker From Gallery:</span>{' '}
+              {order.stickerFromGallery === 'yes' ? 'Yes' : order.stickerFromGallery === 'no' ? 'No' : 'N/A'}
+            </p>
+            <p>
+              <span className="font-semibold">Placement:</span>{' '}
+              {order.stickerFromGallery === 'yes'
+                ? 'N/A'
+                : order.placementPreference === 'design-yourself'
+                  ? 'Design Yourself'
+                  : 'Decide By Daisy'}
+            </p>
+            <p>
+              <span className="font-semibold">Name:</span> {order.designCustomerName || 'N/A'}
+            </p>
+            <p>
               <span className="font-semibold">Quantity:</span> {cartTotalQuantity || order.quantity}
             </p>
           </div>

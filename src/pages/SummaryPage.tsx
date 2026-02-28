@@ -140,6 +140,10 @@ export const SummaryPage = () => {
       design,
       productImageUrl: toAbsoluteAssetUrl(displayProduct.image),
       designImageUrl: design ? toAbsoluteAssetUrl(design.image) : undefined,
+      stickerFromGallery: order.stickerFromGallery,
+      placementPreference: order.placementPreference,
+      customDesignImageName: order.customDesignImageName,
+      designCustomerName: order.designCustomerName,
       selectedColor: order.selectedColor,
       quantity: cartTotalQuantity || order.quantity,
       cartItems: cartItems.map(
@@ -284,6 +288,28 @@ export const SummaryPage = () => {
             </p>
             <p className="text-lavender-700">
               Design: <span className="font-semibold text-lavender-900">{design?.name ?? 'Not selected'}</span>
+            </p>
+            <p className="text-lavender-700">
+              Select Sticker From Gallery:{' '}
+              <span className="font-semibold text-lavender-900">
+                {order.stickerFromGallery === 'yes' ? 'Yes' : order.stickerFromGallery === 'no' ? 'No' : 'N/A'}
+              </span>
+            </p>
+            <p className="text-lavender-700">
+              Placement:{' '}
+              <span className="font-semibold text-lavender-900">
+                {order.stickerFromGallery === 'yes'
+                  ? 'N/A'
+                  : order.placementPreference === 'design-yourself'
+                    ? 'Design Yourself'
+                    : 'Decide By Daisy'}
+              </span>
+            </p>
+            <p className="text-lavender-700">
+              Uploaded Image: <span className="font-semibold text-lavender-900">{order.customDesignImageName || 'N/A'}</span>
+            </p>
+            <p className="text-lavender-700">
+              Name: <span className="font-semibold text-lavender-900">{order.designCustomerName.trim() || 'N/A'}</span>
             </p>
             <p className="text-lavender-700">
               Quantity: <span className="font-semibold text-lavender-900">{cartTotalQuantity || order.quantity}</span>

@@ -58,6 +58,10 @@ export interface OrderState {
   quantity: number;
   cartItems: CartItem[];
   designId: string | null;
+  stickerFromGallery: '' | 'yes' | 'no';
+  placementPreference: 'design-yourself' | 'decide-by-daisy';
+  customDesignImageName: string;
+  designCustomerName: string;
   giftWrap: boolean;
   personalizedNote: string;
   customerDetails: CustomerDetails;

@@ -7,11 +7,12 @@ interface ProductCardProps {
   selected: boolean;
   onSelect: (id: string) => void;
   onPreview: (product: Product) => void;
+  onAddToCart: (product: Product) => void;
 }
 
 const IMAGE_SLIDE_MS = 240;
 
-export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductCardProps) => {
+export const ProductCard = ({ product, selected, onSelect, onPreview, onAddToCart }: ProductCardProps) => {
   const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const computedOriginalPrice = Math.ceil((product.basePrice * 1.2) / 10) * 10;
   const originalPrice =
@@ -90,7 +91,7 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
     }
 
     event.preventDefault();
-    onPreview(product);
+    onSelect(product.id);
   };
 
   const enteringStartClass = slideDirection === 'next' ? 'translate-x-full' : '-translate-x-full';
@@ -115,7 +116,7 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
       <div
         role="button"
         tabIndex={0}
-        onClick={() => onPreview(product)}
+        onClick={() => onSelect(product.id)}
         onKeyDown={onImageKeyDown}
         className="relative block w-full cursor-pointer overflow-hidden bg-lavender-50/40 text-left outline-none focus-visible:ring-2 focus-visible:ring-lavender-400"
       >
@@ -182,14 +183,32 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
         </div>
       </button>
 
-      <div className="flex items-center justify-between border-t border-lavender-100 px-4 pb-4 pt-3">
-        <div>
-          <p className="text-xs font-semibold text-lavender-500 line-through">{formatRupee(originalPrice)}</p>
-          <p className="text-base font-bold text-lavender-800">{formatRupee(product.basePrice)}</p>
+      <div className="space-y-3 border-t border-lavender-100 px-4 pb-4 pt-3">
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => onAddToCart(product)}
+            className="btn-primary flex-1 px-3 py-2 text-xs sm:text-sm"
+          >
+            Add to Cart
+          </button>
+          <button
+            type="button"
+            onClick={() => onPreview(product)}
+            className="btn-secondary flex-1 px-3 py-2 text-xs sm:text-sm"
+          >
+            Preview
+          </button>
         </div>
-        {selected ? (
-          <span className="rounded-full bg-lavender-600 px-2.5 py-1 text-[11px] font-bold text-white">Selected</span>
-        ) : null}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-lavender-500 line-through">{formatRupee(originalPrice)}</p>
+            <p className="text-base font-bold text-lavender-800">{formatRupee(product.basePrice)}</p>
+          </div>
+          {selected ? (
+            <span className="rounded-full bg-lavender-600 px-2.5 py-1 text-[11px] font-bold text-white">Selected</span>
+          ) : null}
+        </div>
       </div>
     </div>
   );
