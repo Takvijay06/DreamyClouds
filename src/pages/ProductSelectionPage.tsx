@@ -263,14 +263,19 @@ export const ProductSelectionPage = () => {
         ) : null}
 
         <div ref={nextSectionRef} className="flex justify-end">
-          <button
-            className="btn-primary"
-            type="button"
-            disabled={cartItemCount === 0}
-            onClick={() => navigate(isBookmarkCart ? '/preview' : '/design')}
-          >
-            {isBookmarkCart ? 'Next: Preview' : 'Next: Select Design'}
-          </button>
+          <div className="flex flex-col items-end gap-1.5">
+            <p className="text-right text-xs text-lavender-600">
+              Click <span className="font-semibold">Add to Cart</span> on the product card to proceed to Select Design.
+            </p>
+            <button
+              className="btn-primary"
+              type="button"
+              disabled={cartItemCount === 0}
+              onClick={() => navigate(isBookmarkCart ? '/preview' : '/design')}
+            >
+              {isBookmarkCart ? 'Next: Preview' : 'Next: Select Design'}
+            </button>
+          </div>
         </div>
       </div>
 
