@@ -5,8 +5,8 @@ interface WhatsAppPayload {
   design: Design | null;
   productImageUrl: string;
   designImageUrl?: string;
-  stickerFromGallery: '' | 'yes' | 'no';
-  placementPreference: 'design-yourself' | 'decide-by-daisy';
+  placementStyle: '' | 'full-wrap' | 'random-placement';
+  letDaisyDecide: boolean;
   customDesignImageName: string;
   designCustomerName: string;
   selectedColor: string;
@@ -24,8 +24,8 @@ export const buildWhatsAppMessage = ({
   design,
   productImageUrl,
   designImageUrl,
-  stickerFromGallery,
-  placementPreference,
+  placementStyle,
+  letDaisyDecide,
   customDesignImageName,
   designCustomerName,
   selectedColor,
@@ -44,10 +44,8 @@ export const buildWhatsAppMessage = ({
     `- Product: ${product.name}`,
     `- Color: ${selectedColor || 'N/A'}`,
     `- Design: ${design?.name ?? 'Not selected'}`,
-    `- Select Sticker From Gallery: ${stickerFromGallery === 'yes' ? 'Yes' : stickerFromGallery === 'no' ? 'No' : 'N/A'}`,
-    `- Sticker Choice: ${design?.name ?? 'N/A'}`,
     `- Placement: ${
-      stickerFromGallery === 'yes' ? 'N/A' : placementPreference === 'design-yourself' ? 'Design Yourself' : 'Decide By Daisy'
+      letDaisyDecide ? 'Let Daisy Decide' : placementStyle === 'full-wrap' ? 'Full Wrap' : placementStyle === 'random-placement' ? 'Random Placement' : 'N/A'
     }`,
     `- Name: ${designCustomerName.trim() || 'N/A'}`,
     `- Quantity: ${quantity}`,

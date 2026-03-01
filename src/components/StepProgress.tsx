@@ -1,4 +1,4 @@
-const STEPS = ['Product', 'Design', 'Preview', 'Summary'];
+const STEPS = ['Product', 'Design', 'Cart'];
 
 interface StepProgressProps {
   currentStep: number;
@@ -15,12 +15,12 @@ export const StepProgress = ({ currentStep, crossedSteps = [] }: StepProgressPro
             <p className="mt-1 font-['Sora'] text-base font-bold text-lavender-900">{STEPS[currentStep - 1]}</p>
           </div>
           <div className="rounded-xl bg-gradient-to-r from-lavender-700 to-lavender-500 px-3 py-2 text-xs font-bold text-white">
-            {currentStep}/4
+            {currentStep}/3
           </div>
         </div>
       </div>
 
-      <div className="hidden grid-cols-4 gap-3 rounded-3xl border border-lavender-200/70 bg-white/85 p-4 shadow-soft sm:grid">
+      <div className="hidden grid-cols-3 gap-3 rounded-3xl border border-lavender-200/70 bg-white/85 p-4 shadow-soft sm:grid">
         {STEPS.map((label, index) => {
           const step = index + 1;
           const isActive = currentStep === step;

@@ -7,18 +7,12 @@ interface ProductCardProps {
   selected: boolean;
   onSelect: (id: string) => void;
   onPreview: (product: Product) => void;
-  onAddToCart: (product: Product) => void;
 }
 
 const IMAGE_SLIDE_MS = 240;
 
-export const ProductCard = ({ product, selected, onSelect, onPreview, onAddToCart }: ProductCardProps) => {
+export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductCardProps) => {
   const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
-  const computedOriginalPrice = Math.ceil((product.basePrice * 1.2) / 10) * 10;
-  const originalPrice =
-    typeof product.originalPrice === 'number' && product.originalPrice > product.basePrice
-      ? product.originalPrice
-      : computedOriginalPrice;
   const hasMultipleImages = productImages.length > 1;
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [previousImageIndex, setPreviousImageIndex] = useState<number | null>(null);
@@ -184,25 +178,15 @@ export const ProductCard = ({ product, selected, onSelect, onPreview, onAddToCar
       </button>
 
       <div className="space-y-3 border-t border-lavender-100 px-4 pb-4 pt-3">
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => onAddToCart(product)}
-            className="btn-primary flex-1 px-3 py-2 text-xs sm:text-sm"
-          >
-            Add to Cart
-          </button>
-          <button
-            type="button"
-            onClick={() => onPreview(product)}
-            className="btn-secondary flex-1 px-3 py-2 text-xs sm:text-sm"
-          >
-            Preview
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => onPreview(product)}
+          className="btn-secondary w-full px-3 py-2 text-xs sm:text-sm"
+        >
+          Preview
+        </button>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold text-lavender-500 line-through">{formatRupee(originalPrice)}</p>
             <p className="text-base font-bold text-lavender-800">{formatRupee(product.basePrice)}</p>
           </div>
           {selected ? (

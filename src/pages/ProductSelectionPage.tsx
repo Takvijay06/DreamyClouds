@@ -5,8 +5,8 @@ import { Layout } from '../components/Layout';
 import { ProductCard } from '../components/ProductCard';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PRODUCTS } from '../data/products';
-import { addToCart, setProduct, setQuantity, setSelectedColor } from '../features/order/orderSlice';
-import { selectCartItemCount, selectOrder, selectResolvedCartItems, selectSelectedProduct } from '../features/order/selectors';
+import { setProduct, setSelectedColor } from '../features/order/orderSlice';
+import { selectOrder, selectResolvedCartItems, selectSelectedProduct } from '../features/order/selectors';
 import { Product, ProductCategory, TumblerSubCategory } from '../features/order/orderTypes';
 
 const CATEGORY_TABS: Array<{ key: ProductCategory; label: string }> = [
@@ -33,12 +33,12 @@ const DEFAULT_COLORS_BY_CATEGORY: Record<ProductCategory, string[]> = {
 };
 
 export const ProductSelectionPage = () => {
+  const INSTAGRAM_URL = 'https://www.instagram.com/dreamycloudsbydaisy/';
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const order = useAppSelector(selectOrder);
   const selectedProduct = useAppSelector(selectSelectedProduct);
   const cartItems = useAppSelector(selectResolvedCartItems);
-  const cartItemCount = useAppSelector(selectCartItemCount);
   const [activeCategory, setActiveCategory] = useState<ProductCategory>(selectedProduct?.category ?? 'tumblers');
   const [activeTumblerSubCategory, setActiveTumblerSubCategory] = useState<TumblerSubCategory>(
     selectedProduct?.category === 'tumblers' && selectedProduct.subCategory ? selectedProduct.subCategory : 'steel-tumbler'
@@ -61,7 +61,6 @@ export const ProductSelectionPage = () => {
       }),
     [activeCategory, activeTumblerSubCategory]
   );
-  const isBookmarkProduct = selectedProduct?.category === 'bookmarks';
   const isBookmarkCart = cartItems.length > 0 && cartItems.every((item) => item.product.category === 'bookmarks');
   const selectedColorOptions = useMemo(() => {
     if (!selectedProduct) {
@@ -74,13 +73,6 @@ export const ProductSelectionPage = () => {
 
     return DEFAULT_COLORS_BY_CATEGORY[selectedProduct.category];
   }, [selectedProduct]);
-
-  const resolveColorOptions = (product: Product): string[] => {
-    if (product.colors && product.colors.length > 0) {
-      return product.colors;
-    }
-    return DEFAULT_COLORS_BY_CATEGORY[product.category];
-  };
 
   useEffect(() => {
     if (!selectedProduct || selectedColorOptions.length === 0) {
@@ -112,22 +104,23 @@ export const ProductSelectionPage = () => {
     });
   };
 
-  const handleAddProductCardToCart = (product: Product) => {
-    const cardColorOptions = resolveColorOptions(product);
-    dispatch(setProduct(product.id));
-    dispatch(setSelectedColor(cardColorOptions[0] || 'N/A'));
-    dispatch(
-      addToCart({
-        productId: product.id,
-        quantity: order.quantity,
-        selectedColor: cardColorOptions[0] || 'N/A'
-      })
-    );
-  };
-
   return (
     <Layout currentStep={1}>
       <div className="space-y-8">
+        <section className="rounded-2xl border border-lavender-200/80 bg-white/85 p-4 text-sm text-lavender-800">
+          <p>
+            Follow us on Instagram for latest designs:{' '}
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-lavender-700 underline decoration-lavender-300 underline-offset-2 hover:text-lavender-900"
+            >
+              @dreamycloudsbydaisy
+            </a>
+          </p>
+        </section>
+
         <section className="space-y-3.5">
           <div className="flex flex-wrap gap-2">
             {CATEGORY_TABS.map((tab) => {
@@ -202,78 +195,23 @@ export const ProductSelectionPage = () => {
                 selected={order.productId === product.id}
                 onSelect={handleProductSelect}
                 onPreview={(item) => setPreviewProduct(item)}
-                onAddToCart={handleAddProductCardToCart}
               />
             ))}
           </div>
         </section>
 
-        <section className="flex flex-col gap-4 rounded-3xl border border-lavender-200/80 bg-gradient-to-r from-white to-lavender-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <div>
-            <p className="font-['Sora'] text-base font-bold text-lavender-900">How many pieces do you need?</p>
-            <p className="text-xs text-lavender-600 sm:text-sm">
-              {isBookmarkProduct
-                ? 'Bookmarks skip design selection. You will go directly to preview.'
-                : 'Adjust quantity before moving to design selection.'}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              className="btn-secondary h-11 w-11 p-0 text-xl"
-              type="button"
-              onClick={() => dispatch(setQuantity(order.quantity - 1))}
-            >
-              -
-            </button>
-            <div className="w-14 text-center font-['Sora'] text-2xl font-bold text-lavender-900">{order.quantity}</div>
-            <button
-              className="btn-secondary h-11 w-11 p-0 text-xl"
-              type="button"
-              onClick={() => dispatch(setQuantity(order.quantity + 1))}
-            >
-              +
-            </button>
-          </div>
-        </section>
-
-        {selectedProduct ? (
-          <section className="space-y-3 rounded-3xl border border-lavender-200/80 bg-white/85 p-4 sm:p-5">
-            <p className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Select Color</p>
-            <div className="flex flex-wrap gap-2">
-              {selectedColorOptions.map((color) => {
-                const isActive = order.selectedColor === color;
-                return (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => dispatch(setSelectedColor(color))}
-                    className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
-                      isActive
-                        ? 'border-lavender-500 bg-lavender-100 text-lavender-800'
-                        : 'border-lavender-200 bg-white text-lavender-600 hover:border-lavender-400 hover:bg-lavender-50'
-                    }`}
-                  >
-                    {color}
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        ) : null}
-
         <div ref={nextSectionRef} className="flex justify-end">
           <div className="flex flex-col items-end gap-1.5">
             <p className="text-right text-xs text-lavender-600">
-              Click <span className="font-semibold">Add to Cart</span> on the product card to proceed to Select Design.
+              Select a product card to proceed.
             </p>
             <button
               className="btn-primary"
               type="button"
-              disabled={cartItemCount === 0}
+              disabled={!selectedProduct}
               onClick={() => navigate(isBookmarkCart ? '/preview' : '/design')}
             >
-              {isBookmarkCart ? 'Next: Preview' : 'Next: Select Design'}
+              {isBookmarkCart ? 'Next: Cart' : 'Next: Select Design'}
             </button>
           </div>
         </div>

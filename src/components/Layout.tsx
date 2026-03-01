@@ -3,12 +3,11 @@ import { Link } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 import brandLogo from '../data/Logos/Logo_4.jpeg';
 import { selectCartItemCount } from '../features/order/selectors';
-import { FestivalBanner } from './FestivalBanner';
 import { StepProgress } from './StepProgress';
 
 interface LayoutProps {
   children: ReactNode;
-  currentStep: 1 | 2 | 3 | 4;
+  currentStep: 1 | 2 | 3;
   crossedSteps?: number[];
 }
 
@@ -40,13 +39,13 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
           <div className="mx-auto flex flex-col gap-2 sm:mx-0 sm:items-end">
             <div className="rounded-2xl border border-lavender-300/60 bg-white/85 px-4 py-3 text-center shadow-sm sm:text-right">
               <p className="text-xs font-semibold uppercase tracking-wide text-lavender-500">Flow</p>
-              <p className="font-['Sora'] text-lg font-bold text-lavender-900">4-step quick order</p>
+              <p className="font-['Sora'] text-lg font-bold text-lavender-900">3-step quick order</p>
             </div>
           </div>
         </div>
       </section>
 
-      <FestivalBanner />
+      {/* <FestivalBanner /> */}
 
       <section className="mt-5">
         <StepProgress currentStep={currentStep} crossedSteps={crossedSteps} />
@@ -66,7 +65,7 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
       </div>
 
       <div className="cart-fab" aria-label="Cart">
-        <Link to="/summary" className="cart-fab-icon" aria-label="Go to cart summary page">
+        <Link to="/preview" className="cart-fab-icon" aria-label="Go to cart page">
           <span aria-hidden="true">{'\u{1F6D2}'}</span>
           {cartItemCount > 0 ? <span className="cart-fab-badge">{cartItemCount}</span> : null}
         </Link>

@@ -20,8 +20,8 @@ const defaultState: OrderState = {
   quantity: 1,
   cartItems: [],
   designId: null,
-  stickerFromGallery: '',
-  placementPreference: 'design-yourself',
+  placementStyle: '',
+  letDaisyDecide: false,
   customDesignImageName: '',
   designCustomerName: '',
   giftWrap: false,
@@ -34,8 +34,8 @@ const resetSelectionAndPricingState = (state: OrderState) => {
   state.selectedColor = '';
   state.quantity = 1;
   state.designId = null;
-  state.stickerFromGallery = '';
-  state.placementPreference = 'design-yourself';
+  state.placementStyle = '';
+  state.letDaisyDecide = false;
   state.customDesignImageName = '';
   state.designCustomerName = '';
   state.giftWrap = false;
@@ -76,8 +76,8 @@ const orderSlice = createSlice({
       state.productId = action.payload;
       state.designId = null;
       state.selectedColor = '';
-      state.stickerFromGallery = '';
-      state.placementPreference = 'design-yourself';
+      state.placementStyle = '';
+      state.letDaisyDecide = false;
       state.customDesignImageName = '';
       state.designCustomerName = '';
     },
@@ -132,20 +132,13 @@ const orderSlice = createSlice({
     clearDesignSelection(state) {
       state.designId = null;
     },
-    setStickerFromGallery(state, action: PayloadAction<'' | 'yes' | 'no'>) {
-      state.stickerFromGallery = action.payload;
-      if (action.payload === 'yes') {
-        state.placementPreference = 'design-yourself';
-        state.customDesignImageName = '';
-      }
-      if (action.payload === 'no') {
-        state.designId = null;
-      }
+    setPlacementStyle(state, action: PayloadAction<'' | 'full-wrap' | 'random-placement'>) {
+      state.placementStyle = action.payload;
     },
-    setPlacementPreference(state, action: PayloadAction<'design-yourself' | 'decide-by-daisy'>) {
-      state.placementPreference = action.payload;
-      if (action.payload !== 'design-yourself') {
-        state.customDesignImageName = '';
+    setLetDaisyDecide(state, action: PayloadAction<boolean>) {
+      state.letDaisyDecide = action.payload;
+      if (action.payload) {
+        state.placementStyle = '';
       }
     },
     setCustomDesignImageName(state, action: PayloadAction<string>) {
@@ -181,8 +174,8 @@ export const {
   clearCart,
   setDesign,
   clearDesignSelection,
-  setStickerFromGallery,
-  setPlacementPreference,
+  setPlacementStyle,
+  setLetDaisyDecide,
   setCustomDesignImageName,
   setDesignCustomerName,
   setGiftWrap,
