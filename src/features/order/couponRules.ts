@@ -22,10 +22,10 @@ interface CouponEvaluationContext {
 
 const COUPON_RULES: CouponRule[] = [
   {
-    code: 'FIRST10',
-    discountType: 'percentage',
-    discountValue: 10,
-    minOrderAmount: 1000,
+    code: 'FIRST100',
+    discountType: 'flat',
+    discountValue: 70,
+    minOrderAmount: 1,
     appliesOn: 'subtotal_excluding_delivery',
     isActive: true
   }
@@ -75,7 +75,6 @@ export const evaluateCoupon = (couponCode: string, context: CouponEvaluationCont
     status: 'applied',
     code: normalizedCode,
     discountAmount: Math.min(discountAmount, discountBase),
-    message: `${rule.code} applied successfully.`
+    message: `${rule.code} applied. Shipping offer added to your order.`
   };
 };
-

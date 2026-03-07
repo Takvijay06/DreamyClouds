@@ -6,6 +6,7 @@ export interface Product {
   category: ProductCategory;
   subCategory?: TumblerSubCategory;
   colors?: string[];
+  availableQuantity?: number | null;
   name: string;
   description: string;
   basePrice: number;

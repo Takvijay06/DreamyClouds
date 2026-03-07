@@ -189,7 +189,11 @@ export const PreviewPage = () => {
                 </span>
               </div>
               <div className="space-y-2">
-                {cartItems.map((item) => (
+                {cartItems.map((item) => {
+                  const maxQty = item.product.availableQuantity ?? null;
+                  const reachedMax = maxQty !== null && item.quantity >= maxQty;
+
+                  return (
                   <div
                     key={item.id}
                     className="flex flex-col gap-2 rounded-2xl border border-lavender-200 bg-lavender-50/60 p-3 sm:flex-row sm:items-center sm:justify-between"
@@ -198,6 +202,9 @@ export const PreviewPage = () => {
                       <p className="text-sm font-semibold text-lavender-900">{item.product.name}</p>
                       <p className="text-xs text-lavender-700">
                         Color: {item.selectedColor} | Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotal)}
+                      </p>
+                      <p className="text-xs font-medium text-lavender-600">
+                        Stock: {maxQty === null ? 'No limit' : `${maxQty} available`}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -212,6 +219,7 @@ export const PreviewPage = () => {
                       <button
                         type="button"
                         className="btn-secondary h-9 w-9 p-0 text-lg"
+                        disabled={reachedMax}
                         onClick={() => dispatch(updateCartItemQuantity({ id: item.id, quantity: item.quantity + 1 }))}
                       >
                         +
@@ -221,7 +229,8 @@ export const PreviewPage = () => {
                       </button>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
               <div className="mt-4 rounded-2xl border border-lavender-200/80 bg-lavender-50/60 p-4">
                 <p className="text-sm font-semibold text-lavender-900">Want to add more products?</p>
@@ -364,7 +373,7 @@ export const PreviewPage = () => {
                 className="input"
                 value={couponInput}
                 onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
-                placeholder="Enter code (e.g. FIRST10)"
+                placeholder="Enter code (e.g. FIRST100)"
               />
               <button
                 type="button"

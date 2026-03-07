@@ -10,25 +10,25 @@ interface FestivalSlide {
 
 const FESTIVAL_SLIDES: FestivalSlide[] = [
   {
-    title: 'Festival On',
-    subtitle: 'Holi Hai, Colors Everywhere',
-    details: 'Create vibrant custom gifts for your loved ones this season.',
+    title: 'Launch Offer',
+    subtitle: 'Free Shipping on First 100 Orders',
+    details: 'Use coupon code FIRST100 at checkout to claim shipping offer.',
     gradient: 'from-[#ff9f45] via-[#ff6b6b] to-[#ff2e63]',
-    chip: 'Festive Drop'
+    chip: 'FIRST100'
   },
   {
-    title: 'Sale On',
-    subtitle: 'Celebrate With Better Deals',
-    details: 'Special seasonal pricing across tumblers, mugs, and gift hampers.',
+    title: 'Full Wrap Offer',
+    subtitle: 'Placement Option Deal',
+    details: 'Full wrap on tumblers is INR 299, now available at INR 199.',
     gradient: 'from-[#20bf55] via-[#01baef] to-[#0b4f6c]',
     chip: 'Limited Offer'
   },
   {
-    title: 'Holi Hai',
-    subtitle: 'Personalize Every Gift',
-    details: 'Add names, pick colors, and send beautiful handcrafted surprises.',
+    title: 'Customisation',
+    subtitle: 'Starts at Just INR 10',
+    details: 'Personalize your products with names, designs, and custom details.',
     gradient: 'from-[#7b2ff7] via-[#f107a3] to-[#ff4d4d]',
-    chip: 'Color Splash'
+    chip: 'Start at 10'
   }
 ];
 

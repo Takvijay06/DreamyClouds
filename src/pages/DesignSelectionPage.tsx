@@ -76,6 +76,9 @@ export const DesignSelectionPage = () => {
         {order.designId ? (
           <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Placement</h2>
+            <p className="text-xs text-lavender-600 sm:text-sm">
+              Placement options: Full Wrap or Random Placement. Full Wrap price is INR 299, currently offered at INR 199.
+            </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="button"

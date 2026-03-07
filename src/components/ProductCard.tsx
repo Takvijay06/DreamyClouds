@@ -14,6 +14,10 @@ const IMAGE_SLIDE_MS = 240;
 export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductCardProps) => {
   const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
   const hasMultipleImages = productImages.length > 1;
+  const stockLabel =
+    product.availableQuantity === null || product.availableQuantity === undefined
+      ? 'No stock limit'
+      : `${product.availableQuantity} available`;
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [previousImageIndex, setPreviousImageIndex] = useState<number | null>(null);
   const [slideDirection, setSlideDirection] = useState<'next' | 'previous'>('next');
@@ -174,6 +178,7 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
         <div className="space-y-2.5 p-4">
           <h3 className="font-['Sora'] text-base font-bold text-lavender-900">{product.name}</h3>
           <p className="text-sm text-lavender-700">{product.description}</p>
+          <p className="text-xs font-semibold text-lavender-600">{stockLabel}</p>
         </div>
       </button>
 

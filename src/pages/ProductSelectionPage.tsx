@@ -14,7 +14,6 @@ const CATEGORY_TABS: Array<{ key: ProductCategory; label: string }> = [
   { key: 'mugs', label: 'Mugs' },
   { key: 'bookmarks', label: 'Bookmarks' },
   { key: 'candles', label: 'Candles' },
-  { key: 'gift-hampers', label: 'Gift Hampers' },
   { key: 'accessories', label: 'Accessories' }
 ];
 
