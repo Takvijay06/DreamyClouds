@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Product } from '../features/order/orderTypes';
+import { NoImageBanner } from './NoImageBanner';
 
 interface ProductPreviewModalProps {
   product: Product | null;
@@ -11,13 +12,14 @@ interface ProductPreviewModalProps {
 const IMAGE_SLIDE_MS = 260;
 
 export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewModalProps) => {
+  const hasImage = product?.imageAvailable !== false;
   const productImages = useMemo(() => {
-    if (!product) {
+    if (!product || !hasImage) {
       return [];
     }
 
     return product.images && product.images.length > 0 ? product.images : [product.image];
-  }, [product]);
+  }, [hasImage, product]);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [previousImageIndex, setPreviousImageIndex] = useState<number | null>(null);
   const [slideDirection, setSlideDirection] = useState<'next' | 'previous'>('next');
@@ -143,7 +145,7 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
         </div>
 
         <div className="relative h-[75vh] min-h-[280px] w-full overflow-hidden bg-lavender-50">
-          {previousImageIndex !== null ? (
+          {hasImage && previousImageIndex !== null ? (
             <img
               src={productImages[previousImageIndex]}
               alt={product.name}
@@ -152,12 +154,16 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
             />
           ) : null}
 
-          <img
-            src={productImages[activeImageIndex]}
-            alt={product.name}
-            className={`absolute inset-0 h-full w-full object-contain p-2 transition-transform ease-in-out ${activeImageClass}`}
-            style={{ transitionDuration: `${IMAGE_SLIDE_MS}ms` }}
-          />
+          {hasImage ? (
+            <img
+              src={productImages[activeImageIndex]}
+              alt={product.name}
+              className={`absolute inset-0 h-full w-full object-contain p-2 transition-transform ease-in-out ${activeImageClass}`}
+              style={{ transitionDuration: `${IMAGE_SLIDE_MS}ms` }}
+            />
+          ) : (
+            <NoImageBanner category={product.category} className="m-2 rounded-2xl" />
+          )}
 
           {hasMultipleImages ? (
             <>

@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { DesignCard } from '../components/DesignCard';
 import { Layout } from '../components/Layout';
+import fullWrapPlacementImage from '../data/Products/tumblers/Full Wrap.jpeg';
+import randomPlacementImage from '../data/Products/tumblers/Random.jpeg';
 import {
   addToCart,
   setDesign,
@@ -13,6 +15,7 @@ import {
 import {
   selectFilteredDesigns,
   selectOrder,
+  selectSelectedDesign,
   selectSelectedProduct
 } from '../features/order/selectors';
 import { ProductCategory } from '../features/order/orderTypes';
@@ -23,7 +26,8 @@ const DEFAULT_COLORS_BY_CATEGORY: Record<ProductCategory, string[]> = {
   bookmarks: ['Ivory', 'Blush Pink', 'Sage Green', 'Lavender'],
   candles: ['Cream', 'Rose Gold', 'Sand Beige', 'Olive'],
   'gift-hampers': ['Classic Red', 'Royal Blue', 'Emerald', 'Pastel Peach'],
-  accessories: ['Silver', 'Gold', 'Rose Gold', 'Black']
+  accessories: ['Silver', 'Gold', 'Rose Gold', 'Black'],
+  stickers: ['Multicolor']
 };
 
 export const DesignSelectionPage = () => {
@@ -31,8 +35,12 @@ export const DesignSelectionPage = () => {
   const dispatch = useAppDispatch();
   const order = useAppSelector(selectOrder);
   const product = useAppSelector(selectSelectedProduct);
+  const selectedDesign = useAppSelector(selectSelectedDesign);
   const filteredDesigns = useAppSelector(selectFilteredDesigns);
-  const canAddToCart = !!order.designId && (order.letDaisyDecide || !!order.placementStyle);
+  const isStickerDesignFlowProduct = product?.category === 'tumblers' || product?.category === 'mugs';
+  const isNoDesignNeeded = order.designId === 'no-design-needed';
+  const requiresPlacement = !isNoDesignNeeded && (!isStickerDesignFlowProduct || selectedDesign?.stickerSubCategory === 'full-wrap');
+  const canAddToCart = !!order.designId && (!requiresPlacement || order.letDaisyDecide || !!order.placementStyle);
 
   useEffect(() => {
     if (!product) {
@@ -61,25 +69,48 @@ export const DesignSelectionPage = () => {
 
         <section className="space-y-2 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
           <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Select Design</h2>
+          <button
+            type="button"
+            onClick={() => {
+              dispatch(setDesign('no-design-needed'));
+              dispatch(setPlacementStyle(''));
+              dispatch(setLetDaisyDecide(false));
+            }}
+            className={`w-full rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+              isNoDesignNeeded
+                ? 'border-lavender-500 bg-lavender-50 text-lavender-900 ring-2 ring-lavender-200'
+                : 'border-lavender-200 bg-white text-lavender-700 hover:border-lavender-400 hover:bg-lavender-50'
+            }`}
+          >
+            No design needed
+          </button>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
           {filteredDesigns.map((design) => (
             <DesignCard
               key={design.id}
               design={design}
               selected={order.designId === design.id}
-              onSelect={(id) => dispatch(setDesign(id))}
+              onSelect={(id) => {
+                dispatch(setDesign(id));
+                const selected = filteredDesigns.find((entry) => entry.id === id);
+                if (selected?.stickerSubCategory === 'single') {
+                  dispatch(setPlacementStyle(''));
+                  dispatch(setLetDaisyDecide(false));
+                }
+              }}
             />
           ))}
           </div>
         </section>
 
-        {order.designId ? (
+        {order.designId && requiresPlacement ? (
           <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Placement</h2>
             <p className="text-xs text-lavender-600 sm:text-sm">
-              Placement options: Full Wrap or Random Placement. Full Wrap price is INR 299, currently offered at INR 199.
+              Placement options: Full Wrap or Random Placement. Sticker-only price is INR 299, and when applied on tumbler or mug
+              only INR 199 is added.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2">
               <button
                 type="button"
                 disabled={order.letDaisyDecide}
@@ -90,8 +121,15 @@ export const DesignSelectionPage = () => {
                     : 'border-lavender-200 bg-white'
                 } ${order.letDaisyDecide ? 'cursor-not-allowed opacity-50' : ''}`}
               >
-                <img src={product.image} alt="Full wrap placement" className="h-32 w-full object-contain bg-lavender-50/40 p-2" loading="lazy" />
-                <p className="px-3 pb-3 pt-2 text-sm font-semibold text-lavender-800">Full Wrap</p>
+                <div className="relative h-52 w-full bg-lavender-50/40">
+                  <img
+                    src={fullWrapPlacementImage}
+                    alt="Full wrap placement"
+                    className="h-52 w-full object-contain bg-lavender-50/40 p-1"
+                    loading="lazy"
+                  />
+                </div>
+                <p className="px-3 pb-3 pt-2 text-base font-semibold text-lavender-800">Full Wrap</p>
               </button>
               <button
                 type="button"
@@ -103,13 +141,15 @@ export const DesignSelectionPage = () => {
                     : 'border-lavender-200 bg-white'
                 } ${order.letDaisyDecide ? 'cursor-not-allowed opacity-50' : ''}`}
               >
-                <img
-                  src={product.image}
-                  alt="Random placement"
-                  className="h-32 w-full object-cover bg-lavender-50/40 p-2"
-                  loading="lazy"
-                />
-                <p className="px-3 pb-3 pt-2 text-sm font-semibold text-lavender-800">Random Placement</p>
+                <div className="relative h-52 w-full bg-lavender-50/40">
+                  <img
+                    src={randomPlacementImage}
+                    alt="Random placement"
+                    className="h-52 w-full object-cover bg-lavender-50/40 p-1"
+                    loading="lazy"
+                  />
+                </div>
+                <p className="px-3 pb-3 pt-2 text-base font-semibold text-lavender-800">Random Placement</p>
               </button>
             </div>
 
@@ -122,6 +162,12 @@ export const DesignSelectionPage = () => {
               />
               <span className="text-sm font-medium text-lavender-800">Let Daisy Decide !</span>
             </label>
+          </section>
+        ) : null}
+
+        {order.designId && isStickerDesignFlowProduct && !requiresPlacement ? (
+          <section className="rounded-2xl border border-lavender-200/80 bg-lavender-50/70 p-4 text-sm text-lavender-800">
+            Single sticker design selected. Placement option is not required.
           </section>
         ) : null}
 

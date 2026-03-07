@@ -7,14 +7,15 @@ import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PRODUCTS } from '../data/products';
 import { setProduct, setSelectedColor } from '../features/order/orderSlice';
 import { selectOrder, selectResolvedCartItems, selectSelectedProduct } from '../features/order/selectors';
-import { Product, ProductCategory, TumblerSubCategory } from '../features/order/orderTypes';
+import { Product, ProductCategory, StickerSubCategory, TumblerSubCategory } from '../features/order/orderTypes';
 
 const CATEGORY_TABS: Array<{ key: ProductCategory; label: string }> = [
   { key: 'tumblers', label: 'Tumblers' },
   { key: 'mugs', label: 'Mugs' },
   { key: 'bookmarks', label: 'Bookmarks' },
   { key: 'candles', label: 'Candles' },
-  { key: 'accessories', label: 'Accessories' }
+  { key: 'accessories', label: 'Accessories' },
+  { key: 'stickers', label: 'Stickers' }
 ];
 
 const TUMBLER_SUBCATEGORY_TABS: Array<{ key: TumblerSubCategory; label: string }> = [
@@ -22,13 +23,25 @@ const TUMBLER_SUBCATEGORY_TABS: Array<{ key: TumblerSubCategory; label: string }
   { key: 'glass-tumbler', label: 'Glass Tumbler' }
 ];
 
+const STICKER_SUBCATEGORY_TABS: Array<{ key: StickerSubCategory; label: string }> = [
+  { key: 'full-wrap', label: 'Full Wrap' },
+  { key: 'single', label: 'Single' }
+];
+
+const isTumblerSubCategory = (value: unknown): value is TumblerSubCategory =>
+  value === 'steel-tumbler' || value === 'glass-tumbler';
+
+const isStickerSubCategory = (value: unknown): value is StickerSubCategory =>
+  value === 'full-wrap' || value === 'single';
+
 const DEFAULT_COLORS_BY_CATEGORY: Record<ProductCategory, string[]> = {
   tumblers: ['White', 'Black', 'Pink', 'Sky Blue'],
   mugs: ['White', 'Matte Black', 'Red', 'Navy Blue'],
   bookmarks: ['Ivory', 'Blush Pink', 'Sage Green', 'Lavender'],
   candles: ['Cream', 'Rose Gold', 'Sand Beige', 'Olive'],
   'gift-hampers': ['Classic Red', 'Royal Blue', 'Emerald', 'Pastel Peach'],
-  accessories: ['Silver', 'Gold', 'Rose Gold', 'Black']
+  accessories: ['Silver', 'Gold', 'Rose Gold', 'Black'],
+  stickers: ['Multicolor']
 };
 
 export const ProductSelectionPage = () => {
@@ -40,7 +53,14 @@ export const ProductSelectionPage = () => {
   const cartItems = useAppSelector(selectResolvedCartItems);
   const [activeCategory, setActiveCategory] = useState<ProductCategory>(selectedProduct?.category ?? 'tumblers');
   const [activeTumblerSubCategory, setActiveTumblerSubCategory] = useState<TumblerSubCategory>(
-    selectedProduct?.category === 'tumblers' && selectedProduct.subCategory ? selectedProduct.subCategory : 'steel-tumbler'
+    selectedProduct?.category === 'tumblers' && isTumblerSubCategory(selectedProduct.subCategory)
+      ? selectedProduct.subCategory
+      : 'steel-tumbler'
+  );
+  const [activeStickerSubCategory, setActiveStickerSubCategory] = useState<StickerSubCategory>(
+    selectedProduct?.category === 'stickers' && isStickerSubCategory(selectedProduct.subCategory)
+      ? selectedProduct.subCategory
+      : 'full-wrap'
   );
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const nextSectionRef = useRef<HTMLDivElement | null>(null);
@@ -52,13 +72,17 @@ export const ProductSelectionPage = () => {
           return false;
         }
 
-        if (activeCategory !== 'tumblers') {
-          return true;
+        if (activeCategory === 'tumblers') {
+          return item.subCategory === activeTumblerSubCategory;
         }
 
-        return item.subCategory === activeTumblerSubCategory;
+        if (activeCategory === 'stickers') {
+          return item.subCategory === activeStickerSubCategory;
+        }
+
+        return true;
       }),
-    [activeCategory, activeTumblerSubCategory]
+    [activeCategory, activeStickerSubCategory, activeTumblerSubCategory]
   );
   const isBookmarkCart = cartItems.length > 0 && cartItems.every((item) => item.product.category === 'bookmarks');
   const selectedColorOptions = useMemo(() => {
@@ -132,9 +156,16 @@ export const ProductSelectionPage = () => {
                     setActiveCategory(tab.key);
                     if (tab.key === 'tumblers') {
                       setActiveTumblerSubCategory(
-                        selectedProduct?.category === 'tumblers' && selectedProduct.subCategory
+                        selectedProduct?.category === 'tumblers' && isTumblerSubCategory(selectedProduct.subCategory)
                           ? selectedProduct.subCategory
                           : 'steel-tumbler'
+                      );
+                    }
+                    if (tab.key === 'stickers') {
+                      setActiveStickerSubCategory(
+                        selectedProduct?.category === 'stickers' && isStickerSubCategory(selectedProduct.subCategory)
+                          ? selectedProduct.subCategory
+                          : 'full-wrap'
                       );
                     }
                   }}
@@ -150,19 +181,25 @@ export const ProductSelectionPage = () => {
             })}
           </div>
 
-          {activeCategory === 'tumblers' ? (
+          {activeCategory === 'tumblers' || activeCategory === 'stickers' ? (
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-lavender-600">SUB CATEGORY</p>
               <div className="flex flex-wrap gap-2">
-                {TUMBLER_SUBCATEGORY_TABS.map((tab) => {
-                  const isActive = tab.key === activeTumblerSubCategory;
+                {(activeCategory === 'tumblers' ? TUMBLER_SUBCATEGORY_TABS : STICKER_SUBCATEGORY_TABS).map((tab) => {
+                  const isTumblerTab = activeCategory === 'tumblers';
                   return (
                     <button
                       key={tab.key}
                       type="button"
-                      onClick={() => setActiveTumblerSubCategory(tab.key)}
+                      onClick={() => {
+                        if (isTumblerTab) {
+                          setActiveTumblerSubCategory(tab.key as TumblerSubCategory);
+                        } else {
+                          setActiveStickerSubCategory(tab.key as StickerSubCategory);
+                        }
+                      }}
                       className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
-                        isActive
+                        (isTumblerTab ? tab.key === activeTumblerSubCategory : tab.key === activeStickerSubCategory)
                           ? 'border-lavender-500 bg-lavender-100 text-lavender-800'
                           : 'border-lavender-200 bg-white text-lavender-600 hover:border-lavender-400 hover:bg-lavender-50'
                       }`}
@@ -179,6 +216,8 @@ export const ProductSelectionPage = () => {
             <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">
               {activeCategory === 'tumblers'
                 ? TUMBLER_SUBCATEGORY_TABS.find((tab) => tab.key === activeTumblerSubCategory)?.label
+                : activeCategory === 'stickers'
+                  ? STICKER_SUBCATEGORY_TABS.find((tab) => tab.key === activeStickerSubCategory)?.label
                 : CATEGORY_TABS.find((tab) => tab.key === activeCategory)?.label}
             </h2>
             <span className="rounded-full bg-lavender-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-lavender-700">

@@ -12,21 +12,21 @@ const FESTIVAL_SLIDES: FestivalSlide[] = [
   {
     title: 'Launch Offer',
     subtitle: 'Free Shipping on First 100 Orders',
-    details: 'Use coupon code FIRST100 at checkout to claim shipping offer.',
+    details: 'Use Coupon: FIRST100',
     gradient: 'from-[#ff9f45] via-[#ff6b6b] to-[#ff2e63]',
     chip: 'FIRST100'
   },
   {
-    title: 'Full Wrap Offer',
-    subtitle: 'Placement Option Deal',
-    details: 'Full wrap on tumblers is INR 299, now available at INR 199.',
+    title: 'Offer on Full Wrap',
+    subtitle: 'INR 299 on our tumblers',
+    details: 'Offer on Full Wrap 299 on our tumblers',
     gradient: 'from-[#20bf55] via-[#01baef] to-[#0b4f6c]',
     chip: 'Limited Offer'
   },
   {
     title: 'Customisation',
-    subtitle: 'Starts at Just INR 10',
-    details: 'Personalize your products with names, designs, and custom details.',
+    subtitle: 'Start with Rs. 10',
+    details: 'Customisation Start with Rs. 10',
     gradient: 'from-[#7b2ff7] via-[#f107a3] to-[#ff4d4d]',
     chip: 'Start at 10'
   }

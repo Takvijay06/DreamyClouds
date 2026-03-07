@@ -20,6 +20,10 @@ export const PriceBreakdown = ({ pricing, quantity }: PriceBreakdownProps) => {
           <span className="font-semibold text-lavender-900">{formatRupee(pricing.quantityTotal)}</span>
         </div>
         <div className="flex justify-between gap-4">
+          <span className="text-lavender-700">Design / Sticker Charge</span>
+          <span className="font-semibold text-lavender-900">{formatRupee(pricing.designCharge)}</span>
+        </div>
+        <div className="flex justify-between gap-4">
           <span className="text-lavender-700">Gift Wrap</span>
           <span className="font-semibold text-lavender-900">{formatRupee(pricing.giftWrapCharge)}</span>
         </div>

@@ -148,7 +148,7 @@ export const PreviewPage = () => {
       product: displayProduct,
       design,
       productImageUrl: toAbsoluteAssetUrl(displayProduct.image),
-      designImageUrl: design ? toAbsoluteAssetUrl(design.image) : undefined,
+      designImageUrl: design?.image ? toAbsoluteAssetUrl(design.image) : undefined,
       placementStyle: order.placementStyle,
       letDaisyDecide: order.letDaisyDecide,
       customDesignImageName: order.customDesignImageName,

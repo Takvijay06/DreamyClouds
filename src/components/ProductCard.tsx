@@ -1,4 +1,5 @@
 import { KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { NoImageBanner } from './NoImageBanner';
 import { Product } from '../features/order/orderTypes';
 import { formatRupee } from '../utils/currency';
 
@@ -12,7 +13,8 @@ interface ProductCardProps {
 const IMAGE_SLIDE_MS = 240;
 
 export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductCardProps) => {
-  const productImages = product.images && product.images.length > 0 ? product.images : [product.image];
+  const hasImage = product.imageAvailable !== false;
+  const productImages = hasImage ? (product.images && product.images.length > 0 ? product.images : [product.image]) : [];
   const hasMultipleImages = productImages.length > 1;
   const stockLabel =
     product.availableQuantity === null || product.availableQuantity === undefined
@@ -119,7 +121,7 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
         className="relative block w-full cursor-pointer overflow-hidden bg-lavender-50/40 text-left outline-none focus-visible:ring-2 focus-visible:ring-lavender-400"
       >
         <div className="relative h-44 w-full overflow-hidden">
-          {previousImageIndex !== null ? (
+          {hasImage && previousImageIndex !== null ? (
             <img
               src={productImages[previousImageIndex]}
               alt={product.name}
@@ -129,13 +131,17 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
             />
           ) : null}
 
-          <img
-            src={productImages[activeImageIndex]}
-            alt={product.name}
-            className={`absolute inset-0 h-full w-full object-contain p-2 transition-transform ease-in-out ${activeImageClass}`}
-            style={{ transitionDuration: `${IMAGE_SLIDE_MS}ms` }}
-            loading="lazy"
-          />
+          {hasImage ? (
+            <img
+              src={productImages[activeImageIndex]}
+              alt={product.name}
+              className={`absolute inset-0 h-full w-full object-contain p-2 transition-transform ease-in-out ${activeImageClass}`}
+              style={{ transitionDuration: `${IMAGE_SLIDE_MS}ms` }}
+              loading="lazy"
+            />
+          ) : (
+            <NoImageBanner category={product.category} />
+          )}
 
           <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-lavender-700">
             {product.category}

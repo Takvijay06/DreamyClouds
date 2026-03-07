@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 import brandLogo from '../data/Logos/Logo_4.jpeg';
 import { selectCartItemCount } from '../features/order/selectors';
+import { FestivalBanner } from './FestivalBanner';
 import { StepProgress } from './StepProgress';
 
 interface LayoutProps {
@@ -31,6 +32,7 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
             <h1 className="mt-2 font-['Sora'] text-2xl font-extrabold leading-tight text-lavender-900 sm:text-3xl">
               Design it. Preview it. Order in minutes.
             </h1>
+            <p className="mt-2 text-sm font-semibold text-lavender-800">Customised gifts with Dreamy Touch</p>
             <p className="mt-3 max-w-2xl text-sm text-lavender-700 sm:max-w-xl">
               Custom UV TF printed tumblers, mugs, and bookmarks with instant WhatsApp checkout.
             </p>
@@ -45,7 +47,7 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
         </div>
       </section>
 
-      {/* <FestivalBanner /> */}
+      <FestivalBanner />
 
       <section className="mt-5">
         <StepProgress currentStep={currentStep} crossedSteps={crossedSteps} />

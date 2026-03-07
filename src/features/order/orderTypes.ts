@@ -1,12 +1,15 @@
-export type ProductCategory = 'tumblers' | 'mugs' | 'bookmarks' | 'candles' | 'gift-hampers' | 'accessories';
+export type ProductCategory = 'tumblers' | 'mugs' | 'bookmarks' | 'candles' | 'gift-hampers' | 'accessories' | 'stickers';
 export type TumblerSubCategory = 'steel-tumbler' | 'glass-tumbler';
+export type StickerSubCategory = 'full-wrap' | 'single';
 
 export interface Product {
   id: string;
   category: ProductCategory;
-  subCategory?: TumblerSubCategory;
+  subCategory?: TumblerSubCategory | StickerSubCategory;
   colors?: string[];
   availableQuantity?: number | null;
+  imageFileNumber?: number;
+  imageAvailable?: boolean;
   name: string;
   description: string;
   basePrice: number;
@@ -19,6 +22,7 @@ export interface Product {
 export interface Design {
   id: string;
   productCategory: ProductCategory;
+  stickerSubCategory?: StickerSubCategory;
   name: string;
   image: string;
 }
@@ -41,6 +45,7 @@ export interface CartItem {
 export interface Pricing {
   unitPrice: number;
   quantityTotal: number;
+  designCharge: number;
   giftWrapCharge: number;
   personalizedNameLetterCount: number;
   personalizedNameCharge: number;

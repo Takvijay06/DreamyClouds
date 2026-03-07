@@ -2,8 +2,12 @@ import { DELIVERY_CHARGE, GIFT_WRAP_CHARGE_PER_ITEM, PERSONALIZED_NAME_CHARGE_PE
 import { DESIGNS } from '../../data/designs';
 import { PRODUCTS } from '../../data/products';
 import { RootState } from '../../app/store';
-import { Pricing } from './orderTypes';
+import { Pricing, ProductCategory, StickerSubCategory } from './orderTypes';
 import { evaluateCoupon } from './couponRules';
+
+const resolveStickerSubCategory = (value: unknown): StickerSubCategory =>
+  value === 'full-wrap' ? 'full-wrap' : 'single';
+const NO_DESIGN_NEEDED_ID = 'no-design-needed';
 
 export const selectOrder = (state: RootState) => state.order;
 
@@ -11,7 +15,31 @@ export const selectSelectedProduct = (state: RootState) =>
   PRODUCTS.find((product) => product.id === state.order.productId) ?? null;
 
 export const selectSelectedDesign = (state: RootState) =>
-  DESIGNS.find((design) => design.id === state.order.designId) ?? null;
+  (state.order.designId === NO_DESIGN_NEEDED_ID
+    ? {
+        id: NO_DESIGN_NEEDED_ID,
+        productCategory: (selectSelectedProduct(state)?.category ?? 'tumblers') as ProductCategory,
+        name: 'No design needed',
+        image: ''
+      }
+    :
+  DESIGNS.find((design) => design.id === state.order.designId) ??
+  (() => {
+    const stickerProduct =
+      PRODUCTS.find(
+        (product) => product.id === state.order.designId && product.category === 'stickers' && product.subCategory
+      ) ?? null;
+    if (!stickerProduct) {
+      return null;
+    }
+    return {
+      id: stickerProduct.id,
+      productCategory: 'stickers' as const,
+      stickerSubCategory: resolveStickerSubCategory(stickerProduct.subCategory),
+      name: stickerProduct.name,
+      image: stickerProduct.image
+    };
+  })());
 
 export const selectResolvedCartItems = (state: RootState) =>
   state.order.cartItems
@@ -38,6 +66,19 @@ export const selectFilteredDesigns = (state: RootState) => {
     return [];
   }
 
+  if (selectedProduct.category === 'tumblers' || selectedProduct.category === 'mugs') {
+    return PRODUCTS.filter(
+      (product) =>
+        product.category === 'stickers' && (product.subCategory === 'full-wrap' || product.subCategory === 'single')
+    ).map((product) => ({
+      id: product.id,
+      productCategory: 'stickers' as const,
+      stickerSubCategory: resolveStickerSubCategory(product.subCategory),
+      name: product.name,
+      image: product.image
+    }));
+  }
+
   return DESIGNS.filter((design) => design.productCategory === selectedProduct.category);
 };
 
@@ -49,10 +90,16 @@ export const selectCouponEvaluation = (state: RootState) => {
   const fallbackQuantityTotal = fallbackUnitPrice * state.order.quantity;
   const quantityTotal = cartQuantityTotal > 0 ? cartQuantityTotal : fallbackQuantityTotal;
   const billableQuantity = cartTotalQuantity > 0 ? cartTotalQuantity : state.order.quantity;
+  const selectedProduct = selectSelectedProduct(state);
+  const selectedDesign = selectSelectedDesign(state);
+  const isStickerAppliedOnDrinkware =
+    (selectedProduct?.category === 'tumblers' || selectedProduct?.category === 'mugs') &&
+    selectedDesign?.productCategory === 'stickers';
+  const designCharge = isStickerAppliedOnDrinkware ? 199 * billableQuantity : 0;
   const giftWrapCharge = state.order.giftWrap ? GIFT_WRAP_CHARGE_PER_ITEM * billableQuantity : 0;
   const personalizedNameLetterCount = state.order.personalizedNote.replace(/\s+/g, '').length;
   const personalizedNameCharge = personalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER;
-  const subtotalExcludingDelivery = quantityTotal + giftWrapCharge + personalizedNameCharge;
+  const subtotalExcludingDelivery = quantityTotal + designCharge + giftWrapCharge + personalizedNameCharge;
 
   return evaluateCoupon(state.order.couponCode, { subtotalExcludingDelivery });
 };
@@ -66,10 +113,14 @@ export const selectPricing = (state: RootState): Pricing => {
   const unitPrice = cartItems.length > 0 ? Math.round(cartQuantityTotal / cartTotalQuantity) : fallbackUnitPrice;
   const quantityTotal = cartQuantityTotal > 0 ? cartQuantityTotal : fallbackUnitPrice * state.order.quantity;
   const billableQuantity = cartTotalQuantity > 0 ? cartTotalQuantity : state.order.quantity;
+  const selectedDesign = selectSelectedDesign(state);
+  const isStickerAppliedOnDrinkware =
+    (product?.category === 'tumblers' || product?.category === 'mugs') && selectedDesign?.productCategory === 'stickers';
+  const designCharge = isStickerAppliedOnDrinkware ? 199 * billableQuantity : 0;
   const giftWrapCharge = state.order.giftWrap ? GIFT_WRAP_CHARGE_PER_ITEM * billableQuantity : 0;
   const personalizedNameLetterCount = state.order.personalizedNote.replace(/\s+/g, '').length;
   const personalizedNameCharge = personalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER;
-  const subtotalBeforeDiscount = quantityTotal + giftWrapCharge + personalizedNameCharge;
+  const subtotalBeforeDiscount = quantityTotal + designCharge + giftWrapCharge + personalizedNameCharge;
   const couponEvaluation = selectCouponEvaluation(state);
   const discountAmount = couponEvaluation.status === 'applied' ? couponEvaluation.discountAmount : 0;
   const totalBeforeDelivery = Math.max(0, subtotalBeforeDiscount - discountAmount);
@@ -79,6 +130,7 @@ export const selectPricing = (state: RootState): Pricing => {
   return {
     unitPrice,
     quantityTotal,
+    designCharge,
     giftWrapCharge,
     personalizedNameLetterCount,
     personalizedNameCharge,
