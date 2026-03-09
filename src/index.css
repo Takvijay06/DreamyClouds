@@ -186,16 +186,6 @@ body::before {
   @apply w-full rounded-2xl border border-lavender-200 bg-white/95 px-3.5 py-2.5 text-sm text-lavender-900 outline-none transition placeholder:text-lavender-400 focus:border-lavender-500 focus:ring-2 focus:ring-lavender-200;
 }
 
-.shimmer-skeleton {
-  background: linear-gradient(
-    110deg,
-    rgba(230, 216, 252, 0.45) 20%,
-    rgba(255, 255, 255, 0.9) 35%,
-    rgba(230, 216, 252, 0.45) 50%
-  );
-  background-size: 200% 100%;
-  animation: shimmerMove 1.2s linear infinite;
-}
 
 .hero-glow {
   background: radial-gradient(circle at top right, rgba(187, 143, 255, 0.48), rgba(255, 255, 255, 0.72) 55%);
@@ -472,14 +462,6 @@ body::before {
   }
 }
 
-@keyframes shimmerMove {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
 
 @keyframes cartIconPulse {
   0%,

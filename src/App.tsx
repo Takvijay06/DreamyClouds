@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { ScrollToTop } from './components/ScrollToTop';
 import faviconDd from './data/Logos/favicon_dd.png';
 import { ContactUsPage } from './pages/ContactUsPage';
 import { DesignSelectionPage } from './pages/DesignSelectionPage';
@@ -59,6 +60,7 @@ const App = () => {
       </div>
 
       <div className="relative z-10">
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<ProductSelectionPage />} />
           <Route path="/design" element={<DesignSelectionPage />} />

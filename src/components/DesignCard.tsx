@@ -1,5 +1,4 @@
 import { Design } from '../features/order/orderTypes';
-import { LazyImage } from './LazyImage';
 
 interface DesignCardProps {
   design: Design;
@@ -20,12 +19,12 @@ export const DesignCard = ({ design, selected, onSelect, onPreview }: DesignCard
       }`}
     >
       <div className="relative overflow-hidden bg-lavender-50/40">
-        <LazyImage
+        <img
           src={design.image}
           alt={design.name}
-          showShimmer
-          wrapperClassName="h-40 w-full"
-          imgClassName="h-40 w-full object-contain p-2 transition duration-300 group-hover:scale-[1.02]"
+          className="h-40 w-full object-contain p-2 transition duration-300 group-hover:scale-[1.02]"
+          loading="eager"
+          decoding="sync"
         />
         {selected ? (
           <span className="absolute right-3 top-3 rounded-full bg-lavender-600 px-2.5 py-1 text-[11px] font-bold text-white">

@@ -106,6 +106,17 @@ export const ProductSelectionPage = () => {
   }, [dispatch, order.selectedColor, selectedColorOptions, selectedProduct]);
 
   useEffect(() => {
+    const preloadLimit = typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches ? 6 : 12;
+    filteredProducts.slice(0, preloadLimit).forEach((product) => {
+      const images = product.images && product.images.length > 0 ? product.images : [product.image];
+      images.slice(0, 2).forEach((src) => {
+        const img = new Image();
+        img.src = src;
+      });
+    });
+  }, [filteredProducts]);
+
+  useEffect(() => {
     if (!order.productId || typeof window === 'undefined') {
       return;
     }
