@@ -127,7 +127,8 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
               alt={product.name}
               className={`absolute inset-0 h-full w-full object-contain p-2 transition-transform ease-in-out ${previousImageClass}`}
               style={{ transitionDuration: `${IMAGE_SLIDE_MS}ms` }}
-              loading="lazy"
+              loading="eager"
+              decoding="sync"
             />
           ) : null}
 
@@ -137,7 +138,8 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
               alt={product.name}
               className={`absolute inset-0 h-full w-full object-contain p-2 transition-transform ease-in-out ${activeImageClass}`}
               style={{ transitionDuration: `${IMAGE_SLIDE_MS}ms` }}
-              loading="lazy"
+              loading="eager"
+              decoding="sync"
             />
           ) : (
             <NoImageBanner category={product.category} />

@@ -151,6 +151,8 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
               alt={product.name}
               className={`absolute inset-0 h-full w-full object-contain p-2 transition-transform ease-in-out ${previousImageClass}`}
               style={{ transitionDuration: `${IMAGE_SLIDE_MS}ms` }}
+              loading="eager"
+              decoding="sync"
             />
           ) : null}
 
@@ -160,6 +162,8 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
               alt={product.name}
               className={`absolute inset-0 h-full w-full object-contain p-2 transition-transform ease-in-out ${activeImageClass}`}
               style={{ transitionDuration: `${IMAGE_SLIDE_MS}ms` }}
+              loading="eager"
+              decoding="sync"
             />
           ) : (
             <NoImageBanner category={product.category} className="m-2 rounded-2xl" />

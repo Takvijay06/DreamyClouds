@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { Layout } from '../components/Layout';
@@ -62,6 +62,7 @@ export const ProductSelectionPage = () => {
       : 'full-wrap'
   );
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
+  const buttonAreaRef = useRef<HTMLDivElement | null>(null);
 
   const filteredProducts = useMemo(
     () =>
@@ -103,6 +104,19 @@ export const ProductSelectionPage = () => {
       dispatch(setSelectedColor(selectedColorOptions[0]));
     }
   }, [dispatch, order.selectedColor, selectedColorOptions, selectedProduct]);
+
+  useEffect(() => {
+    if (!order.productId || typeof window === 'undefined') {
+      return;
+    }
+    const isMobile = window.matchMedia('(max-width: 639px)').matches;
+    if (!isMobile) {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      buttonAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+  }, [order.productId]);
 
   const handleProductSelect = (id: string) => {
     dispatch(setProduct(id));
@@ -257,7 +271,7 @@ export const ProductSelectionPage = () => {
           </div>
         </section>
 
-        <div className="flex justify-end">
+        <div ref={buttonAreaRef} className="flex justify-end">
           <div className="flex flex-col items-end gap-1.5">
             <p className="text-right text-xs text-lavender-600">
               Select a product card to proceed.

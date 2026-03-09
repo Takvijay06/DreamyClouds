@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { DesignCard } from '../components/DesignCard';
 import { Layout } from '../components/Layout';
+import { LazyImage } from '../components/LazyImage';
 import fullWrapPlacementImage from '../data/Products/tumblers/Full Wrap.jpeg';
 import randomPlacementImage from '../data/Products/tumblers/Random.jpeg';
 import {
@@ -48,6 +49,7 @@ export const DesignSelectionPage = () => {
     ? true
     : !!order.designId && (!requiresPlacement || order.letDaisyDecide || !!order.placementStyle);
   const [previewDesignId, setPreviewDesignId] = useState<string | null>(null);
+  const buttonAreaRef = useRef<HTMLDivElement | null>(null);
   const previewDesign = useMemo(
     () => filteredDesigns.find((design) => design.id === previewDesignId) ?? null,
     [filteredDesigns, previewDesignId]
@@ -79,6 +81,19 @@ export const DesignSelectionPage = () => {
       navigate('/preview');
     }
   }, [product, navigate]);
+
+  useEffect(() => {
+    if (!order.designId || typeof window === 'undefined') {
+      return;
+    }
+    const isMobile = window.matchMedia('(max-width: 639px)').matches;
+    if (!isMobile) {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      buttonAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+  }, [order.designId]);
 
   if (
     !product ||
@@ -240,7 +255,7 @@ export const DesignSelectionPage = () => {
           </section>
         ) : null}
 
-        <div className="flex justify-between gap-3">
+        <div ref={buttonAreaRef} className="flex justify-between gap-3">
           <button className="btn-secondary" type="button" onClick={() => navigate('/')}>
             Back
           </button>
@@ -275,8 +290,16 @@ export const DesignSelectionPage = () => {
                   Close
                 </button>
               </div>
-              <div className="p-4">
-                <img src={previewDesign.image} alt={previewDesign.name} className="h-72 w-full rounded-2xl object-contain bg-lavender-50/50 p-2" />
+              <div className="max-h-[78vh] overflow-y-auto p-4">
+                <div className="sticky top-0 z-10 flex items-center justify-center rounded-2xl bg-white/90 pb-2 pt-1 backdrop-blur-sm">
+                  <LazyImage
+                    src={previewDesign.image}
+                    alt={previewDesign.name}
+                    showShimmer
+                    wrapperClassName="h-72 w-full rounded-2xl bg-lavender-50/50"
+                    imgClassName="h-72 w-full rounded-2xl object-contain p-2"
+                  />
+                </div>
                 <p className="mt-3 text-sm font-semibold text-lavender-900">{previewDesign.name}</p>
               </div>
             </div>
