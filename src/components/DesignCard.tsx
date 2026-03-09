@@ -4,9 +4,10 @@ interface DesignCardProps {
   design: Design;
   selected: boolean;
   onSelect: (id: string) => void;
+  onPreview?: (id: string) => void;
 }
 
-export const DesignCard = ({ design, selected, onSelect }: DesignCardProps) => {
+export const DesignCard = ({ design, selected, onSelect, onPreview }: DesignCardProps) => {
   return (
     <button
       type="button"
@@ -32,6 +33,18 @@ export const DesignCard = ({ design, selected, onSelect }: DesignCardProps) => {
       </div>
       <div className="p-4">
         <h3 className="font-['Sora'] text-sm font-semibold text-lavender-900 sm:text-base">{design.name}</h3>
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onPreview?.(design.id);
+            }}
+            className="btn-secondary px-3 py-2 text-xs"
+          >
+            Preview
+          </button>
+        </div>
       </div>
     </button>
   );

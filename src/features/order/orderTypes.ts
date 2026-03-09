@@ -40,6 +40,7 @@ export interface CartItem {
   productId: string;
   quantity: number;
   selectedColor: string;
+  selectedStickerId?: string | null;
 }
 
 export interface Pricing {

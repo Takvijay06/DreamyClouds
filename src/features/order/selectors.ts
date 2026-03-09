@@ -48,15 +48,23 @@ export const selectResolvedCartItems = (state: RootState) =>
       if (!product) {
         return null;
       }
+      const sticker =
+        item.selectedStickerId
+          ? PRODUCTS.find((entry) => entry.id === item.selectedStickerId && entry.category === 'stickers') ?? null
+          : null;
+      const stickerLineTotal = sticker && (product.category === 'tumblers' || product.category === 'mugs') ? 199 * item.quantity : 0;
       return {
         ...item,
         product,
-        lineTotal: product.basePrice * item.quantity
+        sticker,
+        lineTotal: product.basePrice * item.quantity,
+        stickerLineTotal,
+        lineTotalWithSticker: product.basePrice * item.quantity + stickerLineTotal
       };
     })
     .filter((item): item is NonNullable<typeof item> => !!item);
 
-export const selectCartItemCount = (state: RootState) => state.order.cartItems.length;
+export const selectCartItemCount = (state: RootState) => state.order.cartItems.reduce((sum, item) => sum + item.quantity, 0);
 export const selectCartTotalQuantity = (state: RootState) =>
   state.order.cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -67,9 +75,11 @@ export const selectFilteredDesigns = (state: RootState) => {
   }
 
   if (selectedProduct.category === 'tumblers' || selectedProduct.category === 'mugs') {
+    const singleStickerOnly = selectedProduct.category === 'mugs' || selectedProduct.basePrice === 499;
     return PRODUCTS.filter(
       (product) =>
-        product.category === 'stickers' && (product.subCategory === 'full-wrap' || product.subCategory === 'single')
+        product.category === 'stickers' &&
+        (singleStickerOnly ? product.subCategory === 'single' : product.subCategory === 'full-wrap' || product.subCategory === 'single')
     ).map((product) => ({
       id: product.id,
       productCategory: 'stickers' as const,
@@ -84,7 +94,9 @@ export const selectFilteredDesigns = (state: RootState) => {
 
 export const selectCouponEvaluation = (state: RootState) => {
   const cartTotalQuantity = selectCartTotalQuantity(state);
-  const cartQuantityTotal = selectResolvedCartItems(state).reduce((sum, item) => sum + item.lineTotal, 0);
+  const resolvedItems = selectResolvedCartItems(state);
+  const cartQuantityTotal = resolvedItems.reduce((sum, item) => sum + item.lineTotal, 0);
+  const cartDesignChargeTotal = resolvedItems.reduce((sum, item) => sum + item.stickerLineTotal, 0);
   const product = selectSelectedProduct(state);
   const fallbackUnitPrice = product?.basePrice ?? 0;
   const fallbackQuantityTotal = fallbackUnitPrice * state.order.quantity;
@@ -95,7 +107,8 @@ export const selectCouponEvaluation = (state: RootState) => {
   const isStickerAppliedOnDrinkware =
     (selectedProduct?.category === 'tumblers' || selectedProduct?.category === 'mugs') &&
     selectedDesign?.productCategory === 'stickers';
-  const designCharge = isStickerAppliedOnDrinkware ? 199 * billableQuantity : 0;
+  const fallbackDesignCharge = isStickerAppliedOnDrinkware ? 199 * billableQuantity : 0;
+  const designCharge = cartDesignChargeTotal > 0 ? cartDesignChargeTotal : fallbackDesignCharge;
   const giftWrapCharge = state.order.giftWrap ? GIFT_WRAP_CHARGE_PER_ITEM * billableQuantity : 0;
   const personalizedNameLetterCount = state.order.personalizedNote.replace(/\s+/g, '').length;
   const personalizedNameCharge = personalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER;
@@ -107,6 +120,7 @@ export const selectCouponEvaluation = (state: RootState) => {
 export const selectPricing = (state: RootState): Pricing => {
   const cartItems = selectResolvedCartItems(state);
   const cartQuantityTotal = cartItems.reduce((sum, item) => sum + item.lineTotal, 0);
+  const cartDesignChargeTotal = cartItems.reduce((sum, item) => sum + item.stickerLineTotal, 0);
   const cartTotalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const product = selectSelectedProduct(state);
   const fallbackUnitPrice = product?.basePrice ?? 0;
@@ -116,7 +130,8 @@ export const selectPricing = (state: RootState): Pricing => {
   const selectedDesign = selectSelectedDesign(state);
   const isStickerAppliedOnDrinkware =
     (product?.category === 'tumblers' || product?.category === 'mugs') && selectedDesign?.productCategory === 'stickers';
-  const designCharge = isStickerAppliedOnDrinkware ? 199 * billableQuantity : 0;
+  const fallbackDesignCharge = isStickerAppliedOnDrinkware ? 199 * billableQuantity : 0;
+  const designCharge = cartDesignChargeTotal > 0 ? cartDesignChargeTotal : fallbackDesignCharge;
   const giftWrapCharge = state.order.giftWrap ? GIFT_WRAP_CHARGE_PER_ITEM * billableQuantity : 0;
   const personalizedNameLetterCount = state.order.personalizedNote.replace(/\s+/g, '').length;
   const personalizedNameCharge = personalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER;

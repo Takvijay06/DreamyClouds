@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { Layout } from '../components/Layout';
 import { ProductCard } from '../components/ProductCard';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PRODUCTS } from '../data/products';
-import { setProduct, setSelectedColor } from '../features/order/orderSlice';
-import { selectOrder, selectResolvedCartItems, selectSelectedProduct } from '../features/order/selectors';
+import { addToCart, setProduct, setSelectedColor } from '../features/order/orderSlice';
+import { selectOrder, selectSelectedProduct } from '../features/order/selectors';
 import { Product, ProductCategory, StickerSubCategory, TumblerSubCategory } from '../features/order/orderTypes';
 
 const CATEGORY_TABS: Array<{ key: ProductCategory; label: string }> = [
@@ -50,7 +50,6 @@ export const ProductSelectionPage = () => {
   const dispatch = useAppDispatch();
   const order = useAppSelector(selectOrder);
   const selectedProduct = useAppSelector(selectSelectedProduct);
-  const cartItems = useAppSelector(selectResolvedCartItems);
   const [activeCategory, setActiveCategory] = useState<ProductCategory>(selectedProduct?.category ?? 'tumblers');
   const [activeTumblerSubCategory, setActiveTumblerSubCategory] = useState<TumblerSubCategory>(
     selectedProduct?.category === 'tumblers' && isTumblerSubCategory(selectedProduct.subCategory)
@@ -63,7 +62,6 @@ export const ProductSelectionPage = () => {
       : 'full-wrap'
   );
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
-  const nextSectionRef = useRef<HTMLDivElement | null>(null);
 
   const filteredProducts = useMemo(
     () =>
@@ -84,7 +82,6 @@ export const ProductSelectionPage = () => {
       }),
     [activeCategory, activeStickerSubCategory, activeTumblerSubCategory]
   );
-  const isBookmarkCart = cartItems.length > 0 && cartItems.every((item) => item.product.category === 'bookmarks');
   const selectedColorOptions = useMemo(() => {
     if (!selectedProduct) {
       return [];
@@ -109,22 +106,41 @@ export const ProductSelectionPage = () => {
 
   const handleProductSelect = (id: string) => {
     dispatch(setProduct(id));
+  };
 
-    if (typeof window === 'undefined') {
+  const shouldUseDesignStep = (product: Product | null) => {
+    if (!product) {
+      return false;
+    }
+    return product.category === 'tumblers' || product.category === 'mugs';
+  };
+
+  const handleNext = () => {
+    if (!selectedProduct) {
       return;
     }
 
-    const isMobile = window.matchMedia('(max-width: 639px)').matches;
-    if (!isMobile) {
+    if (shouldUseDesignStep(selectedProduct)) {
+      navigate('/design');
       return;
     }
 
-    window.requestAnimationFrame(() => {
-      nextSectionRef.current?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    });
+    const selectedColor =
+      order.selectedColor ||
+      (selectedProduct.colors && selectedProduct.colors.length > 0
+        ? selectedProduct.colors[0]
+        : DEFAULT_COLORS_BY_CATEGORY[selectedProduct.category][0]) ||
+      'N/A';
+
+    dispatch(
+      addToCart({
+        productId: selectedProduct.id,
+        quantity: order.quantity,
+        selectedColor,
+        selectedStickerId: null
+      })
+    );
+    navigate('/preview');
   };
 
   return (
@@ -145,6 +161,9 @@ export const ProductSelectionPage = () => {
         </section>
 
         <section className="space-y-3.5">
+          <p className="text-xs font-bold uppercase tracking-[0.12em] text-lavender-700">
+            Order Step -1: click to select the product
+          </p>
           <div className="flex flex-wrap gap-2">
             {CATEGORY_TABS.map((tab) => {
               const isActive = tab.key === activeCategory;
@@ -238,7 +257,7 @@ export const ProductSelectionPage = () => {
           </div>
         </section>
 
-        <div ref={nextSectionRef} className="flex justify-end">
+        <div className="flex justify-end">
           <div className="flex flex-col items-end gap-1.5">
             <p className="text-right text-xs text-lavender-600">
               Select a product card to proceed.
@@ -247,12 +266,20 @@ export const ProductSelectionPage = () => {
               className="btn-primary"
               type="button"
               disabled={!selectedProduct}
-              onClick={() => navigate(isBookmarkCart ? '/preview' : '/design')}
+              onClick={handleNext}
             >
-              {isBookmarkCart ? 'Next: Cart' : 'Next: Select Design'}
+              {selectedProduct && shouldUseDesignStep(selectedProduct) ? 'Next: Select Design' : 'Add to Cart'}
             </button>
           </div>
         </div>
+
+        {selectedProduct ? (
+          <div className="fixed inset-x-4 bottom-4 z-40 sm:hidden">
+            <button className="btn-primary w-full" type="button" onClick={handleNext}>
+              {shouldUseDesignStep(selectedProduct) ? 'Next: Select Design' : 'Add to Cart'}
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <ProductPreviewModal product={previewProduct} open={!!previewProduct} onClose={() => setPreviewProduct(null)} />

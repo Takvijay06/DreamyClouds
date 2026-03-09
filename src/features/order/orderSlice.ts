@@ -3,7 +3,7 @@ import { RootState } from '../../app/store';
 import { normalizeCouponCode } from './couponRules';
 import { CustomerDetails, OrderState } from './orderTypes';
 
-const STORAGE_KEY = 'dreamyclouds-order';
+export const STORAGE_KEY = 'dreamyclouds-order';
 
 const initialCustomerDetails: CustomerDetails = {
   fullName: '',
@@ -45,6 +45,13 @@ const resetSelectionAndPricingState = (state: OrderState) => {
 
 const hydrateState = (): OrderState => {
   if (typeof window === 'undefined') {
+    return defaultState;
+  }
+
+  const navigationEntries = window.performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+  const isReload = navigationEntries[0]?.type === 'reload';
+  if (isReload) {
+    window.localStorage.removeItem(STORAGE_KEY);
     return defaultState;
   }
 
@@ -93,20 +100,24 @@ const orderSlice = createSlice({
     setQuantity(state, action: PayloadAction<number>) {
       state.quantity = Math.max(1, action.payload);
     },
-    addToCart(state, action: PayloadAction<{ productId: string; quantity: number; selectedColor: string }>) {
-      const { productId, quantity, selectedColor } = action.payload;
+    addToCart(state, action: PayloadAction<{ productId: string; quantity: number; selectedColor: string; selectedStickerId?: string | null }>) {
+      const { productId, quantity, selectedColor, selectedStickerId = null } = action.payload;
       const normalizedQty = Math.max(1, quantity);
-      const existing = state.cartItems.find((item) => item.productId === productId && item.selectedColor === selectedColor);
+      const existing = state.cartItems.find(
+        (item) =>
+          item.productId === productId && item.selectedColor === selectedColor && (item.selectedStickerId ?? null) === selectedStickerId
+      );
       if (existing) {
         existing.quantity += normalizedQty;
         return;
       }
 
       state.cartItems.push({
-        id: `${productId}-${selectedColor}-${Date.now()}`,
+        id: `${productId}-${selectedColor}-${selectedStickerId ?? 'no-sticker'}-${Date.now()}`,
         productId,
         quantity: normalizedQty,
-        selectedColor
+        selectedColor,
+        selectedStickerId
       });
     },
     removeFromCart(state, action: PayloadAction<string>) {

@@ -17,9 +17,9 @@ const FESTIVAL_SLIDES: FestivalSlide[] = [
     chip: 'FIRST100'
   },
   {
-    title: 'Offer on Full Wrap',
-    subtitle: 'INR 299 on our tumblers',
-    details: 'Offer on Full Wrap 299 on our tumblers',
+    title: 'Full Sticker Offer',
+    subtitle: 'Sticker Only INR 299',
+    details: 'With our tumblers, sticker charge is only INR 199.',
     gradient: 'from-[#20bf55] via-[#01baef] to-[#0b4f6c]',
     chip: 'Limited Offer'
   },
@@ -32,7 +32,7 @@ const FESTIVAL_SLIDES: FestivalSlide[] = [
   }
 ];
 
-const AUTO_ROTATE_MS = 3200;
+const AUTO_ROTATE_MS = 6400;
 
 export const FestivalBanner = () => {
   const [activeIndex, setActiveIndex] = useState(0);

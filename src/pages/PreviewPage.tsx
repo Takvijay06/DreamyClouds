@@ -156,7 +156,8 @@ export const PreviewPage = () => {
       selectedColor: order.selectedColor,
       quantity: cartTotalQuantity || order.quantity,
       cartItems: cartItems.map(
-        (item) => `- ${item.product.name} (${item.selectedColor}) x ${item.quantity} = ${formatRupee(item.lineTotal)}`
+        (item) =>
+          `- ${item.product.name} (${item.selectedColor})${item.sticker ? ` + Sticker: ${item.sticker.name}` : ''} x ${item.quantity} = ${formatRupee(item.lineTotalWithSticker)}`
       ),
       giftWrap: order.giftWrap,
       personalizedNote: order.personalizedNote,
@@ -201,8 +202,13 @@ export const PreviewPage = () => {
                     <div>
                       <p className="text-sm font-semibold text-lavender-900">{item.product.name}</p>
                       <p className="text-xs text-lavender-700">
-                        Color: {item.selectedColor} | Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotal)}
+                        Color: {item.selectedColor} | Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotalWithSticker)}
                       </p>
+                      {item.sticker ? (
+                        <p className="text-xs font-medium text-lavender-700">
+                          Sticker: {item.sticker.name} (+{formatRupee(item.stickerLineTotal)} total)
+                        </p>
+                      ) : null}
                       <p className="text-xs font-medium text-lavender-600">
                         Stock: {maxQty === null ? 'No limit' : `${maxQty} available`}
                       </p>
@@ -259,6 +265,7 @@ export const PreviewPage = () => {
                   label="Full Name"
                   required
                   value={order.customerDetails.fullName}
+                  error={fieldErrors.fullName}
                   onChange={(fullName) => {
                     const nextDetails = { ...order.customerDetails, fullName };
                     setFieldErrors((prev) => ({ ...prev, fullName: validateField('fullName', nextDetails) }));
@@ -271,7 +278,11 @@ export const PreviewPage = () => {
 
               <label className="block space-y-1.5">
                 <span className="text-sm font-semibold text-lavender-800">Contact Number *</span>
-                <div className="flex items-center overflow-hidden rounded-2xl border border-lavender-200 bg-white/95">
+                <div
+                  className={`flex items-center overflow-hidden rounded-2xl border bg-white/95 ${
+                    fieldErrors.contactNumber ? 'border-red-400 ring-1 ring-red-200' : 'border-lavender-200'
+                  }`}
+                >
                   <span className="border-r border-lavender-200 bg-lavender-50 px-3 py-2.5 text-sm font-semibold text-lavender-700">
                     +91
                   </span>
@@ -301,6 +312,7 @@ export const PreviewPage = () => {
                   label="Address"
                   required
                   value={order.customerDetails.address}
+                  error={fieldErrors.address}
                   onChange={(address) => {
                     const nextDetails = { ...order.customerDetails, address };
                     setFieldErrors((prev) => ({ ...prev, address: validateField('address', nextDetails) }));
@@ -313,7 +325,11 @@ export const PreviewPage = () => {
 
               <label className="block space-y-1.5">
                 <span className="text-sm font-semibold text-lavender-800">Alternative Number</span>
-                <div className="flex items-center overflow-hidden rounded-2xl border border-lavender-200 bg-white/95">
+                <div
+                  className={`flex items-center overflow-hidden rounded-2xl border bg-white/95 ${
+                    fieldErrors.alternateNumber ? 'border-red-400 ring-1 ring-red-200' : 'border-lavender-200'
+                  }`}
+                >
                   <span className="border-r border-lavender-200 bg-lavender-50 px-3 py-2.5 text-sm font-semibold text-lavender-700">
                     +91
                   </span>
@@ -343,6 +359,7 @@ export const PreviewPage = () => {
                   required
                   type="email"
                   value={order.customerDetails.email}
+                  error={fieldErrors.email}
                   onChange={(email) => {
                     const nextDetails = { ...order.customerDetails, email };
                     setFieldErrors((prev) => ({ ...prev, email: validateField('email', nextDetails) }));

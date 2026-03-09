@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { DesignCard } from '../components/DesignCard';
@@ -38,9 +38,31 @@ export const DesignSelectionPage = () => {
   const selectedDesign = useAppSelector(selectSelectedDesign);
   const filteredDesigns = useAppSelector(selectFilteredDesigns);
   const isStickerDesignFlowProduct = product?.category === 'tumblers' || product?.category === 'mugs';
+  const isDaisyBouquetCandle = product?.id === 'candle-daisy-flower-bouquet';
   const isNoDesignNeeded = order.designId === 'no-design-needed';
-  const requiresPlacement = !isNoDesignNeeded && (!isStickerDesignFlowProduct || selectedDesign?.stickerSubCategory === 'full-wrap');
-  const canAddToCart = !!order.designId && (!requiresPlacement || order.letDaisyDecide || !!order.placementStyle);
+  const requiresPlacement =
+    !isDaisyBouquetCandle &&
+    !isNoDesignNeeded &&
+    (!isStickerDesignFlowProduct || selectedDesign?.stickerSubCategory === 'full-wrap');
+  const canAddToCart = isDaisyBouquetCandle
+    ? true
+    : !!order.designId && (!requiresPlacement || order.letDaisyDecide || !!order.placementStyle);
+  const [previewDesignId, setPreviewDesignId] = useState<string | null>(null);
+  const previewDesign = useMemo(
+    () => filteredDesigns.find((design) => design.id === previewDesignId) ?? null,
+    [filteredDesigns, previewDesignId]
+  );
+  const groupedStickerDesigns = useMemo(() => {
+    const single = filteredDesigns.filter((design) => design.stickerSubCategory === 'single');
+    const fullWrap = filteredDesigns.filter((design) => design.stickerSubCategory === 'full-wrap');
+    if (!isStickerDesignFlowProduct) {
+      return [{ key: 'all', title: 'Designs', items: filteredDesigns }];
+    }
+    return [
+      { key: 'single', title: 'Single Sticker', items: single },
+      { key: 'full-wrap', title: 'Full Wrap Sticker', items: fullWrap }
+    ].filter((group) => group.items.length > 0);
+  }, [filteredDesigns, isStickerDesignFlowProduct]);
 
   useEffect(() => {
     if (!product) {
@@ -48,12 +70,23 @@ export const DesignSelectionPage = () => {
       return;
     }
 
-    if (product.category === 'bookmarks') {
+    if (
+      product.category === 'bookmarks' ||
+      product.category === 'accessories' ||
+      product.category === 'stickers' ||
+      product.category === 'candles'
+    ) {
       navigate('/preview');
     }
   }, [product, navigate]);
 
-  if (!product || product.category === 'bookmarks') {
+  if (
+    !product ||
+    product.category === 'bookmarks' ||
+    product.category === 'accessories' ||
+    product.category === 'stickers' ||
+    product.category === 'candles'
+  ) {
     return null;
   }
 
@@ -64,46 +97,61 @@ export const DesignSelectionPage = () => {
           <p className="text-sm text-lavender-700">
             Selected product: <span className="font-semibold text-lavender-900">{product.name}</span>
           </p>
-          <p className="mt-1 text-xs text-lavender-600 sm:text-sm">Pick a design that best matches your style.</p>
+          <p className="mt-1 text-xs text-lavender-600 sm:text-sm">
+            {isDaisyBouquetCandle ? 'Add your custom note/branding/wishes.' : 'Pick a design that best matches your style.'}
+          </p>
         </div>
 
-        <section className="space-y-2 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
-          <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Select Design</h2>
-          <button
-            type="button"
-            onClick={() => {
-              dispatch(setDesign('no-design-needed'));
-              dispatch(setPlacementStyle(''));
-              dispatch(setLetDaisyDecide(false));
-            }}
-            className={`w-full rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
-              isNoDesignNeeded
-                ? 'border-lavender-500 bg-lavender-50 text-lavender-900 ring-2 ring-lavender-200'
-                : 'border-lavender-200 bg-white text-lavender-700 hover:border-lavender-400 hover:bg-lavender-50'
-            }`}
-          >
-            No design needed
-          </button>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-          {filteredDesigns.map((design) => (
-            <DesignCard
-              key={design.id}
-              design={design}
-              selected={order.designId === design.id}
-              onSelect={(id) => {
-                dispatch(setDesign(id));
-                const selected = filteredDesigns.find((entry) => entry.id === id);
-                if (selected?.stickerSubCategory === 'single') {
-                  dispatch(setPlacementStyle(''));
-                  dispatch(setLetDaisyDecide(false));
-                }
+        {!isDaisyBouquetCandle ? (
+          <section className="space-y-2 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
+            <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Select Design</h2>
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-lavender-700">
+              Order Step -2: click to select the sticker
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                dispatch(setDesign('no-design-needed'));
+                dispatch(setPlacementStyle(''));
+                dispatch(setLetDaisyDecide(false));
               }}
-            />
-          ))}
-          </div>
-        </section>
+              className={`w-full rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
+                isNoDesignNeeded
+                  ? 'border-lavender-500 bg-lavender-50 text-lavender-900 ring-2 ring-lavender-200'
+                  : 'border-lavender-200 bg-white text-lavender-700 hover:border-lavender-400 hover:bg-lavender-50'
+              }`}
+            >
+              No design needed
+            </button>
+            <div className="space-y-4">
+              {groupedStickerDesigns.map((group) => (
+                <div key={group.key} className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-lavender-600">{group.title}</p>
+                  <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+                    {group.items.map((design) => (
+                      <DesignCard
+                        key={design.id}
+                        design={design}
+                        selected={order.designId === design.id}
+                        onPreview={(id) => setPreviewDesignId(id)}
+                        onSelect={(id) => {
+                          dispatch(setDesign(id));
+                          const selected = filteredDesigns.find((entry) => entry.id === id);
+                          if (selected?.stickerSubCategory === 'single') {
+                            dispatch(setPlacementStyle(''));
+                            dispatch(setLetDaisyDecide(false));
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
-        {order.designId && requiresPlacement ? (
+        {order.designId && requiresPlacement && !isDaisyBouquetCandle ? (
           <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Placement</h2>
             <p className="text-xs text-lavender-600 sm:text-sm">
@@ -165,22 +213,24 @@ export const DesignSelectionPage = () => {
           </section>
         ) : null}
 
-        {order.designId && isStickerDesignFlowProduct && !requiresPlacement ? (
+        {order.designId && isStickerDesignFlowProduct && !requiresPlacement && !isDaisyBouquetCandle ? (
           <section className="rounded-2xl border border-lavender-200/80 bg-lavender-50/70 p-4 text-sm text-lavender-800">
             Single sticker design selected. Placement option is not required.
           </section>
         ) : null}
 
-        {order.designId ? (
+        {order.designId || isDaisyBouquetCandle ? (
           <section className="space-y-2 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <label className="block space-y-1.5">
-              <span className="text-sm font-semibold text-lavender-800">Personalized Name (optional)</span>
+              <span className="text-sm font-semibold text-lavender-800">
+                {isDaisyBouquetCandle ? 'Customise Note / Branding / Wishes' : 'Personalized Name (optional)'}
+              </span>
               <textarea
                 className="input min-h-20 resize-y"
                 maxLength={160}
                 value={order.personalizedNote}
                 onChange={(event) => dispatch(setPersonalizedNote(event.target.value))}
-                placeholder="Example: Aanya"
+                placeholder={isDaisyBouquetCandle ? 'Type your custom note here' : 'Example: Aanya'}
               />
               <p className="text-xs text-lavender-600">
                 One letter costs 10 rupees. Current: {order.personalizedNote.replace(/\s+/g, '').length} letters = INR{' '}
@@ -205,7 +255,8 @@ export const DesignSelectionPage = () => {
                 addToCart({
                   productId: product.id,
                   quantity: order.quantity,
-                  selectedColor
+                  selectedColor,
+                  selectedStickerId: selectedDesign?.productCategory === 'stickers' ? selectedDesign.id : null
                 })
               );
               navigate('/preview');
@@ -214,6 +265,39 @@ export const DesignSelectionPage = () => {
             Add to Cart
           </button>
         </div>
+
+        {previewDesign ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-lavender-100 px-4 py-3">
+                <p className="font-['Sora'] text-sm font-bold text-lavender-900">Sticker Preview</p>
+                <button className="btn-secondary px-3 py-1.5 text-xs" type="button" onClick={() => setPreviewDesignId(null)}>
+                  Close
+                </button>
+              </div>
+              <div className="p-4">
+                <img src={previewDesign.image} alt={previewDesign.name} className="h-72 w-full rounded-2xl object-contain bg-lavender-50/50 p-2" />
+                <p className="mt-3 text-sm font-semibold text-lavender-900">{previewDesign.name}</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {order.designId && requiresPlacement && !order.placementStyle && !order.letDaisyDecide ? (
+          <div className="fixed inset-x-4 bottom-4 z-40 sm:hidden">
+            <div className="rounded-2xl border border-lavender-300 bg-white px-4 py-3 shadow-soft">
+              <p className="text-xs font-semibold uppercase tracking-wide text-lavender-700">Placement</p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <button className="btn-secondary px-3 py-2 text-xs" type="button" onClick={() => dispatch(setPlacementStyle('full-wrap'))}>
+                  Full Wrap
+                </button>
+                <button className="btn-secondary px-3 py-2 text-xs" type="button" onClick={() => dispatch(setPlacementStyle('random-placement'))}>
+                  Random
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </Layout>
   );

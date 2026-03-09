@@ -7,6 +7,7 @@ interface FormInputProps {
   type?: HTMLInputTypeAttribute;
   required?: boolean;
   placeholder?: string;
+  error?: string;
 }
 
 export const FormInput = ({
@@ -15,7 +16,8 @@ export const FormInput = ({
   onChange,
   type = 'text',
   required = false,
-  placeholder
+  placeholder,
+  error = ''
 }: FormInputProps) => {
   return (
     <label className="block space-y-1.5">
@@ -24,7 +26,7 @@ export const FormInput = ({
         {required ? ' *' : ''}
       </span>
       <input
-        className="input"
+        className={`input ${error ? '!border-red-400 !ring-1 !ring-red-200' : ''}`}
         type={type}
         value={value}
         required={required}

@@ -396,7 +396,7 @@ const BASE_PRODUCTS: Product[] = [
 ];
 
 const stickerImage = (subFolder: 'Single' | 'Full Wrap', num: number) =>
-  new URL(`./Products/stickers/${subFolder}/${num}.png`, import.meta.url).href;
+  new URL(`./Products/Stickers/${subFolder}/${num}.png`, import.meta.url).href;
 
 const slugify = (value: string) =>
   value
