@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { DesignCard } from '../components/DesignCard';
@@ -18,7 +19,7 @@ import {
   selectSelectedDesign,
   selectSelectedProduct
 } from '../features/order/selectors';
-import { ProductCategory } from '../features/order/orderTypes';
+import { Design, ProductCategory } from '../features/order/orderTypes';
 
 const DEFAULT_COLORS_BY_CATEGORY: Record<ProductCategory, string[]> = {
   tumblers: ['White', 'Black', 'Pink', 'Sky Blue'],
@@ -47,12 +48,9 @@ export const DesignSelectionPage = () => {
   const canAddToCart = isDaisyBouquetCandle
     ? true
     : !!order.designId && (!requiresPlacement || order.letDaisyDecide || !!order.placementStyle);
-  const [previewDesignId, setPreviewDesignId] = useState<string | null>(null);
+  const [previewDesign, setPreviewDesign] = useState<Design | null>(null);
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
-  const previewDesign = useMemo(
-    () => filteredDesigns.find((design) => design.id === previewDesignId) ?? null,
-    [filteredDesigns, previewDesignId]
-  );
+  const hasMountedDesignScrollRef = useRef(false);
   const groupedStickerDesigns = useMemo(() => {
     const single = filteredDesigns.filter((design) => design.stickerSubCategory === 'single');
     const fullWrap = filteredDesigns.filter((design) => design.stickerSubCategory === 'full-wrap');
@@ -74,6 +72,17 @@ export const DesignSelectionPage = () => {
   }, [filteredDesigns]);
 
   useEffect(() => {
+    if (!previewDesign) {
+      return;
+    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [previewDesign]);
+
+  useEffect(() => {
     if (!product) {
       navigate('/');
       return;
@@ -90,6 +99,10 @@ export const DesignSelectionPage = () => {
   }, [product, navigate]);
 
   useEffect(() => {
+    if (!hasMountedDesignScrollRef.current) {
+      hasMountedDesignScrollRef.current = true;
+      return;
+    }
     if (!order.designId || typeof window === 'undefined') {
       return;
     }
@@ -155,7 +168,7 @@ export const DesignSelectionPage = () => {
                         key={design.id}
                         design={design}
                         selected={order.designId === design.id}
-                        onPreview={(id) => setPreviewDesignId(id)}
+                        onPreview={(selected) => setPreviewDesign(selected)}
                         onSelect={(id) => {
                           dispatch(setDesign(id));
                           const selected = filteredDesigns.find((entry) => entry.id === id);
@@ -176,10 +189,6 @@ export const DesignSelectionPage = () => {
         {order.designId && requiresPlacement && !isDaisyBouquetCandle ? (
           <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Placement</h2>
-            <p className="text-xs text-lavender-600 sm:text-sm">
-              Placement options: Full Wrap or Random Placement. Sticker-only price is INR 299, and when applied on tumbler or mug
-              only INR 199 is added.
-            </p>
             <div className="grid gap-4 sm:grid-cols-2">
               <button
                 type="button"
@@ -196,7 +205,6 @@ export const DesignSelectionPage = () => {
                     src={fullWrapPlacementImage}
                     alt="Full wrap placement"
                     className="h-52 w-full object-contain bg-lavender-50/40 p-1"
-                    loading="lazy"
                   />
                 </div>
                 <p className="px-3 pb-3 pt-2 text-base font-semibold text-lavender-800">Full Wrap</p>
@@ -216,7 +224,6 @@ export const DesignSelectionPage = () => {
                     src={randomPlacementImage}
                     alt="Random placement"
                     className="h-52 w-full object-cover bg-lavender-50/40 p-1"
-                    loading="lazy"
                   />
                 </div>
                 <p className="px-3 pb-3 pt-2 text-base font-semibold text-lavender-800">Random Placement</p>
@@ -273,61 +280,51 @@ export const DesignSelectionPage = () => {
             onClick={() => {
               const selectedColor =
                 order.selectedColor || (product.colors && product.colors.length > 0 ? product.colors[0] : DEFAULT_COLORS_BY_CATEGORY[product.category][0]) || 'N/A';
-              dispatch(
-                addToCart({
-                  productId: product.id,
-                  quantity: order.quantity,
-                  selectedColor,
-                  selectedStickerId: selectedDesign?.productCategory === 'stickers' ? selectedDesign.id : null
-                })
-              );
-              navigate('/preview');
+                dispatch(
+                  addToCart({
+                    productId: product.id,
+                    quantity: order.quantity,
+                    selectedColor,
+                    selectedStickerId: selectedDesign?.productCategory === 'stickers' ? selectedDesign.id : null,
+                    personalizedNote: order.personalizedNote,
+                    replaceExisting: true
+                  })
+                );
+                navigate('/preview');
             }}
           >
             Add to Cart
           </button>
         </div>
 
-        {previewDesign ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
-              <div className="flex items-center justify-between border-b border-lavender-100 px-4 py-3">
-                <p className="font-['Sora'] text-sm font-bold text-lavender-900">Sticker Preview</p>
-                <button className="btn-secondary px-3 py-1.5 text-xs" type="button" onClick={() => setPreviewDesignId(null)}>
-                  Close
-                </button>
-              </div>
-              <div className="max-h-[78vh] overflow-y-auto p-4">
-                <div className="sticky top-0 z-10 flex items-center justify-center rounded-2xl bg-white/90 pb-2 pt-1 backdrop-blur-sm">
-                  <img
-                    src={previewDesign.image}
-                    alt={previewDesign.name}
-                    className="h-72 w-full rounded-2xl bg-lavender-50/50 object-contain p-2"
-                    loading="eager"
-                    decoding="sync"
-                  />
+        {previewDesign && typeof document !== 'undefined'
+          ? createPortal(
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4">
+                <div className="flex h-[86vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-lavender-100 px-4 py-3">
+                    <p className="font-['Sora'] text-sm font-bold text-lavender-900">Sticker Preview</p>
+                    <button className="btn-secondary px-3 py-1.5 text-xs" type="button" onClick={() => setPreviewDesign(null)}>
+                      Close
+                    </button>
+                  </div>
+                  <div className="flex flex-1 flex-col p-4">
+                    <div className="flex flex-1 items-center justify-center rounded-2xl bg-lavender-50/50 p-2">
+                      <img
+                        src={previewDesign.image}
+                        alt={previewDesign.name}
+                        className="h-full w-full object-contain"
+                        loading="eager"
+                        decoding="sync"
+                      />
+                    </div>
+                    <p className="mt-3 text-center text-sm font-semibold text-lavender-900">{previewDesign.name}</p>
+                  </div>
                 </div>
-                <p className="mt-3 text-sm font-semibold text-lavender-900">{previewDesign.name}</p>
-              </div>
-            </div>
-          </div>
-        ) : null}
+              </div>,
+              document.body
+            )
+          : null}
 
-        {order.designId && requiresPlacement && !order.placementStyle && !order.letDaisyDecide ? (
-          <div className="fixed inset-x-4 bottom-4 z-40 sm:hidden">
-            <div className="rounded-2xl border border-lavender-300 bg-white px-4 py-3 shadow-soft">
-              <p className="text-xs font-semibold uppercase tracking-wide text-lavender-700">Placement</p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <button className="btn-secondary px-3 py-2 text-xs" type="button" onClick={() => dispatch(setPlacementStyle('full-wrap'))}>
-                  Full Wrap
-                </button>
-                <button className="btn-secondary px-3 py-2 text-xs" type="button" onClick={() => dispatch(setPlacementStyle('random-placement'))}>
-                  Random
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
       </div>
     </Layout>
   );

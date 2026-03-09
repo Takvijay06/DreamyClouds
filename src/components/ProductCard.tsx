@@ -27,6 +27,12 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
   const [isSliding, setIsSliding] = useState(false);
   const slideTimerRef = useRef<number | null>(null);
   const frameRef = useRef<number | null>(null);
+  const categoryLabel =
+    product.category === 'tumblers'
+      ? product.subCategory === 'glass-tumbler'
+        ? 'glass tumbler'
+        : 'steel tumbler'
+      : product.category.replace('-', ' ');
 
   useEffect(() => {
     return () => {
@@ -146,7 +152,7 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
           )}
 
           <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-lavender-700">
-            {product.category}
+            {categoryLabel}
           </span>
 
           {hasMultipleImages ? (

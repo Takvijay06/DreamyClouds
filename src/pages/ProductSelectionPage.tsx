@@ -7,10 +7,13 @@ import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PRODUCTS } from '../data/products';
 import { addToCart, setProduct, setSelectedColor } from '../features/order/orderSlice';
 import { selectOrder, selectSelectedProduct } from '../features/order/selectors';
-import { Product, ProductCategory, StickerSubCategory, TumblerSubCategory } from '../features/order/orderTypes';
+import { Product, ProductCategory, StickerSubCategory } from '../features/order/orderTypes';
 
-const CATEGORY_TABS: Array<{ key: ProductCategory; label: string }> = [
-  { key: 'tumblers', label: 'Tumblers' },
+type ProductCategoryTab = ProductCategory | 'steel-tumblers' | 'glass-tumblers';
+
+const CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
+  { key: 'steel-tumblers', label: 'Steel Tumbler' },
+  { key: 'glass-tumblers', label: 'Glass Tumbler' },
   { key: 'mugs', label: 'Mugs' },
   { key: 'bookmarks', label: 'Bookmarks' },
   { key: 'candles', label: 'Candles' },
@@ -18,18 +21,10 @@ const CATEGORY_TABS: Array<{ key: ProductCategory; label: string }> = [
   { key: 'stickers', label: 'Stickers' }
 ];
 
-const TUMBLER_SUBCATEGORY_TABS: Array<{ key: TumblerSubCategory; label: string }> = [
-  { key: 'steel-tumbler', label: 'Steel Tumbler' },
-  { key: 'glass-tumbler', label: 'Glass Tumbler' }
-];
-
 const STICKER_SUBCATEGORY_TABS: Array<{ key: StickerSubCategory; label: string }> = [
   { key: 'full-wrap', label: 'Full Wrap' },
   { key: 'single', label: 'Single' }
 ];
-
-const isTumblerSubCategory = (value: unknown): value is TumblerSubCategory =>
-  value === 'steel-tumbler' || value === 'glass-tumbler';
 
 const isStickerSubCategory = (value: unknown): value is StickerSubCategory =>
   value === 'full-wrap' || value === 'single';
@@ -50,12 +45,12 @@ export const ProductSelectionPage = () => {
   const dispatch = useAppDispatch();
   const order = useAppSelector(selectOrder);
   const selectedProduct = useAppSelector(selectSelectedProduct);
-  const [activeCategory, setActiveCategory] = useState<ProductCategory>(selectedProduct?.category ?? 'tumblers');
-  const [activeTumblerSubCategory, setActiveTumblerSubCategory] = useState<TumblerSubCategory>(
-    selectedProduct?.category === 'tumblers' && isTumblerSubCategory(selectedProduct.subCategory)
-      ? selectedProduct.subCategory
-      : 'steel-tumbler'
-  );
+  const [activeCategory, setActiveCategory] = useState<ProductCategoryTab>(() => {
+    if (selectedProduct?.category === 'tumblers') {
+      return selectedProduct.subCategory === 'glass-tumbler' ? 'glass-tumblers' : 'steel-tumblers';
+    }
+    return (selectedProduct?.category as ProductCategoryTab) ?? 'steel-tumblers';
+  });
   const [activeStickerSubCategory, setActiveStickerSubCategory] = useState<StickerSubCategory>(
     selectedProduct?.category === 'stickers' && isStickerSubCategory(selectedProduct.subCategory)
       ? selectedProduct.subCategory
@@ -63,16 +58,21 @@ export const ProductSelectionPage = () => {
   );
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
+  const hasMountedProductScrollRef = useRef(false);
 
   const filteredProducts = useMemo(
     () =>
       PRODUCTS.filter((item) => {
-        if (item.category !== activeCategory) {
-          return false;
+        if (activeCategory === 'steel-tumblers') {
+          return item.category === 'tumblers' && item.subCategory === 'steel-tumbler';
         }
 
-        if (activeCategory === 'tumblers') {
-          return item.subCategory === activeTumblerSubCategory;
+        if (activeCategory === 'glass-tumblers') {
+          return item.category === 'tumblers' && item.subCategory === 'glass-tumbler';
+        }
+
+        if (item.category !== activeCategory) {
+          return false;
         }
 
         if (activeCategory === 'stickers') {
@@ -81,7 +81,7 @@ export const ProductSelectionPage = () => {
 
         return true;
       }),
-    [activeCategory, activeStickerSubCategory, activeTumblerSubCategory]
+    [activeCategory, activeStickerSubCategory]
   );
   const selectedColorOptions = useMemo(() => {
     if (!selectedProduct) {
@@ -117,6 +117,10 @@ export const ProductSelectionPage = () => {
   }, [filteredProducts]);
 
   useEffect(() => {
+    if (!hasMountedProductScrollRef.current) {
+      hasMountedProductScrollRef.current = true;
+      return;
+    }
     if (!order.productId || typeof window === 'undefined') {
       return;
     }
@@ -162,7 +166,8 @@ export const ProductSelectionPage = () => {
         productId: selectedProduct.id,
         quantity: order.quantity,
         selectedColor,
-        selectedStickerId: null
+        selectedStickerId: null,
+        personalizedNote: ''
       })
     );
     navigate('/preview');
@@ -198,13 +203,6 @@ export const ProductSelectionPage = () => {
                   type="button"
                   onClick={() => {
                     setActiveCategory(tab.key);
-                    if (tab.key === 'tumblers') {
-                      setActiveTumblerSubCategory(
-                        selectedProduct?.category === 'tumblers' && isTumblerSubCategory(selectedProduct.subCategory)
-                          ? selectedProduct.subCategory
-                          : 'steel-tumbler'
-                      );
-                    }
                     if (tab.key === 'stickers') {
                       setActiveStickerSubCategory(
                         selectedProduct?.category === 'stickers' && isStickerSubCategory(selectedProduct.subCategory)
@@ -225,42 +223,31 @@ export const ProductSelectionPage = () => {
             })}
           </div>
 
-          {activeCategory === 'tumblers' || activeCategory === 'stickers' ? (
+          {activeCategory === 'stickers' ? (
             <div className="space-y-2">
               <p className="text-xs font-semibold uppercase tracking-wide text-lavender-600">SUB CATEGORY</p>
               <div className="flex flex-wrap gap-2">
-                {(activeCategory === 'tumblers' ? TUMBLER_SUBCATEGORY_TABS : STICKER_SUBCATEGORY_TABS).map((tab) => {
-                  const isTumblerTab = activeCategory === 'tumblers';
-                  return (
-                    <button
-                      key={tab.key}
-                      type="button"
-                      onClick={() => {
-                        if (isTumblerTab) {
-                          setActiveTumblerSubCategory(tab.key as TumblerSubCategory);
-                        } else {
-                          setActiveStickerSubCategory(tab.key as StickerSubCategory);
-                        }
-                      }}
-                      className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
-                        (isTumblerTab ? tab.key === activeTumblerSubCategory : tab.key === activeStickerSubCategory)
-                          ? 'border-lavender-500 bg-lavender-100 text-lavender-800'
-                          : 'border-lavender-200 bg-white text-lavender-600 hover:border-lavender-400 hover:bg-lavender-50'
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  );
-                })}
+                {STICKER_SUBCATEGORY_TABS.map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveStickerSubCategory(tab.key)}
+                    className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition sm:text-sm ${
+                      tab.key === activeStickerSubCategory
+                        ? 'border-lavender-500 bg-lavender-100 text-lavender-800'
+                        : 'border-lavender-200 bg-white text-lavender-600 hover:border-lavender-400 hover:bg-lavender-50'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
               </div>
             </div>
           ) : null}
 
           <div className="flex items-center justify-between">
             <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">
-              {activeCategory === 'tumblers'
-                ? TUMBLER_SUBCATEGORY_TABS.find((tab) => tab.key === activeTumblerSubCategory)?.label
-                : activeCategory === 'stickers'
+              {activeCategory === 'stickers'
                   ? STICKER_SUBCATEGORY_TABS.find((tab) => tab.key === activeStickerSubCategory)?.label
                 : CATEGORY_TABS.find((tab) => tab.key === activeCategory)?.label}
             </h2>

@@ -4,13 +4,20 @@ interface DesignCardProps {
   design: Design;
   selected: boolean;
   onSelect: (id: string) => void;
-  onPreview?: (id: string) => void;
+  onPreview?: (design: Design) => void;
 }
 
 export const DesignCard = ({ design, selected, onSelect, onPreview }: DesignCardProps) => {
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelect(design.id);
+        }
+      }}
       onClick={() => onSelect(design.id)}
       className={`group overflow-hidden rounded-3xl border text-left transition duration-200 ${
         selected
@@ -37,9 +44,13 @@ export const DesignCard = ({ design, selected, onSelect, onPreview }: DesignCard
         <div className="mt-3 flex gap-2">
           <button
             type="button"
+            onMouseDown={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
             onClick={(event) => {
               event.stopPropagation();
-              onPreview?.(design.id);
+              onPreview?.(design);
             }}
             className="btn-secondary px-3 py-2 text-xs"
           >
@@ -47,6 +58,6 @@ export const DesignCard = ({ design, selected, onSelect, onPreview }: DesignCard
           </button>
         </div>
       </div>
-    </button>
+    </div>
   );
 };

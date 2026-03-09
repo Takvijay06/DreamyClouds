@@ -100,12 +100,38 @@ const orderSlice = createSlice({
     setQuantity(state, action: PayloadAction<number>) {
       state.quantity = Math.max(1, action.payload);
     },
-    addToCart(state, action: PayloadAction<{ productId: string; quantity: number; selectedColor: string; selectedStickerId?: string | null }>) {
-      const { productId, quantity, selectedColor, selectedStickerId = null } = action.payload;
+    addToCart(
+      state,
+      action: PayloadAction<{
+        productId: string;
+        quantity: number;
+        selectedColor: string;
+        selectedStickerId?: string | null;
+        personalizedNote?: string;
+        replaceExisting?: boolean;
+      }>
+    ) {
+      const { productId, quantity, selectedColor, selectedStickerId = null, personalizedNote = '', replaceExisting = false } =
+        action.payload;
+      const normalizedPersonalizedNote = personalizedNote.trim();
       const normalizedQty = Math.max(1, quantity);
+      const existingByProductDesign = state.cartItems.find(
+        (item) =>
+          item.productId === productId &&
+          item.selectedColor === selectedColor &&
+          (item.selectedStickerId ?? null) === selectedStickerId
+      );
+      if (replaceExisting && existingByProductDesign) {
+        existingByProductDesign.quantity = normalizedQty;
+        existingByProductDesign.personalizedNote = normalizedPersonalizedNote;
+        return;
+      }
       const existing = state.cartItems.find(
         (item) =>
-          item.productId === productId && item.selectedColor === selectedColor && (item.selectedStickerId ?? null) === selectedStickerId
+          item.productId === productId &&
+          item.selectedColor === selectedColor &&
+          (item.selectedStickerId ?? null) === selectedStickerId &&
+          (item.personalizedNote ?? '') === normalizedPersonalizedNote
       );
       if (existing) {
         existing.quantity += normalizedQty;
@@ -113,11 +139,12 @@ const orderSlice = createSlice({
       }
 
       state.cartItems.push({
-        id: `${productId}-${selectedColor}-${selectedStickerId ?? 'no-sticker'}-${Date.now()}`,
+        id: `${productId}-${selectedColor}-${selectedStickerId ?? 'no-sticker'}-${normalizedPersonalizedNote || 'no-note'}-${Date.now()}`,
         productId,
         quantity: normalizedQty,
         selectedColor,
-        selectedStickerId
+        selectedStickerId,
+        personalizedNote: normalizedPersonalizedNote
       });
     },
     removeFromCart(state, action: PayloadAction<string>) {
@@ -164,6 +191,17 @@ const orderSlice = createSlice({
     setPersonalizedNote(state, action: PayloadAction<string>) {
       state.personalizedNote = action.payload;
     },
+    resetCurrentSelection(state) {
+      state.productId = null;
+      state.selectedColor = '';
+      state.quantity = 1;
+      state.designId = null;
+      state.placementStyle = '';
+      state.letDaisyDecide = false;
+      state.customDesignImageName = '';
+      state.designCustomerName = '';
+      state.personalizedNote = '';
+    },
     setCustomerDetails(state, action: PayloadAction<CustomerDetails>) {
       state.customerDetails = action.payload;
     },
@@ -191,6 +229,7 @@ export const {
   setDesignCustomerName,
   setGiftWrap,
   setPersonalizedNote,
+  resetCurrentSelection,
   setCustomerDetails,
   clearOrder
 } = orderSlice.actions;

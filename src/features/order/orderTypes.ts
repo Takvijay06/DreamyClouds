@@ -41,6 +41,7 @@ export interface CartItem {
   quantity: number;
   selectedColor: string;
   selectedStickerId?: string | null;
+  personalizedNote?: string;
 }
 
 export interface Pricing {

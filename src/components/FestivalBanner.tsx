@@ -18,8 +18,8 @@ const FESTIVAL_SLIDES: FestivalSlide[] = [
   },
   {
     title: 'Full Sticker Offer',
-    subtitle: 'Sticker Only INR 299',
-    details: 'With our tumblers, sticker charge is only INR 199.',
+    subtitle: 'With our tumblers, sticker charge is only INR 199.',
+    details: 'Sticker Only INR 299',
     gradient: 'from-[#20bf55] via-[#01baef] to-[#0b4f6c]',
     chip: 'Limited Offer'
   },

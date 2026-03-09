@@ -17,6 +17,10 @@ export const PriceBreakdown = ({ pricing, quantity }: PriceBreakdownProps) => {
         </div>
         <div className="flex justify-between gap-4">
           <span className="text-lavender-700">Quantity ({quantity})</span>
+          <span className="font-semibold text-lavender-900">{quantity}</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span className="text-lavender-700">Items Total</span>
           <span className="font-semibold text-lavender-900">{formatRupee(pricing.quantityTotal)}</span>
         </div>
         <div className="flex justify-between gap-4">

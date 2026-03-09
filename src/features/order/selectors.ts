@@ -8,6 +8,19 @@ import { evaluateCoupon } from './couponRules';
 const resolveStickerSubCategory = (value: unknown): StickerSubCategory =>
   value === 'full-wrap' ? 'full-wrap' : 'single';
 const NO_DESIGN_NEEDED_ID = 'no-design-needed';
+const SINGLE_STICKER_WITH_DRINKWARE_CHARGE = 49;
+const FULL_WRAP_STICKER_WITH_DRINKWARE_CHARGE = 199;
+
+const getStickerAddonCharge = (
+  productCategory: ProductCategory | undefined,
+  stickerSubCategory: StickerSubCategory | undefined
+): number => {
+  const isDrinkware = productCategory === 'tumblers' || productCategory === 'mugs';
+  if (!isDrinkware || !stickerSubCategory) {
+    return 0;
+  }
+  return stickerSubCategory === 'full-wrap' ? FULL_WRAP_STICKER_WITH_DRINKWARE_CHARGE : SINGLE_STICKER_WITH_DRINKWARE_CHARGE;
+};
 
 export const selectOrder = (state: RootState) => state.order;
 
@@ -52,14 +65,21 @@ export const selectResolvedCartItems = (state: RootState) =>
         item.selectedStickerId
           ? PRODUCTS.find((entry) => entry.id === item.selectedStickerId && entry.category === 'stickers') ?? null
           : null;
-      const stickerLineTotal = sticker && (product.category === 'tumblers' || product.category === 'mugs') ? 199 * item.quantity : 0;
+      const stickerSubCategory = sticker?.subCategory ? resolveStickerSubCategory(sticker.subCategory) : undefined;
+      const stickerLineTotal = getStickerAddonCharge(product.category, stickerSubCategory) * item.quantity;
+      const personalizedNameLetterCount = (item.personalizedNote ?? '').replace(/\s+/g, '').length;
+      const personalizedNameCharge = personalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER * item.quantity;
       return {
         ...item,
         product,
         sticker,
+        stickerSubCategory,
+        personalizedNameLetterCount,
+        personalizedNameCharge,
         lineTotal: product.basePrice * item.quantity,
         stickerLineTotal,
-        lineTotalWithSticker: product.basePrice * item.quantity + stickerLineTotal
+        lineTotalWithSticker: product.basePrice * item.quantity + stickerLineTotal,
+        lineTotalWithExtras: product.basePrice * item.quantity + stickerLineTotal + personalizedNameCharge
       };
     })
     .filter((item): item is NonNullable<typeof item> => !!item);
@@ -104,14 +124,16 @@ export const selectCouponEvaluation = (state: RootState) => {
   const billableQuantity = cartTotalQuantity > 0 ? cartTotalQuantity : state.order.quantity;
   const selectedProduct = selectSelectedProduct(state);
   const selectedDesign = selectSelectedDesign(state);
-  const isStickerAppliedOnDrinkware =
-    (selectedProduct?.category === 'tumblers' || selectedProduct?.category === 'mugs') &&
-    selectedDesign?.productCategory === 'stickers';
-  const fallbackDesignCharge = isStickerAppliedOnDrinkware ? 199 * billableQuantity : 0;
+  const fallbackDesignCharge =
+    selectedDesign?.productCategory === 'stickers'
+      ? getStickerAddonCharge(selectedProduct?.category, selectedDesign.stickerSubCategory) * billableQuantity
+      : 0;
   const designCharge = cartDesignChargeTotal > 0 ? cartDesignChargeTotal : fallbackDesignCharge;
   const giftWrapCharge = state.order.giftWrap ? GIFT_WRAP_CHARGE_PER_ITEM * billableQuantity : 0;
-  const personalizedNameLetterCount = state.order.personalizedNote.replace(/\s+/g, '').length;
-  const personalizedNameCharge = personalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER;
+  const cartPersonalizedNameChargeTotal = resolvedItems.reduce((sum, item) => sum + item.personalizedNameCharge, 0);
+  const fallbackPersonalizedNameLetterCount = state.order.personalizedNote.replace(/\s+/g, '').length;
+  const fallbackPersonalizedNameCharge = fallbackPersonalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER;
+  const personalizedNameCharge = cartPersonalizedNameChargeTotal > 0 ? cartPersonalizedNameChargeTotal : fallbackPersonalizedNameCharge;
   const subtotalExcludingDelivery = quantityTotal + designCharge + giftWrapCharge + personalizedNameCharge;
 
   return evaluateCoupon(state.order.couponCode, { subtotalExcludingDelivery });
@@ -128,13 +150,22 @@ export const selectPricing = (state: RootState): Pricing => {
   const quantityTotal = cartQuantityTotal > 0 ? cartQuantityTotal : fallbackUnitPrice * state.order.quantity;
   const billableQuantity = cartTotalQuantity > 0 ? cartTotalQuantity : state.order.quantity;
   const selectedDesign = selectSelectedDesign(state);
-  const isStickerAppliedOnDrinkware =
-    (product?.category === 'tumblers' || product?.category === 'mugs') && selectedDesign?.productCategory === 'stickers';
-  const fallbackDesignCharge = isStickerAppliedOnDrinkware ? 199 * billableQuantity : 0;
+  const fallbackDesignCharge =
+    selectedDesign?.productCategory === 'stickers'
+      ? getStickerAddonCharge(product?.category, selectedDesign.stickerSubCategory) * billableQuantity
+      : 0;
   const designCharge = cartDesignChargeTotal > 0 ? cartDesignChargeTotal : fallbackDesignCharge;
   const giftWrapCharge = state.order.giftWrap ? GIFT_WRAP_CHARGE_PER_ITEM * billableQuantity : 0;
-  const personalizedNameLetterCount = state.order.personalizedNote.replace(/\s+/g, '').length;
-  const personalizedNameCharge = personalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER;
+  const cartPersonalizedNameLetterCount = cartItems.reduce(
+    (sum, item) => sum + item.personalizedNameLetterCount * item.quantity,
+    0
+  );
+  const cartPersonalizedNameChargeTotal = cartItems.reduce((sum, item) => sum + item.personalizedNameCharge, 0);
+  const fallbackPersonalizedNameLetterCount = state.order.personalizedNote.replace(/\s+/g, '').length;
+  const fallbackPersonalizedNameCharge = fallbackPersonalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER;
+  const personalizedNameLetterCount =
+    cartPersonalizedNameLetterCount > 0 ? cartPersonalizedNameLetterCount : fallbackPersonalizedNameLetterCount;
+  const personalizedNameCharge = cartPersonalizedNameChargeTotal > 0 ? cartPersonalizedNameChargeTotal : fallbackPersonalizedNameCharge;
   const subtotalBeforeDiscount = quantityTotal + designCharge + giftWrapCharge + personalizedNameCharge;
   const couponEvaluation = selectCouponEvaluation(state);
   const discountAmount = couponEvaluation.status === 'applied' ? couponEvaluation.discountAmount : 0;

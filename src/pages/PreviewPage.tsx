@@ -8,6 +8,7 @@ import {
   clearOrder,
   clearPersistedOrder,
   clearCouponCode,
+  resetCurrentSelection,
   removeFromCart,
   setCouponCode,
   setCustomerDetails,
@@ -76,7 +77,6 @@ export const PreviewPage = () => {
   if (!displayProduct) {
     return null;
   }
-
   const canSubmit = useMemo(() => {
     const details = order.customerDetails;
     const hasRequiredFields = !!(
@@ -88,7 +88,6 @@ export const PreviewPage = () => {
     const hasValidContact = INDIAN_MOBILE_REGEX.test(details.contactNumber);
     const hasValidAlt = !details.alternateNumber.trim() || INDIAN_MOBILE_REGEX.test(details.alternateNumber);
     const hasValidEmail = EMAIL_REGEX.test(details.email.trim());
-
     return hasRequiredFields && hasValidContact && hasValidAlt && hasValidEmail;
   }, [order.customerDetails]);
 
@@ -141,6 +140,18 @@ export const PreviewPage = () => {
     setFieldErrors(nextFieldErrors);
     const hasAnyFieldError = (Object.keys(nextFieldErrors) as ValidationField[]).some((field) => !!nextFieldErrors[field]);
     if (hasAnyFieldError) {
+      const firstInvalid = (Object.keys(nextFieldErrors) as ValidationField[]).find((field) => !!nextFieldErrors[field]);
+      if (firstInvalid) {
+        const fieldMap: Record<ValidationField, string> = {
+          fullName: 'full-name',
+          address: 'address',
+          contactNumber: 'contact-number',
+          alternateNumber: 'alternate-number',
+          email: 'email'
+        };
+        const target = document.getElementById(fieldMap[firstInvalid]);
+        target?.focus();
+      }
       return;
     }
 
@@ -157,10 +168,12 @@ export const PreviewPage = () => {
       quantity: cartTotalQuantity || order.quantity,
       cartItems: cartItems.map(
         (item) =>
-          `- ${item.product.name} (${item.selectedColor})${item.sticker ? ` + Sticker: ${item.sticker.name}` : ''} x ${item.quantity} = ${formatRupee(item.lineTotalWithSticker)}`
+          `- ${item.product.name}${item.sticker ? ` + Sticker: ${item.sticker.name}` : ''}${
+            item.personalizedNote ? ` + Name: ${item.personalizedNote}` : ''
+          } x ${item.quantity} = ${formatRupee(item.lineTotalWithExtras)}`
       ),
       giftWrap: order.giftWrap,
-      personalizedNote: order.personalizedNote,
+      personalizedNote: cartItems.length > 0 ? 'Per item (see cart items)' : order.personalizedNote,
       customerDetails: details,
       pricing,
       upiId: BUSINESS_UPI_ID
@@ -202,16 +215,19 @@ export const PreviewPage = () => {
                     <div>
                       <p className="text-sm font-semibold text-lavender-900">{item.product.name}</p>
                       <p className="text-xs text-lavender-700">
-                        Color: {item.selectedColor} | Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotalWithSticker)}
+                        Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotalWithExtras)}
                       </p>
+                      {item.product.category !== 'tumblers' ? (
+                        <p className="text-xs text-lavender-700">Color: {item.selectedColor || 'N/A'}</p>
+                      ) : null}
                       {item.sticker ? (
                         <p className="text-xs font-medium text-lavender-700">
                           Sticker: {item.sticker.name} (+{formatRupee(item.stickerLineTotal)} total)
                         </p>
                       ) : null}
-                      <p className="text-xs font-medium text-lavender-600">
-                        Stock: {maxQty === null ? 'No limit' : `${maxQty} available`}
-                      </p>
+                      {item.personalizedNote ? (
+                        <p className="text-xs font-medium text-lavender-700">Name: {item.personalizedNote}</p>
+                      ) : null}
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -243,7 +259,15 @@ export const PreviewPage = () => {
                 <p className="mt-1 text-xs text-lavender-700 sm:text-sm">
                   Continue shopping to add more items to the same cart. Your current cart is preserved.
                 </p>
-                <button className="btn-secondary mt-3 w-full sm:w-auto" type="button" onClick={() => navigate('/')}>
+                <button
+                  className="btn-secondary mt-3 w-full sm:w-auto"
+                  type="button"
+                  onClick={() => {
+                    dispatch(resetCurrentSelection());
+                    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+                    navigate('/');
+                  }}
+                >
                   Continue Shopping
                 </button>
               </div>
@@ -266,6 +290,7 @@ export const PreviewPage = () => {
                   required
                   value={order.customerDetails.fullName}
                   error={fieldErrors.fullName}
+                  id="full-name"
                   onChange={(fullName) => {
                     const nextDetails = { ...order.customerDetails, fullName };
                     setFieldErrors((prev) => ({ ...prev, fullName: validateField('fullName', nextDetails) }));
@@ -289,6 +314,7 @@ export const PreviewPage = () => {
                   <input
                     className="w-full px-3.5 py-2.5 text-sm text-lavender-900 outline-none placeholder:text-lavender-400"
                     type="tel"
+                    id="contact-number"
                     inputMode="numeric"
                     maxLength={10}
                     value={order.customerDetails.contactNumber}
@@ -311,6 +337,7 @@ export const PreviewPage = () => {
                 <FormInput
                   label="Address"
                   required
+                  id="address"
                   value={order.customerDetails.address}
                   error={fieldErrors.address}
                   onChange={(address) => {
@@ -336,6 +363,7 @@ export const PreviewPage = () => {
                   <input
                     className="w-full px-3.5 py-2.5 text-sm text-lavender-900 outline-none placeholder:text-lavender-400"
                     type="tel"
+                    id="alternate-number"
                     inputMode="numeric"
                     maxLength={10}
                     value={order.customerDetails.alternateNumber}
@@ -358,6 +386,7 @@ export const PreviewPage = () => {
                   label="Email Address"
                   required
                   type="email"
+                  id="email"
                   value={order.customerDetails.email}
                   error={fieldErrors.email}
                   onChange={(email) => {
