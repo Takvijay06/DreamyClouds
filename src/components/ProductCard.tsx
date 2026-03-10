@@ -1,4 +1,4 @@
-import { KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { KeyboardEvent, TouchEvent, useEffect, useRef, useState } from 'react';
 import { NoImageBanner } from './NoImageBanner';
 import { Product } from '../features/order/orderTypes';
 import { formatRupee } from '../utils/currency';
@@ -27,6 +27,12 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
   const [isSliding, setIsSliding] = useState(false);
   const slideTimerRef = useRef<number | null>(null);
   const frameRef = useRef<number | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const touchLastXRef = useRef<number | null>(null);
+  const touchLastYRef = useRef<number | null>(null);
+  const hasTouchMovedRef = useRef(false);
+  const lastSwipeAtRef = useRef(0);
   const categoryLabel =
     product.category === 'tumblers'
       ? product.subCategory === 'glass-tumbler'
@@ -100,6 +106,66 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
     onSelect(product.id);
   };
 
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (!hasMultipleImages) {
+      return;
+    }
+    const touch = event.touches[0];
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+    touchLastXRef.current = touch.clientX;
+    touchLastYRef.current = touch.clientY;
+    hasTouchMovedRef.current = false;
+  };
+
+  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    if (!hasMultipleImages || touchStartXRef.current === null || touchStartYRef.current === null) {
+      return;
+    }
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - touchStartXRef.current;
+    const deltaY = touch.clientY - touchStartYRef.current;
+    touchLastXRef.current = touch.clientX;
+    touchLastYRef.current = touch.clientY;
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      hasTouchMovedRef.current = true;
+      event.preventDefault();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!hasMultipleImages || touchStartXRef.current === null || touchStartYRef.current === null) {
+      return;
+    }
+    const endX = touchLastXRef.current ?? touchStartXRef.current;
+    const endY = touchLastYRef.current ?? touchStartYRef.current;
+    const deltaX = endX - touchStartXRef.current;
+    const deltaY = endY - touchStartYRef.current;
+    const swipeThreshold = 40;
+
+    if (hasTouchMovedRef.current && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) >= swipeThreshold) {
+      if (deltaX > 0) {
+        showPreviousImage();
+      } else {
+        showNextImage();
+      }
+      lastSwipeAtRef.current = Date.now();
+    }
+
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+    touchLastXRef.current = null;
+    touchLastYRef.current = null;
+    hasTouchMovedRef.current = false;
+  };
+
+  const handleSelect = () => {
+    if (Date.now() - lastSwipeAtRef.current < 350) {
+      return;
+    }
+    onSelect(product.id);
+  };
+
   const enteringStartClass = slideDirection === 'next' ? 'translate-x-full' : '-translate-x-full';
   const exitingEndClass = slideDirection === 'next' ? '-translate-x-full' : 'translate-x-full';
 
@@ -122,8 +188,11 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
       <div
         role="button"
         tabIndex={0}
-        onClick={() => onSelect(product.id)}
+        onClick={handleSelect}
         onKeyDown={onImageKeyDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
         className="relative block w-full cursor-pointer overflow-hidden bg-lavender-50/40 text-left outline-none focus-visible:ring-2 focus-visible:ring-lavender-400"
       >
         <div className="relative h-44 w-full overflow-hidden">

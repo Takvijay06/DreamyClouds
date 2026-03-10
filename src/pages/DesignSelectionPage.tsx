@@ -40,6 +40,7 @@ export const DesignSelectionPage = () => {
     : !!order.designId && (!requiresPlacement || order.letDaisyDecide || !!order.placementStyle);
   const [previewDesign, setPreviewDesign] = useState<Design | null>(null);
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
+  const placementSectionRef = useRef<HTMLDivElement | null>(null);
   const hasMountedDesignScrollRef = useRef(false);
   const groupedStickerDesigns = useMemo(() => {
     const single = filteredDesigns.filter((design) => design.stickerSubCategory === 'single');
@@ -105,6 +106,20 @@ export const DesignSelectionPage = () => {
     });
   }, [order.designId]);
 
+  const scrollToAfterStickerSelection = (needsPlacement: boolean) => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      if (needsPlacement) {
+        placementSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+      buttonAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    });
+  };
+
   if (
     !product ||
     product.category === 'bookmarks' ||
@@ -139,6 +154,7 @@ export const DesignSelectionPage = () => {
                 dispatch(setDesign('no-design-needed'));
                 dispatch(setPlacementStyle(''));
                 dispatch(setLetDaisyDecide(false));
+                scrollToAfterStickerSelection(false);
               }}
               className={`w-full rounded-2xl border px-4 py-3 text-left text-sm font-semibold transition ${
                 isNoDesignNeeded
@@ -162,10 +178,12 @@ export const DesignSelectionPage = () => {
                         onSelect={(id) => {
                           dispatch(setDesign(id));
                           const selected = filteredDesigns.find((entry) => entry.id === id);
+                          const needsPlacement = selected?.stickerSubCategory === 'full-wrap';
                           if (selected?.stickerSubCategory === 'single') {
                             dispatch(setPlacementStyle(''));
                             dispatch(setLetDaisyDecide(false));
                           }
+                          scrollToAfterStickerSelection(!!needsPlacement);
                         }}
                       />
                     ))}
@@ -177,7 +195,7 @@ export const DesignSelectionPage = () => {
         ) : null}
 
         {order.designId && requiresPlacement && !isDaisyBouquetCandle ? (
-          <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
+          <section ref={placementSectionRef} className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Placement</h2>
             <div className="grid gap-4 sm:grid-cols-2">
               <button

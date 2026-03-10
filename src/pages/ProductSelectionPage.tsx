@@ -59,7 +59,6 @@ export const ProductSelectionPage = () => {
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
   const hasMountedProductScrollRef = useRef(false);
-  const isCandleSelected = selectedProduct?.category === 'candles';
   const isDaisyBouquetCandle = selectedProduct?.id === 'candle-daisy-flower-bouquet';
 
   const filteredProducts = useMemo(
@@ -86,7 +85,7 @@ export const ProductSelectionPage = () => {
     [activeCategory, activeStickerSubCategory]
   );
   const selectedColorOptions = useMemo(() => {
-    if (!selectedProduct || selectedProduct.category !== 'candles') {
+    if (!selectedProduct || selectedProduct.category !== 'candles' || !isDaisyBouquetCandle) {
       return [];
     }
 
@@ -95,16 +94,19 @@ export const ProductSelectionPage = () => {
     }
 
     return DEFAULT_COLORS_BY_CATEGORY[selectedProduct.category];
-  }, [selectedProduct]);
+  }, [isDaisyBouquetCandle, selectedProduct]);
 
   useEffect(() => {
     if (!selectedProduct) {
       return;
     }
 
-    if (selectedProduct.category !== 'candles') {
+    if (selectedProduct.category !== 'candles' || !isDaisyBouquetCandle) {
       if (order.selectedColor) {
         dispatch(setSelectedColor(''));
+      }
+      if (order.candleScented) {
+        dispatch(setCandleScented(false));
       }
       return;
     }
@@ -112,7 +114,7 @@ export const ProductSelectionPage = () => {
     if (!order.selectedColor || !selectedColorOptions.includes(order.selectedColor)) {
       dispatch(setSelectedColor(selectedColorOptions[0]));
     }
-  }, [dispatch, order.selectedColor, selectedColorOptions, selectedProduct]);
+  }, [dispatch, order.candleScented, order.selectedColor, selectedColorOptions, selectedProduct, isDaisyBouquetCandle]);
 
   useEffect(() => {
     const preloadLimit = typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches ? 6 : 12;
@@ -163,14 +165,17 @@ export const ProductSelectionPage = () => {
       return;
     }
 
-    const selectedColor = selectedProduct.category === 'candles' ? order.selectedColor || DEFAULT_COLORS_BY_CATEGORY.candles[0] : '';
+    const selectedColor =
+      selectedProduct.id === 'candle-daisy-flower-bouquet'
+        ? order.selectedColor || DEFAULT_COLORS_BY_CATEGORY.candles[0]
+        : '';
 
     dispatch(
       addToCart({
         productId: selectedProduct.id,
         quantity: order.quantity,
         selectedColor,
-        candleScented: selectedProduct.category === 'candles' ? order.candleScented : false,
+        candleScented: selectedProduct.id === 'candle-daisy-flower-bouquet' ? order.candleScented : false,
         candleNote: selectedProduct.id === 'candle-daisy-flower-bouquet' ? order.candleNote : '',
         selectedStickerId: null,
         personalizedNote: ''
@@ -275,7 +280,7 @@ export const ProductSelectionPage = () => {
           </div>
         </section>
 
-        {isCandleSelected ? (
+        {isDaisyBouquetCandle ? (
           <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h3 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Candle Options</h3>
             <label className="block space-y-1.5">

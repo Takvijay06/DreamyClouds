@@ -91,14 +91,6 @@ export const PreviewPage = () => {
     return hasRequiredFields && hasValidContact && hasValidAlt && hasValidEmail;
   }, [order.customerDetails]);
 
-  const toAbsoluteAssetUrl = (assetPath: string): string => {
-    if (/^https?:\/\//i.test(assetPath)) {
-      return assetPath;
-    }
-
-    return `${window.location.origin}${assetPath.startsWith('/') ? assetPath : `/${assetPath}`}`;
-  };
-
   const validateField = (field: ValidationField, details = order.customerDetails): string => {
     if (field === 'fullName') {
       return details.fullName.trim() ? '' : 'Full Name is required.';
@@ -155,34 +147,43 @@ export const PreviewPage = () => {
       return;
     }
 
+    const orderDetails =
+      cartItems.length > 0
+        ? cartItems.flatMap((item, index) => {
+            const detailLines = [
+              `*Item ${index + 1}*`,
+              `- Product: ${item.product.name}`,
+              ...(item.sticker ? [`- Sticker: ${item.sticker.name}`] : []),
+              ...(item.product.id === 'candle-daisy-flower-bouquet'
+                ? [
+                    `- Color: ${item.selectedColor || 'White'}`,
+                    `- Scented: ${item.candleScented ? 'Yes' : 'No'}`,
+                    ...(item.candleNote ? [`- Candle Note: ${item.candleNote}`] : [])
+                  ]
+                : []),
+              ...(item.personalizedNote ? [`- Name: ${item.personalizedNote}`] : []),
+              `- Quantity: ${item.quantity}`,
+              `- Gift Wrap: ${order.giftWrap ? 'Yes' : 'No'}`,
+              `- Line Total: ${formatRupee(item.lineTotalWithExtras)}`
+            ];
+
+            return index === 0 ? detailLines : ['', ...detailLines];
+          })
+        : undefined;
+
     const message = buildWhatsAppMessage({
       product: displayProduct,
       design,
-      productImageUrl: toAbsoluteAssetUrl(displayProduct.image),
-      designImageUrl: design?.image ? toAbsoluteAssetUrl(design.image) : undefined,
       placementStyle: order.placementStyle,
       letDaisyDecide: order.letDaisyDecide,
-      customDesignImageName: order.customDesignImageName,
       designCustomerName: order.designCustomerName,
       selectedColor: order.selectedColor,
       candleScented: order.candleScented,
       candleNote: order.candleNote,
       quantity: cartTotalQuantity || order.quantity,
-      cartItems: cartItems.map(
-        (item) => {
-          const candleDetails =
-            item.product.category === 'candles'
-              ? `${item.selectedColor ? ` + Color: ${item.selectedColor}` : ''}${item.candleScented ? ' + Scented' : ''}${
-                  item.candleNote ? ` + Note: ${item.candleNote}` : ''
-                }`
-              : '';
-          return `- ${item.product.name}${item.sticker ? ` + Sticker: ${item.sticker.name}` : ''}${
-            item.personalizedNote ? ` + Name: ${item.personalizedNote}` : ''
-          }${candleDetails} x ${item.quantity} = ${formatRupee(item.lineTotalWithExtras)}`;
-        }
-      ),
+      orderDetails,
       giftWrap: order.giftWrap,
-      personalizedNote: cartItems.length > 0 ? 'Per item (see cart items)' : order.personalizedNote,
+      personalizedNote: cartItems.length > 0 ? 'Per item (see order details)' : order.personalizedNote,
       customerDetails: details,
       pricing,
       upiId: BUSINESS_UPI_ID
@@ -206,7 +207,7 @@ export const PreviewPage = () => {
           {cartItems.length > 0 ? (
             <div className="rounded-3xl border border-lavender-200/80 bg-white p-4 text-sm sm:p-5">
               <div className="mb-3 flex items-center justify-between">
-                <h3 className="font-['Sora'] text-base font-bold text-lavender-900">Cart Items</h3>
+                <h3 className="font-['Sora'] text-base font-bold text-lavender-900">Order Details</h3>
                 <span className="rounded-full bg-lavender-100 px-2.5 py-1 text-xs font-semibold text-lavender-700">
                   {cartItems.length} items
                 </span>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { TouchEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Product } from '../features/order/orderTypes';
 import { NoImageBanner } from './NoImageBanner';
@@ -27,6 +27,11 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
   const [isSliding, setIsSliding] = useState(false);
   const slideTimerRef = useRef<number | null>(null);
   const frameRef = useRef<number | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
+  const touchStartYRef = useRef<number | null>(null);
+  const touchLastXRef = useRef<number | null>(null);
+  const touchLastYRef = useRef<number | null>(null);
+  const hasTouchMovedRef = useRef(false);
 
   useEffect(() => {
     if (!open) {
@@ -112,6 +117,58 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
     transitionToImage(nextIndex, 'next');
   };
 
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (!hasMultipleImages) {
+      return;
+    }
+    const touch = event.touches[0];
+    touchStartXRef.current = touch.clientX;
+    touchStartYRef.current = touch.clientY;
+    touchLastXRef.current = touch.clientX;
+    touchLastYRef.current = touch.clientY;
+    hasTouchMovedRef.current = false;
+  };
+
+  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    if (!hasMultipleImages || touchStartXRef.current === null || touchStartYRef.current === null) {
+      return;
+    }
+    const touch = event.touches[0];
+    const deltaX = touch.clientX - touchStartXRef.current;
+    const deltaY = touch.clientY - touchStartYRef.current;
+    touchLastXRef.current = touch.clientX;
+    touchLastYRef.current = touch.clientY;
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+      hasTouchMovedRef.current = true;
+      event.preventDefault();
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!hasMultipleImages || touchStartXRef.current === null || touchStartYRef.current === null) {
+      return;
+    }
+    const endX = touchLastXRef.current ?? touchStartXRef.current;
+    const endY = touchLastYRef.current ?? touchStartYRef.current;
+    const deltaX = endX - touchStartXRef.current;
+    const deltaY = endY - touchStartYRef.current;
+    const swipeThreshold = 40;
+
+    if (hasTouchMovedRef.current && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) >= swipeThreshold) {
+      if (deltaX > 0) {
+        showPreviousImage();
+      } else {
+        showNextImage();
+      }
+    }
+
+    touchStartXRef.current = null;
+    touchStartYRef.current = null;
+    touchLastXRef.current = null;
+    touchLastYRef.current = null;
+    hasTouchMovedRef.current = false;
+  };
+
   const enteringStartClass = slideDirection === 'next' ? 'translate-x-full' : '-translate-x-full';
   const exitingEndClass = slideDirection === 'next' ? '-translate-x-full' : 'translate-x-full';
 
@@ -144,7 +201,12 @@ export const ProductPreviewModal = ({ product, open, onClose }: ProductPreviewMo
           </button>
         </div>
 
-        <div className="relative h-[75vh] min-h-[280px] w-full overflow-hidden bg-lavender-50">
+        <div
+          className="relative h-[75vh] min-h-[280px] w-full overflow-hidden bg-lavender-50"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
           {hasImage && previousImageIndex !== null ? (
             <img
               src={productImages[previousImageIndex]}

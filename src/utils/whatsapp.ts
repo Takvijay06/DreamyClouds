@@ -3,17 +3,14 @@ import { Pricing, Product, Design, CustomerDetails } from '../features/order/ord
 interface WhatsAppPayload {
   product: Product;
   design: Design | null;
-  productImageUrl: string;
-  designImageUrl?: string;
   placementStyle: '' | 'full-wrap' | 'random-placement';
   letDaisyDecide: boolean;
-  customDesignImageName: string;
   designCustomerName: string;
   selectedColor: string;
   candleScented: boolean;
   candleNote: string;
   quantity: number;
-  cartItems?: string[];
+  orderDetails?: string[];
   giftWrap: boolean;
   personalizedNote: string;
   customerDetails: CustomerDetails;
@@ -24,45 +21,48 @@ interface WhatsAppPayload {
 export const buildWhatsAppMessage = ({
   product,
   design,
-  productImageUrl,
-  designImageUrl,
   placementStyle,
   letDaisyDecide,
-  customDesignImageName,
   designCustomerName,
   selectedColor,
   candleScented,
   candleNote,
   quantity,
-  cartItems,
+  orderDetails,
   giftWrap,
   personalizedNote,
   customerDetails,
   pricing,
   upiId
 }: WhatsAppPayload): string => {
+  const hasOrderDetails = !!orderDetails && orderDetails.length > 0;
   return [
     '*New Order Request - Dreamy Clouds By Daisy*',
     '',
-    '*Selected Product Details*',
-    `- Product: ${product.name}`,
-    ...(product.category === 'candles' ? [`- Color: ${selectedColor || 'White'}`] : []),
-    `- Design: ${design?.name ?? 'Not selected'}`,
-    `- Placement: ${
-      letDaisyDecide ? 'Let Daisy Decide' : placementStyle === 'full-wrap' ? 'Full Wrap' : placementStyle === 'random-placement' ? 'Random Placement' : 'N/A'
-    }`,
-    ...(product.category === 'candles'
-      ? [`- Scented: ${candleScented ? 'Yes' : 'No'}`, `- Candle Note: ${candleNote.trim() || 'N/A'}`]
-      : []),
-    `- Name: ${designCustomerName.trim() || 'N/A'}`,
-    `- Quantity: ${quantity}`,
-    `- Gift Wrap: ${giftWrap ? 'Yes' : 'No'}`,
-    `- Personalized Name: ${personalizedNote.trim() || 'N/A'}`,
-    ...(cartItems && cartItems.length > 0 ? ['', '*Cart Items*', ...cartItems] : []),
-    '',
-    '*Selected Images*',
-    `- Product Image: ${productImageUrl}`,
-    `- Design Image: ${designImageUrl ?? 'N/A'}`,
+    ...(hasOrderDetails
+      ? ['*Order Details*', ...orderDetails]
+      : [
+          '*Selected Product Details*',
+          `- Product: ${product.name}`,
+          ...(product.id === 'candle-daisy-flower-bouquet' ? [`- Color: ${selectedColor || 'White'}`] : []),
+          `- Design: ${design?.name ?? 'Not selected'}`,
+          `- Placement: ${
+            letDaisyDecide
+              ? 'Let Daisy Decide'
+              : placementStyle === 'full-wrap'
+                ? 'Full Wrap'
+                : placementStyle === 'random-placement'
+                  ? 'Random Placement'
+                  : 'N/A'
+          }`,
+          ...(product.id === 'candle-daisy-flower-bouquet'
+            ? [`- Scented: ${candleScented ? 'Yes' : 'No'}`, `- Candle Note: ${candleNote.trim() || 'N/A'}`]
+            : []),
+          `- Name: ${designCustomerName.trim() || 'N/A'}`,
+          `- Quantity: ${quantity}`,
+          `- Gift Wrap: ${giftWrap ? 'Yes' : 'No'}`,
+          `- Personalized Name: ${personalizedNote.trim() || 'N/A'}`
+        ]),
     '',
     '*Pricing*',
     `- Unit Price: INR ${pricing.unitPrice}`,
@@ -86,10 +86,7 @@ export const buildWhatsAppMessage = ({
     '',
     '*Payment Instructions*',
     `- Please pay via UPI to: ${upiId}`,
-    'After payment, share screenshot for manual verification.',
-    '',
-    '*Uploaded Image (At Checkout)*',
-    `- ${customDesignImageName || 'N/A'}`
+    'After payment, share screenshot for manual verification.'
   ].join('\n');
 };
 
