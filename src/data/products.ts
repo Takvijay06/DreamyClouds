@@ -508,3 +508,5 @@ export const PRODUCTS: Product[] = [...BASE_PRODUCTS, ...STICKER_PRODUCTS];
 export const DELIVERY_CHARGE = 70;
 export const GIFT_WRAP_CHARGE_PER_ITEM = 25;
 export const PERSONALIZED_NAME_CHARGE_PER_LETTER = 10;
+export const CANDLE_SCENTED_CHARGE = 25;
+export const CANDLE_DAISY_NOTE_CHARGE = 10;

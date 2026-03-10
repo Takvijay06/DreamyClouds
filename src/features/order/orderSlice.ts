@@ -16,6 +16,8 @@ const initialCustomerDetails: CustomerDetails = {
 const defaultState: OrderState = {
   productId: null,
   selectedColor: '',
+  candleScented: false,
+  candleNote: '',
   couponCode: '',
   quantity: 1,
   cartItems: [],
@@ -32,6 +34,8 @@ const defaultState: OrderState = {
 const resetSelectionAndPricingState = (state: OrderState) => {
   state.productId = null;
   state.selectedColor = '';
+  state.candleScented = false;
+  state.candleNote = '';
   state.quantity = 1;
   state.designId = null;
   state.placementStyle = '';
@@ -45,13 +49,6 @@ const resetSelectionAndPricingState = (state: OrderState) => {
 
 const hydrateState = (): OrderState => {
   if (typeof window === 'undefined') {
-    return defaultState;
-  }
-
-  const navigationEntries = window.performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
-  const isReload = navigationEntries[0]?.type === 'reload';
-  if (isReload) {
-    window.localStorage.removeItem(STORAGE_KEY);
     return defaultState;
   }
 
@@ -83,6 +80,8 @@ const orderSlice = createSlice({
       state.productId = action.payload;
       state.designId = null;
       state.selectedColor = '';
+      state.candleScented = false;
+      state.candleNote = '';
       state.placementStyle = '';
       state.letDaisyDecide = false;
       state.customDesignImageName = '';
@@ -90,6 +89,12 @@ const orderSlice = createSlice({
     },
     setSelectedColor(state, action: PayloadAction<string>) {
       state.selectedColor = action.payload;
+    },
+    setCandleScented(state, action: PayloadAction<boolean>) {
+      state.candleScented = action.payload;
+    },
+    setCandleNote(state, action: PayloadAction<string>) {
+      state.candleNote = action.payload;
     },
     setCouponCode(state, action: PayloadAction<string>) {
       state.couponCode = normalizeCouponCode(action.payload);
@@ -106,24 +111,39 @@ const orderSlice = createSlice({
         productId: string;
         quantity: number;
         selectedColor: string;
+        candleScented?: boolean;
+        candleNote?: string;
         selectedStickerId?: string | null;
         personalizedNote?: string;
         replaceExisting?: boolean;
       }>
     ) {
-      const { productId, quantity, selectedColor, selectedStickerId = null, personalizedNote = '', replaceExisting = false } =
-        action.payload;
+      const {
+        productId,
+        quantity,
+        selectedColor,
+        candleScented = false,
+        candleNote = '',
+        selectedStickerId = null,
+        personalizedNote = '',
+        replaceExisting = false
+      } = action.payload;
       const normalizedPersonalizedNote = personalizedNote.trim();
+      const normalizedCandleNote = candleNote.trim();
       const normalizedQty = Math.max(1, quantity);
       const existingByProductDesign = state.cartItems.find(
         (item) =>
           item.productId === productId &&
           item.selectedColor === selectedColor &&
-          (item.selectedStickerId ?? null) === selectedStickerId
+          (item.selectedStickerId ?? null) === selectedStickerId &&
+          !!item.candleScented === candleScented &&
+          (item.candleNote ?? '') === normalizedCandleNote
       );
       if (replaceExisting && existingByProductDesign) {
         existingByProductDesign.quantity = normalizedQty;
         existingByProductDesign.personalizedNote = normalizedPersonalizedNote;
+        existingByProductDesign.candleScented = candleScented;
+        existingByProductDesign.candleNote = normalizedCandleNote;
         return;
       }
       const existing = state.cartItems.find(
@@ -131,7 +151,9 @@ const orderSlice = createSlice({
           item.productId === productId &&
           item.selectedColor === selectedColor &&
           (item.selectedStickerId ?? null) === selectedStickerId &&
-          (item.personalizedNote ?? '') === normalizedPersonalizedNote
+          (item.personalizedNote ?? '') === normalizedPersonalizedNote &&
+          !!item.candleScented === candleScented &&
+          (item.candleNote ?? '') === normalizedCandleNote
       );
       if (existing) {
         existing.quantity += normalizedQty;
@@ -139,10 +161,14 @@ const orderSlice = createSlice({
       }
 
       state.cartItems.push({
-        id: `${productId}-${selectedColor}-${selectedStickerId ?? 'no-sticker'}-${normalizedPersonalizedNote || 'no-note'}-${Date.now()}`,
+        id: `${productId}-${selectedColor}-${selectedStickerId ?? 'no-sticker'}-${normalizedPersonalizedNote || 'no-note'}-${
+          candleScented ? 'scented' : 'unscented'
+        }-${normalizedCandleNote || 'no-candle-note'}-${Date.now()}`,
         productId,
         quantity: normalizedQty,
         selectedColor,
+        candleScented,
+        candleNote: normalizedCandleNote,
         selectedStickerId,
         personalizedNote: normalizedPersonalizedNote
       });
@@ -194,6 +220,8 @@ const orderSlice = createSlice({
     resetCurrentSelection(state) {
       state.productId = null;
       state.selectedColor = '';
+      state.candleScented = false;
+      state.candleNote = '';
       state.quantity = 1;
       state.designId = null;
       state.placementStyle = '';
@@ -214,6 +242,8 @@ const orderSlice = createSlice({
 export const {
   setProduct,
   setSelectedColor,
+  setCandleScented,
+  setCandleNote,
   setCouponCode,
   clearCouponCode,
   setQuantity,

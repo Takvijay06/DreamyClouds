@@ -10,6 +10,8 @@ interface WhatsAppPayload {
   customDesignImageName: string;
   designCustomerName: string;
   selectedColor: string;
+  candleScented: boolean;
+  candleNote: string;
   quantity: number;
   cartItems?: string[];
   giftWrap: boolean;
@@ -29,6 +31,8 @@ export const buildWhatsAppMessage = ({
   customDesignImageName,
   designCustomerName,
   selectedColor,
+  candleScented,
+  candleNote,
   quantity,
   cartItems,
   giftWrap,
@@ -42,11 +46,14 @@ export const buildWhatsAppMessage = ({
     '',
     '*Selected Product Details*',
     `- Product: ${product.name}`,
-    `- Color: ${selectedColor || 'N/A'}`,
+    ...(product.category === 'candles' ? [`- Color: ${selectedColor || 'White'}`] : []),
     `- Design: ${design?.name ?? 'Not selected'}`,
     `- Placement: ${
       letDaisyDecide ? 'Let Daisy Decide' : placementStyle === 'full-wrap' ? 'Full Wrap' : placementStyle === 'random-placement' ? 'Random Placement' : 'N/A'
     }`,
+    ...(product.category === 'candles'
+      ? [`- Scented: ${candleScented ? 'Yes' : 'No'}`, `- Candle Note: ${candleNote.trim() || 'N/A'}`]
+      : []),
     `- Name: ${designCustomerName.trim() || 'N/A'}`,
     `- Quantity: ${quantity}`,
     `- Gift Wrap: ${giftWrap ? 'Yes' : 'No'}`,
@@ -62,6 +69,8 @@ export const buildWhatsAppMessage = ({
     `- Items Total: INR ${pricing.quantityTotal}`,
     `- Gift Wrap Charge: INR ${pricing.giftWrapCharge}`,
     `- Personalized Name Charge (${pricing.personalizedNameLetterCount} letters): INR ${pricing.personalizedNameCharge}`,
+    ...(pricing.candleScentedCharge > 0 ? [`- Candle Scented Charge: INR ${pricing.candleScentedCharge}`] : []),
+    ...(pricing.candleNoteCharge > 0 ? [`- Daisy Candle Note Charge: INR ${pricing.candleNoteCharge}`] : []),
     `- Subtotal (Excl. Delivery): INR ${pricing.subtotalBeforeDiscount}`,
     `- Coupon: ${pricing.appliedCouponCode ?? 'N/A'}`,
     `- Discount: INR ${pricing.discountAmount}`,

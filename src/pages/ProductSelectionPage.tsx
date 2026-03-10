@@ -5,7 +5,7 @@ import { Layout } from '../components/Layout';
 import { ProductCard } from '../components/ProductCard';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PRODUCTS } from '../data/products';
-import { addToCart, setProduct, setSelectedColor } from '../features/order/orderSlice';
+import { addToCart, setCandleNote, setCandleScented, setProduct, setSelectedColor } from '../features/order/orderSlice';
 import { selectOrder, selectSelectedProduct } from '../features/order/selectors';
 import { Product, ProductCategory, StickerSubCategory } from '../features/order/orderTypes';
 
@@ -33,7 +33,7 @@ const DEFAULT_COLORS_BY_CATEGORY: Record<ProductCategory, string[]> = {
   tumblers: ['White', 'Black', 'Pink', 'Sky Blue'],
   mugs: ['White', 'Matte Black', 'Red', 'Navy Blue'],
   bookmarks: ['Ivory', 'Blush Pink', 'Sage Green', 'Lavender'],
-  candles: ['Cream', 'Rose Gold', 'Sand Beige', 'Olive'],
+  candles: ['White', 'Pink', 'Red', 'Yellow', 'Purple'],
   'gift-hampers': ['Classic Red', 'Royal Blue', 'Emerald', 'Pastel Peach'],
   accessories: ['Silver', 'Gold', 'Rose Gold', 'Black'],
   stickers: ['Multicolor']
@@ -59,6 +59,8 @@ export const ProductSelectionPage = () => {
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
   const hasMountedProductScrollRef = useRef(false);
+  const isCandleSelected = selectedProduct?.category === 'candles';
+  const isDaisyBouquetCandle = selectedProduct?.id === 'candle-daisy-flower-bouquet';
 
   const filteredProducts = useMemo(
     () =>
@@ -84,7 +86,7 @@ export const ProductSelectionPage = () => {
     [activeCategory, activeStickerSubCategory]
   );
   const selectedColorOptions = useMemo(() => {
-    if (!selectedProduct) {
+    if (!selectedProduct || selectedProduct.category !== 'candles') {
       return [];
     }
 
@@ -96,7 +98,14 @@ export const ProductSelectionPage = () => {
   }, [selectedProduct]);
 
   useEffect(() => {
-    if (!selectedProduct || selectedColorOptions.length === 0) {
+    if (!selectedProduct) {
+      return;
+    }
+
+    if (selectedProduct.category !== 'candles') {
+      if (order.selectedColor) {
+        dispatch(setSelectedColor(''));
+      }
       return;
     }
 
@@ -154,18 +163,15 @@ export const ProductSelectionPage = () => {
       return;
     }
 
-    const selectedColor =
-      order.selectedColor ||
-      (selectedProduct.colors && selectedProduct.colors.length > 0
-        ? selectedProduct.colors[0]
-        : DEFAULT_COLORS_BY_CATEGORY[selectedProduct.category][0]) ||
-      'N/A';
+    const selectedColor = selectedProduct.category === 'candles' ? order.selectedColor || DEFAULT_COLORS_BY_CATEGORY.candles[0] : '';
 
     dispatch(
       addToCart({
         productId: selectedProduct.id,
         quantity: order.quantity,
         selectedColor,
+        candleScented: selectedProduct.category === 'candles' ? order.candleScented : false,
+        candleNote: selectedProduct.id === 'candle-daisy-flower-bouquet' ? order.candleNote : '',
         selectedStickerId: null,
         personalizedNote: ''
       })
@@ -268,6 +274,50 @@ export const ProductSelectionPage = () => {
             ))}
           </div>
         </section>
+
+        {isCandleSelected ? (
+          <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
+            <h3 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Candle Options</h3>
+            <label className="block space-y-1.5">
+              <span className="text-sm font-semibold text-lavender-800">Color</span>
+              <select
+                className="input"
+                value={order.selectedColor}
+                onChange={(event) => dispatch(setSelectedColor(event.target.value))}
+              >
+                {selectedColorOptions.map((color) => (
+                  <option key={color} value={color}>
+                    {color}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="flex items-center gap-3 rounded-2xl border border-lavender-200/80 bg-white p-4">
+              <input
+                type="checkbox"
+                checked={order.candleScented}
+                onChange={(event) => dispatch(setCandleScented(event.target.checked))}
+                className="h-4 w-4 accent-lavender-600"
+              />
+              <span className="text-sm font-medium text-lavender-800">Scented (+ INR 25 per item)</span>
+            </label>
+
+            {isDaisyBouquetCandle ? (
+              <label className="block space-y-1.5">
+                <span className="text-sm font-semibold text-lavender-800">Short Note (optional)</span>
+                <textarea
+                  className="input min-h-20 resize-y"
+                  maxLength={80}
+                  value={order.candleNote}
+                  onChange={(event) => dispatch(setCandleNote(event.target.value))}
+                  placeholder="Add a short note for the candle"
+                />
+                <p className="text-xs text-lavender-600">Adds INR 10 if you enter a note.</p>
+              </label>
+            ) : null}
+          </section>
+        ) : null}
 
         <div ref={buttonAreaRef} className="flex justify-end">
           <div className="flex flex-col items-end gap-1.5">

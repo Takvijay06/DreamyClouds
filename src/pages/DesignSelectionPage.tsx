@@ -19,17 +19,7 @@ import {
   selectSelectedDesign,
   selectSelectedProduct
 } from '../features/order/selectors';
-import { Design, ProductCategory } from '../features/order/orderTypes';
-
-const DEFAULT_COLORS_BY_CATEGORY: Record<ProductCategory, string[]> = {
-  tumblers: ['White', 'Black', 'Pink', 'Sky Blue'],
-  mugs: ['White', 'Matte Black', 'Red', 'Navy Blue'],
-  bookmarks: ['Ivory', 'Blush Pink', 'Sage Green', 'Lavender'],
-  candles: ['Cream', 'Rose Gold', 'Sand Beige', 'Olive'],
-  'gift-hampers': ['Classic Red', 'Royal Blue', 'Emerald', 'Pastel Peach'],
-  accessories: ['Silver', 'Gold', 'Rose Gold', 'Black'],
-  stickers: ['Multicolor']
-};
+import { Design } from '../features/order/orderTypes';
 
 export const DesignSelectionPage = () => {
   const navigate = useNavigate();
@@ -278,13 +268,14 @@ export const DesignSelectionPage = () => {
             type="button"
             disabled={!canAddToCart}
             onClick={() => {
-              const selectedColor =
-                order.selectedColor || (product.colors && product.colors.length > 0 ? product.colors[0] : DEFAULT_COLORS_BY_CATEGORY[product.category][0]) || 'N/A';
+              const selectedColor = '';
                 dispatch(
                   addToCart({
                     productId: product.id,
                     quantity: order.quantity,
                     selectedColor,
+                    candleScented: false,
+                    candleNote: '',
                     selectedStickerId: selectedDesign?.productCategory === 'stickers' ? selectedDesign.id : null,
                     personalizedNote: order.personalizedNote,
                     replaceExisting: true

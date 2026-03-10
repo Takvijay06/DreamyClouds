@@ -40,6 +40,8 @@ export interface CartItem {
   productId: string;
   quantity: number;
   selectedColor: string;
+  candleScented?: boolean;
+  candleNote?: string;
   selectedStickerId?: string | null;
   personalizedNote?: string;
 }
@@ -51,6 +53,8 @@ export interface Pricing {
   giftWrapCharge: number;
   personalizedNameLetterCount: number;
   personalizedNameCharge: number;
+  candleScentedCharge: number;
+  candleNoteCharge: number;
   subtotalBeforeDiscount: number;
   discountAmount: number;
   totalBeforeDelivery: number;
@@ -62,6 +66,8 @@ export interface Pricing {
 export interface OrderState {
   productId: string | null;
   selectedColor: string;
+  candleScented: boolean;
+  candleNote: string;
   couponCode: string;
   quantity: number;
   cartItems: CartItem[];

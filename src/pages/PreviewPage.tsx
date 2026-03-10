@@ -165,12 +165,21 @@ export const PreviewPage = () => {
       customDesignImageName: order.customDesignImageName,
       designCustomerName: order.designCustomerName,
       selectedColor: order.selectedColor,
+      candleScented: order.candleScented,
+      candleNote: order.candleNote,
       quantity: cartTotalQuantity || order.quantity,
       cartItems: cartItems.map(
-        (item) =>
-          `- ${item.product.name}${item.sticker ? ` + Sticker: ${item.sticker.name}` : ''}${
+        (item) => {
+          const candleDetails =
+            item.product.category === 'candles'
+              ? `${item.selectedColor ? ` + Color: ${item.selectedColor}` : ''}${item.candleScented ? ' + Scented' : ''}${
+                  item.candleNote ? ` + Note: ${item.candleNote}` : ''
+                }`
+              : '';
+          return `- ${item.product.name}${item.sticker ? ` + Sticker: ${item.sticker.name}` : ''}${
             item.personalizedNote ? ` + Name: ${item.personalizedNote}` : ''
-          } x ${item.quantity} = ${formatRupee(item.lineTotalWithExtras)}`
+          }${candleDetails} x ${item.quantity} = ${formatRupee(item.lineTotalWithExtras)}`;
+        }
       ),
       giftWrap: order.giftWrap,
       personalizedNote: cartItems.length > 0 ? 'Per item (see cart items)' : order.personalizedNote,
@@ -217,8 +226,14 @@ export const PreviewPage = () => {
                       <p className="text-xs text-lavender-700">
                         Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotalWithExtras)}
                       </p>
-                      {item.product.category !== 'tumblers' ? (
-                        <p className="text-xs text-lavender-700">Color: {item.selectedColor || 'N/A'}</p>
+                      {item.product.category === 'candles' ? (
+                        <p className="text-xs text-lavender-700">Color: {item.selectedColor || 'White'}</p>
+                      ) : null}
+                      {item.product.category === 'candles' ? (
+                        <p className="text-xs text-lavender-700">Scented: {item.candleScented ? 'Yes' : 'No'}</p>
+                      ) : null}
+                      {item.product.category === 'candles' && item.candleNote ? (
+                        <p className="text-xs font-medium text-lavender-700">Note: {item.candleNote}</p>
                       ) : null}
                       {item.sticker ? (
                         <p className="text-xs font-medium text-lavender-700">
@@ -419,7 +434,7 @@ export const PreviewPage = () => {
                 className="input"
                 value={couponInput}
                 onChange={(event) => setCouponInput(event.target.value.toUpperCase())}
-                placeholder="Enter code (e.g. FIRST100)"
+                placeholder="Enter code"
               />
               <button
                 type="button"

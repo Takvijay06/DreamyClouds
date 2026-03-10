@@ -35,6 +35,18 @@ export const PriceBreakdown = ({ pricing, quantity }: PriceBreakdownProps) => {
           <span className="text-lavender-700">Personalized Name ({pricing.personalizedNameLetterCount} letters)</span>
           <span className="font-semibold text-lavender-900">{formatRupee(pricing.personalizedNameCharge)}</span>
         </div>
+        {pricing.candleScentedCharge > 0 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-lavender-700">Candle Scented Add-on</span>
+            <span className="font-semibold text-lavender-900">{formatRupee(pricing.candleScentedCharge)}</span>
+          </div>
+        ) : null}
+        {pricing.candleNoteCharge > 0 ? (
+          <div className="flex justify-between gap-4">
+            <span className="text-lavender-700">Daisy Candle Note</span>
+            <span className="font-semibold text-lavender-900">{formatRupee(pricing.candleNoteCharge)}</span>
+          </div>
+        ) : null}
         <div className="flex justify-between gap-4 border-t border-lavender-100 pt-2">
           <span className="text-lavender-700">Subtotal (Excl. Delivery)</span>
           <span className="font-semibold text-lavender-900">{formatRupee(pricing.subtotalBeforeDiscount)}</span>
