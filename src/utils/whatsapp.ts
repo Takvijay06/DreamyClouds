@@ -64,8 +64,7 @@ export const buildWhatsAppMessage = ({
           `- Personalized Name: ${personalizedNote.trim() || 'N/A'}`
         ]),
     '',
-    '*Pricing*',
-    `- Unit Price: INR ${pricing.unitPrice}`,
+    '*Total*',
     `- Items Total: INR ${pricing.quantityTotal}`,
     `- Gift Wrap Charge: INR ${pricing.giftWrapCharge}`,
     `- Personalized Name Charge (${pricing.personalizedNameLetterCount} letters): INR ${pricing.personalizedNameCharge}`,
@@ -86,7 +85,9 @@ export const buildWhatsAppMessage = ({
     '',
     '*Payment Instructions*',
     `- Please pay via UPI to: ${upiId}`,
-    'After payment, share screenshot for manual verification.'
+    `- Note - Cash on Delivery not available at this moment`,
+    'After payment, share screenshot for manual verification.',
+    `Without Payment screenshot order will not be confirmed.`
   ].join('\n');
 };
 
