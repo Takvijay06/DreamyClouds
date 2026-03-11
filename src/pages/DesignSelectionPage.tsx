@@ -29,11 +29,13 @@ export const DesignSelectionPage = () => {
   const selectedDesign = useAppSelector(selectSelectedDesign);
   const filteredDesigns = useAppSelector(selectFilteredDesigns);
   const isStickerDesignFlowProduct = product?.category === 'tumblers' || product?.category === 'mugs';
+  const isGlassTumbler = product?.category === 'tumblers' && product?.subCategory === 'glass-tumbler';
   const isDaisyBouquetCandle = product?.id === 'candle-daisy-flower-bouquet';
   const isNoDesignNeeded = order.designId === 'no-design-needed';
   const requiresPlacement =
     !isDaisyBouquetCandle &&
     !isNoDesignNeeded &&
+    !isGlassTumbler &&
     (!isStickerDesignFlowProduct || selectedDesign?.stickerSubCategory === 'full-wrap');
   const canAddToCart = isDaisyBouquetCandle
     ? true
@@ -97,6 +99,9 @@ export const DesignSelectionPage = () => {
     if (!order.designId || typeof window === 'undefined') {
       return;
     }
+    if (requiresPlacement) {
+      return;
+    }
     const isMobile = window.matchMedia('(max-width: 639px)').matches;
     if (!isMobile) {
       return;
@@ -104,7 +109,7 @@ export const DesignSelectionPage = () => {
     window.requestAnimationFrame(() => {
       buttonAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     });
-  }, [order.designId]);
+  }, [order.designId, requiresPlacement]);
 
   const scrollToAfterStickerSelection = (needsPlacement: boolean) => {
     if (typeof window === 'undefined') {
@@ -113,7 +118,7 @@ export const DesignSelectionPage = () => {
 
     window.requestAnimationFrame(() => {
       if (needsPlacement) {
-        placementSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        placementSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
       buttonAreaRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
@@ -178,8 +183,11 @@ export const DesignSelectionPage = () => {
                         onSelect={(id) => {
                           dispatch(setDesign(id));
                           const selected = filteredDesigns.find((entry) => entry.id === id);
-                          const needsPlacement = selected?.stickerSubCategory === 'full-wrap';
-                          if (selected?.stickerSubCategory === 'single') {
+                          const needsPlacement = selected?.stickerSubCategory === 'full-wrap' && !isGlassTumbler;
+                          if (isGlassTumbler) {
+                            dispatch(setPlacementStyle(''));
+                            dispatch(setLetDaisyDecide(false));
+                          } else if (selected?.stickerSubCategory === 'single') {
                             dispatch(setPlacementStyle(''));
                             dispatch(setLetDaisyDecide(false));
                           }
@@ -252,7 +260,7 @@ export const DesignSelectionPage = () => {
 
         {order.designId && isStickerDesignFlowProduct && !requiresPlacement && !isDaisyBouquetCandle ? (
           <section className="rounded-2xl border border-lavender-200/80 bg-lavender-50/70 p-4 text-sm text-lavender-800">
-            Single sticker design selected. Placement option is not required.
+            Placement option is not required for this selection.
           </section>
         ) : null}
 
