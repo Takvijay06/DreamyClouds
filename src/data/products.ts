@@ -352,7 +352,7 @@ const BASE_PRODUCTS: Product[] = [
     imageFileNumber: 25,
     imageAvailable: true,
     image: daisyFlower1,
-    images: [daisyFlower1, daisyFlower2, daisyFlower3, daisyFlower4,daisyFlower5,daisyFlower6, daisyFlower7, daisyFlower8],
+    images: [daisyFlower3, daisyFlower2, daisyFlower1, daisyFlower4,daisyFlower5,daisyFlower6, daisyFlower7, daisyFlower8],
     overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
   },
   {
@@ -385,7 +385,7 @@ const BASE_PRODUCTS: Product[] = [
     id: 'accessory-colorful-straw',
     category: 'accessories',
     name: 'Colorful Straw',
-    description: 'Set of 2',
+    description: 'Set of 2 (Random Color Shipped)',
     basePrice: 49,
     availableQuantity: 10,
     imageFileNumber: 28,
