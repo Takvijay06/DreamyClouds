@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { FormInput } from '../components/FormInput';
 import { Layout } from '../components/Layout';
+import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PriceBreakdown } from '../components/PriceBreakdown';
 import {
   clearOrder,
@@ -24,6 +25,7 @@ import {
   selectSelectedDesign,
   selectSelectedProduct
 } from '../features/order/selectors';
+import { Product } from '../features/order/orderTypes';
 import { formatRupee } from '../utils/currency';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../utils/whatsapp';
 
@@ -48,6 +50,7 @@ export const PreviewPage = () => {
   const dispatch = useAppDispatch();
   const [couponInput, setCouponInput] = useState('');
   const [fieldErrors, setFieldErrors] = useState<ValidationErrors>(EMPTY_VALIDATION_ERRORS);
+  const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
 
   const order = useAppSelector(selectOrder);
   const product = useAppSelector(selectSelectedProduct);
@@ -220,30 +223,45 @@ export const PreviewPage = () => {
                   return (
                   <div
                     key={item.id}
-                    className="flex flex-col gap-2 rounded-2xl border border-lavender-200 bg-lavender-50/60 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 rounded-2xl border border-lavender-200 bg-lavender-50/60 p-3 sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div>
-                      <p className="text-sm font-semibold text-lavender-900">{item.product.name}</p>
-                      <p className="text-xs text-lavender-700">
-                        Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotalWithExtras)}
-                      </p>
-                      {item.product.category === 'candles' ? (
-                        <p className="text-xs text-lavender-700">Color: {item.selectedColor || 'White'}</p>
-                      ) : null}
-                      {item.product.category === 'candles' ? (
-                        <p className="text-xs text-lavender-700">Scented: {item.candleScented ? 'Yes' : 'No'}</p>
-                      ) : null}
-                      {item.product.category === 'candles' && item.candleNote ? (
-                        <p className="text-xs font-medium text-lavender-700">Note: {item.candleNote}</p>
-                      ) : null}
-                      {item.sticker ? (
-                        <p className="text-xs font-medium text-lavender-700">
-                          Sticker: {item.sticker.name} (+{formatRupee(item.stickerLineTotal)} total)
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewProduct(item.product)}
+                        className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-2xl border border-lavender-200 bg-white transition hover:border-lavender-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lavender-300"
+                        aria-label={`Preview ${item.product.name}`}
+                      >
+                        <img
+                          src={item.product.image}
+                          alt={item.product.name}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                        />
+                      </button>
+                      <div>
+                        <p className="text-sm font-semibold text-lavender-900">{item.product.name}</p>
+                        <p className="text-xs text-lavender-700">
+                          Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotalWithExtras)}
                         </p>
-                      ) : null}
-                      {item.personalizedNote ? (
-                        <p className="text-xs font-medium text-lavender-700">Name: {item.personalizedNote}</p>
-                      ) : null}
+                        {item.product.category === 'candles' ? (
+                          <p className="text-xs text-lavender-700">Color: {item.selectedColor || 'White'}</p>
+                        ) : null}
+                        {item.product.category === 'candles' ? (
+                          <p className="text-xs text-lavender-700">Scented: {item.candleScented ? 'Yes' : 'No'}</p>
+                        ) : null}
+                        {item.product.category === 'candles' && item.candleNote ? (
+                          <p className="text-xs font-medium text-lavender-700">Note: {item.candleNote}</p>
+                        ) : null}
+                        {item.sticker ? (
+                          <p className="text-xs font-medium text-lavender-700">
+                            Sticker: {item.sticker.name} (+{formatRupee(item.stickerLineTotal)} total)
+                          </p>
+                        ) : null}
+                        {item.personalizedNote ? (
+                          <p className="text-xs font-medium text-lavender-700">Name: {item.personalizedNote}</p>
+                        ) : null}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -486,6 +504,7 @@ export const PreviewPage = () => {
           </div>
         </div>
       </form>
+      <ProductPreviewModal product={previewProduct} open={!!previewProduct} onClose={() => setPreviewProduct(null)} />
     </Layout>
   );
 };
