@@ -15,6 +15,20 @@ import img11b from './Products/tumblers/11-2.jpeg';
 import img12 from './Products/tumblers/12.jpeg';
 import img13 from './Products/tumblers/13.jpeg';
 import img14 from './Products/tumblers/14.jpeg';
+import daisyFlower1 from './Products/candles/DaisyFlower1.png';
+import daisyFlower2 from './Products/candles/DaisyFlower2.png';
+import daisyFlower3 from './Products/candles/DaisyFlower3.png';
+import daisyFlower4 from './Products/candles/DaisyFlower4.png';
+import daisyFlower5 from './Products/candles/DaisyFlower5.png';
+import daisyFlower6 from './Products/candles/DaisyFlower6.png';
+import daisyFlower7 from './Products/candles/DaisyFlower7.png';
+import daisyFlower8 from './Products/candles/DaisyFlower8.png';
+import dreamycloudCandle from './Products/candles/dreamycloudsCandle.jpeg';
+import coffeLatte from './Products/candles/coffeeLatteCandle.jpeg';
+import colorfulStraw from './Products/accessories/colorfulStraw.jpeg';
+import steelStraw1 from './Products/accessories/steelStraw1.png';
+import steelStraw2 from './Products/accessories/steelStraw2.jpeg';
+import mugWithStraw from './Products/mugs/mugExtra2.png';
 
 const BASE_PRODUCTS: Product[] = [
   {
@@ -194,8 +208,8 @@ const BASE_PRODUCTS: Product[] = [
     basePrice: 149,
     availableQuantity: null,
     imageFileNumber: 14,
-    image: img14,
-    images: [img14],
+    image: mugWithStraw,
+    images: [mugWithStraw, img14],
     overlayClassName: 'left-[22%] top-[34%] h-[30%] w-[48%]'
   },
   {
@@ -336,9 +350,9 @@ const BASE_PRODUCTS: Product[] = [
     basePrice: 49,
     availableQuantity: null,
     imageFileNumber: 25,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
+    imageAvailable: true,
+    image: daisyFlower1,
+    images: [daisyFlower1, daisyFlower2, daisyFlower3, daisyFlower4,daisyFlower5,daisyFlower6, daisyFlower7, daisyFlower8],
     overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
   },
   {
@@ -349,9 +363,9 @@ const BASE_PRODUCTS: Product[] = [
     basePrice: 299,
     availableQuantity: null,
     imageFileNumber: 26,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
+    imageAvailable: true,
+    image: dreamycloudCandle,
+    images: [dreamycloudCandle],
     overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
   },
   {
@@ -362,9 +376,9 @@ const BASE_PRODUCTS: Product[] = [
     basePrice: 499,
     availableQuantity: null,
     imageFileNumber: 27,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
+    imageAvailable: true,
+    image: coffeLatte,
+    images: [coffeLatte],
     overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
   },
   {
@@ -375,9 +389,9 @@ const BASE_PRODUCTS: Product[] = [
     basePrice: 49,
     availableQuantity: 10,
     imageFileNumber: 28,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
+    imageAvailable: true,
+    image: colorfulStraw,
+    images: [colorfulStraw],
     overlayClassName: 'left-[26%] top-[30%] h-[36%] w-[46%]'
   },
   {
@@ -388,9 +402,9 @@ const BASE_PRODUCTS: Product[] = [
     basePrice: 49,
     availableQuantity: 2,
     imageFileNumber: 29,
-    imageAvailable: false,
-    image: img6,
-    images: [img6],
+    imageAvailable: true,
+    image: steelStraw1,
+    images: [steelStraw1,steelStraw2],
     overlayClassName: 'left-[26%] top-[30%] h-[36%] w-[46%]'
   }
 ];
