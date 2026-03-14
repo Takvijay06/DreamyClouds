@@ -15,7 +15,6 @@ const CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
   { key: 'steel-tumblers', label: 'Steel Tumbler' },
   { key: 'glass-tumblers', label: 'Glass Tumbler' },
   { key: 'mugs', label: 'Mugs' },
-  { key: 'bookmarks', label: 'Bookmarks' },
   { key: 'candles', label: 'Candles' },
   { key: 'accessories', label: 'Accessories' },
   { key: 'stickers', label: 'Stickers' }

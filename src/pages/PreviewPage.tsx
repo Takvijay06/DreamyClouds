@@ -280,7 +280,17 @@ export const PreviewPage = () => {
                       >
                         +
                       </button>
-                      <button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => dispatch(removeFromCart(item.id))}>
+                      <button
+                        type="button"
+                        className="btn-secondary px-3 py-2 text-xs"
+                        onClick={() => {
+                          const isLastItem = cartItems.length === 1;
+                          dispatch(removeFromCart(item.id));
+                          if (isLastItem) {
+                            navigate('/');
+                          }
+                        }}
+                      >
                         Remove
                       </button>
                     </div>

@@ -208,7 +208,21 @@ export const selectPricing = (state: RootState): Pricing => {
   const couponEvaluation = selectCouponEvaluation(state);
   const discountAmount = couponEvaluation.status === 'applied' ? couponEvaluation.discountAmount : 0;
   const totalBeforeDelivery = Math.max(0, subtotalBeforeDiscount - discountAmount);
-  const deliveryCharge = quantityTotal > 0 ? DELIVERY_CHARGE : 0;
+  const hasCartItems = cartItems.length > 0;
+  const tumblerQuantity = hasCartItems
+    ? cartItems.reduce((sum, item) => (item.product.category === 'tumblers' ? sum + item.quantity : sum), 0)
+    : product?.category === 'tumblers'
+      ? state.order.quantity
+      : 0;
+  const deliveryCharge = (() => {
+    if (quantityTotal <= 0) {
+      return 0;
+    }
+    if (tumblerQuantity >= 2) {
+      return 100;
+    }
+    return DELIVERY_CHARGE;
+  })();
   const grandTotal = totalBeforeDelivery + deliveryCharge;
 
   return {
