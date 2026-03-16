@@ -186,6 +186,20 @@ const orderSlice = createSlice({
       }
       item.quantity = Math.max(1, action.payload.quantity);
     },
+    incrementCartItemQuantity(state, action: PayloadAction<string>) {
+      const item = state.cartItems.find((entry) => entry.id === action.payload);
+      if (!item) {
+        return;
+      }
+      item.quantity += 1;
+    },
+    decrementCartItemQuantity(state, action: PayloadAction<string>) {
+      const item = state.cartItems.find((entry) => entry.id === action.payload);
+      if (!item) {
+        return;
+      }
+      item.quantity = Math.max(1, item.quantity - 1);
+    },
     clearCart(state) {
       state.cartItems = [];
       resetSelectionAndPricingState(state);
@@ -250,6 +264,8 @@ export const {
   addToCart,
   removeFromCart,
   updateCartItemQuantity,
+  incrementCartItemQuantity,
+  decrementCartItemQuantity,
   clearCart,
   setDesign,
   clearDesignSelection,

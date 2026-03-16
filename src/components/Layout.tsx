@@ -1,7 +1,8 @@
 import { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import { useAppSelector } from '../app/hooks';
+import { Link, useLocation } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../app/hooks';
 import brandLogo from '../data/Logos/Logo_4.jpeg';
+import { resetCurrentSelection } from '../features/order/orderSlice';
 import { selectCartItemCount } from '../features/order/selectors';
 import { FestivalBanner } from './FestivalBanner';
 import { StepProgress } from './StepProgress';
@@ -13,7 +14,10 @@ interface LayoutProps {
 }
 
 export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => {
+  const dispatch = useAppDispatch();
   const cartItemCount = useAppSelector(selectCartItemCount);
+  const location = useLocation();
+  const isCartPage = location.pathname === '/preview';
 
   return (
     <main className="page-shell animate-fadeInUp">
@@ -66,13 +70,30 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
         <span className="contact-fab-text">Contact Us</span>
       </div>
 
-      <div className="cart-fab" aria-label="Cart">
-        <Link to="/preview" className="cart-fab-icon" aria-label="Go to cart page">
-          <span aria-hidden="true">{'\u{1F6D2}'}</span>
-          {cartItemCount > 0 ? <span className="cart-fab-badge">{cartItemCount}</span> : null}
-        </Link>
-        <span className="cart-fab-text">Cart</span>
-      </div>
+      {isCartPage ? (
+        <div className="cart-fab" aria-label="Continue shopping">
+          <Link
+            to="/"
+            className="cart-fab-icon"
+            aria-label="Continue shopping"
+            onClick={() => {
+              dispatch(resetCurrentSelection());
+              window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+            }}
+          >
+            <span aria-hidden="true">{'\u{1F6CD}'}</span>
+          </Link>
+          <span className="cart-fab-text">Continue Shopping</span>
+        </div>
+      ) : (
+        <div className="cart-fab" aria-label="Cart">
+          <Link to="/preview" className="cart-fab-icon" aria-label="Go to cart page">
+            <span aria-hidden="true">{'\u{1F6D2}'}</span>
+            {cartItemCount > 0 ? <span className="cart-fab-badge">{cartItemCount}</span> : null}
+          </Link>
+          <span className="cart-fab-text">Cart</span>
+        </div>
+      )}
     </main>
   );
 };

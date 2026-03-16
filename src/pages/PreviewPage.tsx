@@ -10,11 +10,12 @@ import {
   clearPersistedOrder,
   clearCouponCode,
   resetCurrentSelection,
+  decrementCartItemQuantity,
+  incrementCartItemQuantity,
   removeFromCart,
   setCouponCode,
   setCustomerDetails,
   setGiftWrap,
-  updateCartItemQuantity
 } from '../features/order/orderSlice';
 import {
   selectCartTotalQuantity,
@@ -254,9 +255,19 @@ export const PreviewPage = () => {
                           <p className="text-xs font-medium text-lavender-700">Note: {item.candleNote}</p>
                         ) : null}
                         {item.sticker ? (
-                          <p className="text-xs font-medium text-lavender-700">
-                            Sticker: {item.sticker.name} (+{formatRupee(item.stickerLineTotal)} total)
-                          </p>
+                          <div className="mt-1 flex items-center gap-2 text-xs font-medium text-lavender-700">
+                            <span className="inline-flex h-8 w-8 overflow-hidden rounded-xl border border-lavender-200 bg-white">
+                              <img
+                                src={item.sticker.image}
+                                alt={item.sticker.name}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                              />
+                            </span>
+                            <span>
+                              Sticker: {item.sticker.name} (+{formatRupee(item.stickerLineTotal)} total)
+                            </span>
+                          </div>
                         ) : null}
                         {item.personalizedNote ? (
                           <p className="text-xs font-medium text-lavender-700">Name: {item.personalizedNote}</p>
@@ -267,7 +278,7 @@ export const PreviewPage = () => {
                       <button
                         type="button"
                         className="btn-secondary h-9 w-9 p-0 text-lg"
-                        onClick={() => dispatch(updateCartItemQuantity({ id: item.id, quantity: item.quantity - 1 }))}
+                        onClick={() => dispatch(decrementCartItemQuantity(item.id))}
                       >
                         -
                       </button>
@@ -276,7 +287,7 @@ export const PreviewPage = () => {
                         type="button"
                         className="btn-secondary h-9 w-9 p-0 text-lg"
                         disabled={reachedMax}
-                        onClick={() => dispatch(updateCartItemQuantity({ id: item.id, quantity: item.quantity + 1 }))}
+                        onClick={() => dispatch(incrementCartItemQuantity(item.id))}
                       >
                         +
                       </button>
