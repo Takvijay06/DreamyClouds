@@ -26,6 +26,8 @@ export interface Design {
   stickerSubCategory?: StickerSubCategory;
   name: string;
   image: string;
+  basePrice?: number;
+  availableQuantity?: number | null;
 }
 
 export interface CustomerDetails {

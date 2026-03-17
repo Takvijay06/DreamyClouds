@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from './app/hooks';
 import { ScrollToTop } from './components/ScrollToTop';
 import faviconDd from './data/Logos/favicon_dd.png';
+import { fetchDesigns, selectDesignsStatus } from './features/designs/designsSlice';
+import { fetchProducts, selectProductsStatus } from './features/products/productsSlice';
 import { ContactUsPage } from './pages/ContactUsPage';
 import { DesignSelectionPage } from './pages/DesignSelectionPage';
 import { PreviewPage } from './pages/PreviewPage';
@@ -9,6 +12,9 @@ import { ProductSelectionPage } from './pages/ProductSelectionPage';
 
 const App = () => {
   const [showIntro, setShowIntro] = useState(true);
+  const dispatch = useAppDispatch();
+  const designsStatus = useAppSelector(selectDesignsStatus);
+  const productsStatus = useAppSelector(selectProductsStatus);
 
   useEffect(() => {
     const timerId = window.setTimeout(() => {
@@ -19,6 +25,18 @@ const App = () => {
       window.clearTimeout(timerId);
     };
   }, []);
+
+  useEffect(() => {
+    if (productsStatus === 'idle') {
+      dispatch(fetchProducts());
+    }
+  }, [dispatch, productsStatus]);
+
+  useEffect(() => {
+    if (designsStatus === 'idle') {
+      dispatch(fetchDesigns());
+    }
+  }, [dispatch, designsStatus]);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden">

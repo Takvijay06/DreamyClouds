@@ -6,14 +6,22 @@ import {
   PERSONALIZED_NAME_CHARGE_PER_LETTER,
   resolveCandleScentedCharge
 } from '../../data/products';
-import { DESIGNS } from '../../data/designs';
-import { PRODUCTS } from '../../data/products';
 import { RootState } from '../../app/store';
+import { selectDesigns, selectStickerProducts } from '../designs/designsSlice';
+import { selectProducts } from '../products/productsSlice';
 import { Pricing, ProductCategory, StickerSubCategory } from './orderTypes';
 import { evaluateCoupon } from './couponRules';
 
-const resolveStickerSubCategory = (value: unknown): StickerSubCategory =>
-  value === 'full-wrap' ? 'full-wrap' : 'single';
+const resolveStickerSubCategory = (value: unknown): StickerSubCategory => {
+  if (typeof value !== 'string') {
+    return 'single';
+  }
+  const normalized = value.trim().toLowerCase().replace(/[_\s]+/g, '-');
+  if (normalized === 'full-wrap' || normalized === 'fullwrap' || (normalized.includes('full') && normalized.includes('wrap'))) {
+    return 'full-wrap';
+  }
+  return 'single';
+};
 const NO_DESIGN_NEEDED_ID = 'no-design-needed';
 const SINGLE_STICKER_WITH_DRINKWARE_CHARGE = 49;
 const FULL_WRAP_STICKER_WITH_DRINKWARE_CHARGE = 199;
@@ -32,47 +40,36 @@ const getStickerAddonCharge = (
 export const selectOrder = (state: RootState) => state.order;
 
 export const selectSelectedProduct = (state: RootState) =>
-  PRODUCTS.find((product) => product.id === state.order.productId) ?? null;
+  selectProducts(state).find((product) => product.id === state.order.productId) ??
+  selectStickerProducts(state).find((product) => product.id === state.order.productId) ??
+  null;
 
 export const selectSelectedDesign = (state: RootState) =>
-  (state.order.designId === NO_DESIGN_NEEDED_ID
+  state.order.designId === NO_DESIGN_NEEDED_ID
     ? {
         id: NO_DESIGN_NEEDED_ID,
         productCategory: (selectSelectedProduct(state)?.category ?? 'tumblers') as ProductCategory,
         name: 'No design needed',
         image: ''
       }
-    :
-  DESIGNS.find((design) => design.id === state.order.designId) ??
-  (() => {
-    const stickerProduct =
-      PRODUCTS.find(
-        (product) => product.id === state.order.designId && product.category === 'stickers' && product.subCategory
-      ) ?? null;
-    if (!stickerProduct) {
-      return null;
-    }
-    return {
-      id: stickerProduct.id,
-      productCategory: 'stickers' as const,
-      stickerSubCategory: resolveStickerSubCategory(stickerProduct.subCategory),
-      name: stickerProduct.name,
-      image: stickerProduct.image
-    };
-  })());
+    : selectDesigns(state).find((design) => design.id === state.order.designId) ?? null;
 
 export const selectResolvedCartItems = (state: RootState) =>
   state.order.cartItems
     .map((item) => {
-      const product = PRODUCTS.find((entry) => entry.id === item.productId);
+      const product =
+        selectProducts(state).find((entry) => entry.id === item.productId) ??
+        selectStickerProducts(state).find((entry) => entry.id === item.productId);
       if (!product) {
         return null;
       }
       const sticker =
         item.selectedStickerId
-          ? PRODUCTS.find((entry) => entry.id === item.selectedStickerId && entry.category === 'stickers') ?? null
+          ? selectDesigns(state).find((entry) => entry.id === item.selectedStickerId && entry.productCategory === 'stickers') ?? null
           : null;
-      const stickerSubCategory = sticker?.subCategory ? resolveStickerSubCategory(sticker.subCategory) : undefined;
+      const stickerSubCategory = sticker?.stickerSubCategory
+        ? resolveStickerSubCategory(sticker.stickerSubCategory)
+        : undefined;
       const stickerLineTotal = getStickerAddonCharge(product.category, stickerSubCategory) * item.quantity;
       const personalizedNameLetterCount = (item.personalizedNote ?? '').replace(/\s+/g, '').length;
       const personalizedNameCharge = personalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER * item.quantity;
@@ -114,20 +111,24 @@ export const selectFilteredDesigns = (state: RootState) => {
 
   if (selectedProduct.category === 'tumblers' || selectedProduct.category === 'mugs') {
     const singleStickerOnly = selectedProduct.category === 'mugs' || selectedProduct.basePrice === 499;
-    return PRODUCTS.filter(
-      (product) =>
-        product.category === 'stickers' &&
-        (singleStickerOnly ? product.subCategory === 'single' : product.subCategory === 'full-wrap' || product.subCategory === 'single')
-    ).map((product) => ({
-      id: product.id,
-      productCategory: 'stickers' as const,
-      stickerSubCategory: resolveStickerSubCategory(product.subCategory),
-      name: product.name,
-      image: product.image
-    }));
+    return selectDesigns(state)
+      .filter(
+        (design) =>
+          design.productCategory === 'stickers' &&
+          (singleStickerOnly
+            ? design.stickerSubCategory === 'single'
+            : design.stickerSubCategory === 'full-wrap' || design.stickerSubCategory === 'single')
+      )
+      .map((design) => ({
+        id: design.id,
+        productCategory: 'stickers' as const,
+        stickerSubCategory: resolveStickerSubCategory(design.stickerSubCategory),
+        name: design.name,
+        image: design.image
+      }));
   }
 
-  return DESIGNS.filter((design) => design.productCategory === selectedProduct.category);
+  return selectDesigns(state).filter((design) => design.productCategory === selectedProduct.category);
 };
 
 export const selectCouponEvaluation = (state: RootState) => {

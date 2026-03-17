@@ -20,6 +20,7 @@ import {
   selectSelectedProduct
 } from '../features/order/selectors';
 import { Design } from '../features/order/orderTypes';
+import { selectDesignsError, selectDesignsStatus } from '../features/designs/designsSlice';
 
 export const DesignSelectionPage = () => {
   const navigate = useNavigate();
@@ -28,6 +29,8 @@ export const DesignSelectionPage = () => {
   const product = useAppSelector(selectSelectedProduct);
   const selectedDesign = useAppSelector(selectSelectedDesign);
   const filteredDesigns = useAppSelector(selectFilteredDesigns);
+  const designsStatus = useAppSelector(selectDesignsStatus);
+  const designsError = useAppSelector(selectDesignsError);
   const isStickerDesignFlowProduct = product?.category === 'tumblers' || product?.category === 'mugs';
   const isGlassTumbler = product?.category === 'tumblers' && product?.subCategory === 'glass-tumbler';
   const isDaisyBouquetCandle = product?.id === 'candle-daisy-flower-bouquet';
@@ -59,6 +62,9 @@ export const DesignSelectionPage = () => {
   useEffect(() => {
     const preloadLimit = typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches ? 8 : 16;
     filteredDesigns.slice(0, preloadLimit).forEach((design) => {
+      if (!design.image) {
+        return;
+      }
       const img = new Image();
       img.src = design.image;
     });
@@ -153,6 +159,16 @@ export const DesignSelectionPage = () => {
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-lavender-700">
               Order Step -2: click to select the sticker
             </p>
+            {designsStatus === 'loading' ? (
+              <div className="rounded-2xl border border-lavender-200/80 bg-white/85 p-3 text-xs font-semibold text-lavender-700">
+                Loading the latest designs…
+              </div>
+            ) : null}
+            {designsStatus === 'failed' ? (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-3 text-xs font-semibold text-rose-700">
+                Could not load the latest designs. {designsError ? `(${designsError})` : ''}
+              </div>
+            ) : null}
             <button
               type="button"
               onClick={() => {
