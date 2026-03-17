@@ -85,6 +85,7 @@ export const buildWhatsAppMessage = ({
     '',
     '*Payment Instructions*',
     `- Please pay via UPI to: ${upiId}`,
+    `- UPI QR: ${product.qrImage ?? 'N/A'}`,
     `- Note - Cash on Delivery not available at this moment`,
     'After payment, share screenshot for manual verification.',
     `Without Payment screenshot order will not be confirmed.`
@@ -94,4 +95,3 @@ export const buildWhatsAppMessage = ({
 export const buildWhatsAppUrl = (businessNumber: string, message: string): string => {
   return `https://wa.me/${businessNumber}?text=${encodeURIComponent(message)}`;
 };
-

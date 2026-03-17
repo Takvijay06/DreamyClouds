@@ -1,9 +1,12 @@
 import { Product } from '../features/order/orderTypes';
 import img1 from './Products/tumblers/1.jpeg';
 import img2 from './Products/tumblers/2.jpeg';
-import img3 from './Products/tumblers/3.jpeg';
+import marbleBlue from './Products/tumblers/marbleBlue.jpeg';
 import img4 from './Products/tumblers/4.jpeg';
 import img5 from './Products/tumblers/5.jpeg';
+import levandarTumbler from './Products/tumblers/levandarTumbler.png';
+import orangeTumbler from './Products/tumblers/orangeTumbler.jpeg';
+import warm from './Products/tumblers/warm.jpeg';
 import img6 from './Products/tumblers/6.jpeg';
 import img7 from './Products/tumblers/7.jpeg';
 import img8 from './Products/tumblers/8.jpeg';
@@ -24,11 +27,18 @@ import daisyFlower6 from './Products/candles/DaisyFlower6.png';
 import daisyFlower7 from './Products/candles/DaisyFlower7.png';
 import daisyFlower8 from './Products/candles/DaisyFlower8.png';
 import dreamycloudCandle from './Products/candles/dreamycloudsCandle.jpeg';
-import coffeLatte from './Products/candles/coffeeLatteCandle.jpeg';
+import coffeLatte from './Products/candles/coffeelatte2.png';
 import colorfulStraw from './Products/accessories/colorfulStraw.jpeg';
 import steelStraw1 from './Products/accessories/steelStraw1.png';
 import steelStraw2 from './Products/accessories/steelStraw2.jpeg';
 import mugWithStraw from './Products/mugs/mugExtra2.png';
+import qrImage from './Products/QR.jpeg';
+import tc1 from "./Products/candles/TC1.jpeg"
+import tc2 from "./Products/candles/TC2.jpeg"
+import tc3 from "./Products/candles/TC3.jpeg"
+import tc4 from "./Products/candles/TC4.jpeg"
+import tc5 from "./Products/candles/TC5.jpeg"
+import tc6 from "./Products/candles/TC6.jpeg"
 
 const BASE_PRODUCTS: Product[] = [
   {
@@ -66,8 +76,8 @@ const BASE_PRODUCTS: Product[] = [
     basePrice: 1199,
     availableQuantity: 2,
     imageFileNumber: 3,
-    image: img3,
-    images: [img3],
+    image: marbleBlue,
+    images: [marbleBlue],
     overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
   },
   {
@@ -94,6 +104,42 @@ const BASE_PRODUCTS: Product[] = [
     imageFileNumber: 5,
     image: img5,
     images: [img5],
+    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
+  },
+  {
+    id: 'stanley-ice-flow-flip-straw-lavender',
+    category: 'tumblers',
+    subCategory: 'steel-tumbler',
+    name: 'Stanley Ice Flow Flip Straw - Lavender',
+    description: '900 ML Leakproof Stanley with Flip Straw',
+    basePrice: 1299,
+    availableQuantity: 1,
+    image: levandarTumbler,
+    images: [levandarTumbler],
+    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
+  },
+   {
+    id: 'Stanley-Ice-Flow-Flip-Straw-Orange',
+    category: 'tumblers',
+    subCategory: 'steel-tumbler',
+    name: 'Stanley Ice Flow Flip Straw- Orange',
+    description: '900 ML leakproof Stanley with flip straw',
+    basePrice: 1299,
+    availableQuantity: 1,
+    image: orangeTumbler,
+    images: [orangeTumbler],
+    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
+  },
+  {
+    id: 'Stanley-Marble-Warm-Serene',
+    category: 'tumblers',
+    subCategory: 'steel-tumbler',
+    name: 'Stanley Marble - Warm Serene',
+    description: '1200 ml Stainless Steel Stanley Marble Finish Tumbler ',
+    basePrice: 1199,
+    availableQuantity: 1,
+    image: warm,
+    images: [warm],
     overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
   },
   {
@@ -369,10 +415,23 @@ const BASE_PRODUCTS: Product[] = [
     overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
   },
   {
+    id: 'candle-teddy',
+    category: 'candles',
+    name: 'Teddy candle',
+    description: 'Teddy candle',
+    basePrice: 119,
+    availableQuantity: null,
+    imageAvailable: true,
+    image: tc1,
+    images: [tc1, tc2, tc3, tc4,tc5, tc6],
+    colors: ['Brown', 'Pink', 'Purple', 'Peach', 'Creamy white'],
+    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
+  },
+  {
     id: 'candle-coffee-candle',
     category: 'candles',
     name: 'Coffee Candle',
-    description: 'Cold Coffee Candle in Candy Tumber',
+    description: 'Santed Coffee Latte Candle',
     basePrice: 499,
     availableQuantity: null,
     imageFileNumber: 27,
@@ -445,7 +504,6 @@ const SINGLE_STICKERS: Array<{ image: number; name: string }> = [
   { image: 26, name: 'Mustang' },
   { image: 27, name: 'Pokemon' },
   { image: 28, name: 'Hunter 350' },
-  { image: 29, name: 'Iron Man' },
   { image: 30, name: 'Dead Pool' },
   { image: 31, name: 'Biker' },
   { image: 32, name: 'Spiderman - Half' },
@@ -517,10 +575,14 @@ const STICKER_PRODUCTS: Product[] = [
   }))
 ];
 
-export const PRODUCTS: Product[] = [...BASE_PRODUCTS, ...STICKER_PRODUCTS];
+const QR_IMAGE = qrImage;
+const BASE_PRODUCTS_WITH_QR = BASE_PRODUCTS.map((product) => ({ ...product, qrImage: QR_IMAGE }));
+const STICKER_PRODUCTS_WITH_QR = STICKER_PRODUCTS.map((product) => ({ ...product, qrImage: QR_IMAGE }));
+
+export const PRODUCTS: Product[] = [...BASE_PRODUCTS_WITH_QR, ...STICKER_PRODUCTS_WITH_QR];
 
 export const DELIVERY_CHARGE = 70;
 export const GIFT_WRAP_CHARGE_PER_ITEM = 25;
 export const PERSONALIZED_NAME_CHARGE_PER_LETTER = 10;
-export const CANDLE_SCENTED_CHARGE = 25;
+export const CANDLE_SCENTED_CHARGE = 30;
 export const CANDLE_DAISY_NOTE_CHARGE = 10;

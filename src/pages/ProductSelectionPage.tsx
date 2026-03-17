@@ -59,6 +59,8 @@ export const ProductSelectionPage = () => {
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
   const hasMountedProductScrollRef = useRef(false);
   const isDaisyBouquetCandle = selectedProduct?.id === 'candle-daisy-flower-bouquet';
+  const isTeddyCandle = selectedProduct?.id === 'candle-teddy';
+  const hasCandleOptions = selectedProduct?.category === 'candles' && (isDaisyBouquetCandle || isTeddyCandle);
 
   const filteredProducts = useMemo(
     () =>
@@ -84,7 +86,7 @@ export const ProductSelectionPage = () => {
     [activeCategory, activeStickerSubCategory]
   );
   const selectedColorOptions = useMemo(() => {
-    if (!selectedProduct || selectedProduct.category !== 'candles' || !isDaisyBouquetCandle) {
+    if (!selectedProduct || selectedProduct.category !== 'candles' || !hasCandleOptions) {
       return [];
     }
 
@@ -100,7 +102,7 @@ export const ProductSelectionPage = () => {
       return;
     }
 
-    if (selectedProduct.category !== 'candles' || !isDaisyBouquetCandle) {
+    if (selectedProduct.category !== 'candles' || !hasCandleOptions) {
       if (order.selectedColor) {
         dispatch(setSelectedColor(''));
       }
@@ -113,7 +115,7 @@ export const ProductSelectionPage = () => {
     if (!order.selectedColor || !selectedColorOptions.includes(order.selectedColor)) {
       dispatch(setSelectedColor(selectedColorOptions[0]));
     }
-  }, [dispatch, order.candleScented, order.selectedColor, selectedColorOptions, selectedProduct, isDaisyBouquetCandle]);
+  }, [dispatch, order.candleScented, order.selectedColor, selectedColorOptions, selectedProduct, hasCandleOptions]);
 
   useEffect(() => {
     const preloadLimit = typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches ? 6 : 12;
@@ -279,7 +281,7 @@ export const ProductSelectionPage = () => {
           </div>
         </section>
 
-        {isDaisyBouquetCandle ? (
+        {hasCandleOptions ? (
           <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h3 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Candle Options</h3>
             <label className="block space-y-1.5">
@@ -304,7 +306,7 @@ export const ProductSelectionPage = () => {
                 onChange={(event) => dispatch(setCandleScented(event.target.checked))}
                 className="h-4 w-4 accent-lavender-600"
               />
-              <span className="text-sm font-medium text-lavender-800">Scented (+ INR 25 per item)</span>
+              <span className="text-sm font-medium text-lavender-800">Scented (+ INR 30 per item)</span>
             </label>
 
             {isDaisyBouquetCandle ? (

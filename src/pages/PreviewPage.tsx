@@ -31,7 +31,7 @@ import { formatRupee } from '../utils/currency';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../utils/whatsapp';
 
 const BUSINESS_WHATSAPP_NUMBER = '6350422134';
-const BUSINESS_UPI_ID = 'dreamyclouds@upi';
+const BUSINESS_UPI_ID = 'Q725828237@ybl';
 const INDIAN_MOBILE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
 

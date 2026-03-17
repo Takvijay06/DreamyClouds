@@ -16,6 +16,7 @@ export interface Product {
   originalPrice?: number;
   image: string;
   images?: string[];
+  qrImage?: string;
   overlayClassName: string;
 }
 
