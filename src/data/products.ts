@@ -40,6 +40,9 @@ import tc4 from "./Products/candles/TC4.jpeg"
 import tc5 from "./Products/candles/TC5.jpeg"
 import tc6 from "./Products/candles/TC6.jpeg"
 
+export const DAISY_BOUQUET_CANDLE_ID = 'candle-daisy-flower-bouquet';
+export const TEDDY_CANDLE_ID = 'candle-teddy';
+
 const BASE_PRODUCTS: Product[] = [
   {
     id: 'stanley-tri-color-pink',
@@ -389,7 +392,7 @@ const BASE_PRODUCTS: Product[] = [
     overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
   },
   {
-    id: 'candle-daisy-flower-bouquet',
+    id: DAISY_BOUQUET_CANDLE_ID,
     category: 'candles',
     name: 'Daisy Flower Bouquet',
     description: 'Single Daisy Flower Bouquet Candle',
@@ -415,7 +418,7 @@ const BASE_PRODUCTS: Product[] = [
     overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
   },
   {
-    id: 'candle-teddy',
+    id: TEDDY_CANDLE_ID,
     category: 'candles',
     name: 'Teddy candle',
     description: 'Teddy candle',
@@ -585,4 +588,16 @@ export const DELIVERY_CHARGE = 70;
 export const GIFT_WRAP_CHARGE_PER_ITEM = 25;
 export const PERSONALIZED_NAME_CHARGE_PER_LETTER = 10;
 export const CANDLE_SCENTED_CHARGE = 30;
+export const DAISY_CANDLE_SCENTED_CHARGE = 25;
+export const TEDDY_CANDLE_SCENTED_CHARGE = 30;
 export const CANDLE_DAISY_NOTE_CHARGE = 10;
+
+export const resolveCandleScentedCharge = (productId: string) => {
+  if (productId === DAISY_BOUQUET_CANDLE_ID) {
+    return DAISY_CANDLE_SCENTED_CHARGE;
+  }
+  if (productId === TEDDY_CANDLE_ID) {
+    return TEDDY_CANDLE_SCENTED_CHARGE;
+  }
+  return CANDLE_SCENTED_CHARGE;
+};

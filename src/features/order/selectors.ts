@@ -1,9 +1,10 @@
 import {
   CANDLE_DAISY_NOTE_CHARGE,
-  CANDLE_SCENTED_CHARGE,
+  DAISY_BOUQUET_CANDLE_ID,
   DELIVERY_CHARGE,
   GIFT_WRAP_CHARGE_PER_ITEM,
-  PERSONALIZED_NAME_CHARGE_PER_LETTER
+  PERSONALIZED_NAME_CHARGE_PER_LETTER,
+  resolveCandleScentedCharge
 } from '../../data/products';
 import { DESIGNS } from '../../data/designs';
 import { PRODUCTS } from '../../data/products';
@@ -16,7 +17,6 @@ const resolveStickerSubCategory = (value: unknown): StickerSubCategory =>
 const NO_DESIGN_NEEDED_ID = 'no-design-needed';
 const SINGLE_STICKER_WITH_DRINKWARE_CHARGE = 49;
 const FULL_WRAP_STICKER_WITH_DRINKWARE_CHARGE = 199;
-const DAISY_BOUQUET_CANDLE_ID = 'candle-daisy-flower-bouquet';
 
 const getStickerAddonCharge = (
   productCategory: ProductCategory | undefined,
@@ -77,7 +77,9 @@ export const selectResolvedCartItems = (state: RootState) =>
       const personalizedNameLetterCount = (item.personalizedNote ?? '').replace(/\s+/g, '').length;
       const personalizedNameCharge = personalizedNameLetterCount * PERSONALIZED_NAME_CHARGE_PER_LETTER * item.quantity;
       const candleScentedCharge =
-        product.category === 'candles' && item.candleScented ? CANDLE_SCENTED_CHARGE * item.quantity : 0;
+        product.category === 'candles' && item.candleScented
+          ? resolveCandleScentedCharge(product.id) * item.quantity
+          : 0;
       const candleNoteCharge =
         product.id === DAISY_BOUQUET_CANDLE_ID && (item.candleNote ?? '').trim()
           ? CANDLE_DAISY_NOTE_CHARGE * item.quantity
@@ -153,7 +155,9 @@ export const selectCouponEvaluation = (state: RootState) => {
   const cartCandleScentedChargeTotal = resolvedItems.reduce((sum, item) => sum + item.candleScentedCharge, 0);
   const cartCandleNoteChargeTotal = resolvedItems.reduce((sum, item) => sum + item.candleNoteCharge, 0);
   const fallbackCandleScentedCharge =
-    product?.category === 'candles' && state.order.candleScented ? CANDLE_SCENTED_CHARGE * billableQuantity : 0;
+    product && product.category === 'candles' && state.order.candleScented
+      ? resolveCandleScentedCharge(product.id) * billableQuantity
+      : 0;
   const fallbackCandleNoteCharge =
     product?.id === DAISY_BOUQUET_CANDLE_ID && state.order.candleNote.trim()
       ? CANDLE_DAISY_NOTE_CHARGE * billableQuantity
@@ -196,7 +200,9 @@ export const selectPricing = (state: RootState): Pricing => {
   const cartCandleScentedChargeTotal = cartItems.reduce((sum, item) => sum + item.candleScentedCharge, 0);
   const cartCandleNoteChargeTotal = cartItems.reduce((sum, item) => sum + item.candleNoteCharge, 0);
   const fallbackCandleScentedCharge =
-    product?.category === 'candles' && state.order.candleScented ? CANDLE_SCENTED_CHARGE * billableQuantity : 0;
+    product && product.category === 'candles' && state.order.candleScented
+      ? resolveCandleScentedCharge(product.id) * billableQuantity
+      : 0;
   const fallbackCandleNoteCharge =
     product?.id === DAISY_BOUQUET_CANDLE_ID && state.order.candleNote.trim()
       ? CANDLE_DAISY_NOTE_CHARGE * billableQuantity

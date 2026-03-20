@@ -4,7 +4,12 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { Layout } from '../components/Layout';
 import { ProductCard } from '../components/ProductCard';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
-import { PRODUCTS } from '../data/products';
+import {
+  DAISY_BOUQUET_CANDLE_ID,
+  PRODUCTS,
+  TEDDY_CANDLE_ID,
+  resolveCandleScentedCharge
+} from '../data/products';
 import { addToCart, setCandleNote, setCandleScented, setProduct, setSelectedColor } from '../features/order/orderSlice';
 import { selectOrder, selectSelectedProduct } from '../features/order/selectors';
 import { Product, ProductCategory, StickerSubCategory } from '../features/order/orderTypes';
@@ -58,9 +63,10 @@ export const ProductSelectionPage = () => {
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
   const hasMountedProductScrollRef = useRef(false);
-  const isDaisyBouquetCandle = selectedProduct?.id === 'candle-daisy-flower-bouquet';
-  const isTeddyCandle = selectedProduct?.id === 'candle-teddy';
+  const isDaisyBouquetCandle = selectedProduct?.id === DAISY_BOUQUET_CANDLE_ID;
+  const isTeddyCandle = selectedProduct?.id === TEDDY_CANDLE_ID;
   const hasCandleOptions = selectedProduct?.category === 'candles' && (isDaisyBouquetCandle || isTeddyCandle);
+  const candleScentedPrice = selectedProduct ? resolveCandleScentedCharge(selectedProduct.id) : 0;
 
   const filteredProducts = useMemo(
     () =>
@@ -95,7 +101,7 @@ export const ProductSelectionPage = () => {
     }
 
     return DEFAULT_COLORS_BY_CATEGORY[selectedProduct.category];
-  }, [isDaisyBouquetCandle, selectedProduct]);
+  }, [hasCandleOptions, selectedProduct]);
 
   useEffect(() => {
     if (!selectedProduct) {
@@ -166,18 +172,15 @@ export const ProductSelectionPage = () => {
       return;
     }
 
-    const selectedColor =
-      selectedProduct.id === 'candle-daisy-flower-bouquet'
-        ? order.selectedColor || DEFAULT_COLORS_BY_CATEGORY.candles[0]
-        : '';
+    const selectedColor = hasCandleOptions ? order.selectedColor || DEFAULT_COLORS_BY_CATEGORY.candles[0] : '';
 
     dispatch(
       addToCart({
         productId: selectedProduct.id,
         quantity: order.quantity,
         selectedColor,
-        candleScented: selectedProduct.id === 'candle-daisy-flower-bouquet' ? order.candleScented : false,
-        candleNote: selectedProduct.id === 'candle-daisy-flower-bouquet' ? order.candleNote : '',
+        candleScented: hasCandleOptions ? order.candleScented : false,
+        candleNote: isDaisyBouquetCandle ? order.candleNote : '',
         selectedStickerId: null,
         personalizedNote: ''
       })
@@ -306,7 +309,9 @@ export const ProductSelectionPage = () => {
                 onChange={(event) => dispatch(setCandleScented(event.target.checked))}
                 className="h-4 w-4 accent-lavender-600"
               />
-              <span className="text-sm font-medium text-lavender-800">Scented (+ INR 30 per item)</span>
+              <span className="text-sm font-medium text-lavender-800">
+                Scented (+ INR {candleScentedPrice} per item)
+              </span>
             </label>
 
             {isDaisyBouquetCandle ? (
