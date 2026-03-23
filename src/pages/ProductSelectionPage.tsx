@@ -66,6 +66,7 @@ export const ProductSelectionPage = () => {
   const isDaisyBouquetCandle = selectedProduct?.id === DAISY_BOUQUET_CANDLE_ID;
   const isTeddyCandle = selectedProduct?.id === TEDDY_CANDLE_ID;
   const hasCandleOptions = selectedProduct?.category === 'candles' && (isDaisyBouquetCandle || isTeddyCandle);
+  const showCandleOptions = hasCandleOptions && activeCategory === 'candles';
   const candleScentedPrice = selectedProduct ? resolveCandleScentedCharge(selectedProduct.id) : 0;
 
   const filteredProducts = useMemo(
@@ -284,7 +285,7 @@ export const ProductSelectionPage = () => {
           </div>
         </section>
 
-        {hasCandleOptions ? (
+        {showCandleOptions ? (
           <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h3 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Candle Options</h3>
             <label className="block space-y-1.5">
