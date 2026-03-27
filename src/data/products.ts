@@ -39,6 +39,7 @@ import tc3 from "./Products/candles/TC3.jpeg"
 import tc4 from "./Products/candles/TC4.jpeg"
 import tc5 from "./Products/candles/TC5.jpeg"
 import tc6 from "./Products/candles/TC6.jpeg"
+import roseCandle from "./Products/candles/roseCandle.jpg"
 
 export const DAISY_BOUQUET_CANDLE_ID = 'candle-daisy-flower-bouquet';
 export const TEDDY_CANDLE_ID = 'candle-teddy';
@@ -428,6 +429,19 @@ const BASE_PRODUCTS: Product[] = [
     image: tc1,
     images: [tc1, tc2, tc3, tc4,tc5, tc6],
     colors: ['Brown', 'Pink', 'Purple', 'Peach', 'Creamy white'],
+    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
+  },
+  {
+    id: 'rose-bouquet-candle',
+    category: 'candles',
+    name: 'Rose Bouquet Candle',
+    description: 'Single Rose Flower Bouquet Candle',
+    basePrice: 49,
+    availableQuantity: null,
+    imageFileNumber: 27,
+    imageAvailable: true,
+    image: roseCandle,
+    images: [roseCandle],
     overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
   },
   {
