@@ -16,6 +16,7 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
   const hasImage = product.imageAvailable !== false;
   const productImages = hasImage ? (product.images && product.images.length > 0 ? product.images : [product.image]) : [];
   const hasMultipleImages = productImages.length > 1;
+  const isSoldOut = product.availableQuantity === 0;
   // const stockLabel =
   //   product.availableQuantity === null || product.availableQuantity === undefined
   //     ? 'No stock limit'
@@ -102,6 +103,11 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
       return;
     }
 
+    if (isSoldOut) {
+      event.preventDefault();
+      return;
+    }
+
     event.preventDefault();
     onSelect(product.id);
   };
@@ -160,6 +166,9 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
   };
 
   const handleSelect = () => {
+    if (isSoldOut) {
+      return;
+    }
     if (Date.now() - lastSwipeAtRef.current < 350) {
       return;
     }
@@ -183,17 +192,20 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
         selected
           ? 'border-lavender-600 bg-lavender-50/70 ring-2 ring-lavender-300'
           : 'border-lavender-200 bg-white hover:-translate-y-1 hover:border-lavender-400 hover:shadow-soft'
-      }`}
+      } ${isSoldOut ? 'opacity-70' : ''}`}
     >
       <div
         role="button"
-        tabIndex={0}
+        tabIndex={isSoldOut ? -1 : 0}
+        aria-disabled={isSoldOut}
         onClick={handleSelect}
         onKeyDown={onImageKeyDown}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        className="relative block w-full cursor-pointer overflow-hidden bg-lavender-50/40 text-left outline-none focus-visible:ring-2 focus-visible:ring-lavender-400"
+        className={`relative block w-full overflow-hidden bg-lavender-50/40 text-left outline-none focus-visible:ring-2 focus-visible:ring-lavender-400 ${
+          isSoldOut ? 'cursor-not-allowed' : 'cursor-pointer'
+        }`}
       >
         <div className="relative h-44 w-full overflow-hidden">
           {hasImage && previousImageIndex !== null ? (
@@ -223,6 +235,11 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
           <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-lavender-700">
             {categoryLabel}
           </span>
+          {isSoldOut ? (
+            <span className="absolute right-3 top-3 rounded-full bg-rose-600 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+              Sold out
+            </span>
+          ) : null}
 
           {hasMultipleImages ? (
             <>
@@ -257,7 +274,12 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
         </div>
       </div>
 
-      <button type="button" onClick={() => onSelect(product.id)} className="w-full text-left">
+      <button
+        type="button"
+        onClick={() => onSelect(product.id)}
+        className={`w-full text-left ${isSoldOut ? 'cursor-not-allowed' : ''}`}
+        disabled={isSoldOut}
+      >
         <div className="space-y-2.5 p-4">
           <h3 className="font-['Sora'] text-base font-bold text-lavender-900">{product.name}</h3>
           <p className="text-sm text-lavender-700">{product.description}</p>
@@ -277,7 +299,7 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
           <div>
             <p className="text-base font-bold text-lavender-800">{formatRupee(product.basePrice)}</p>
           </div>
-          {selected ? (
+          {selected && !isSoldOut ? (
             <span className="rounded-full bg-lavender-600 px-2.5 py-1 text-[11px] font-bold text-white">Selected</span>
           ) : null}
         </div>
