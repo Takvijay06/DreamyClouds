@@ -43,6 +43,7 @@ import roseCandle from "./Products/candles/roseCandle.jpg"
 
 export const DAISY_BOUQUET_CANDLE_ID = 'candle-daisy-flower-bouquet';
 export const TEDDY_CANDLE_ID = 'candle-teddy';
+export const ROSE_BOUQUET_CANDLE_ID = 'rose-bouquet-candle';
 
 const BASE_PRODUCTS: Product[] = [
   {
@@ -432,7 +433,7 @@ const BASE_PRODUCTS: Product[] = [
     overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
   },
   {
-    id: 'rose-bouquet-candle',
+    id: ROSE_BOUQUET_CANDLE_ID,
     category: 'candles',
     name: 'Rose Bouquet Candle',
     description: 'Single Rose Flower Bouquet Candle',

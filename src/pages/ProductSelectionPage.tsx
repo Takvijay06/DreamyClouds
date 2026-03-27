@@ -7,6 +7,7 @@ import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import {
   DAISY_BOUQUET_CANDLE_ID,
   PRODUCTS,
+  ROSE_BOUQUET_CANDLE_ID,
   TEDDY_CANDLE_ID,
   resolveCandleScentedCharge
 } from '../data/products';
@@ -65,7 +66,9 @@ export const ProductSelectionPage = () => {
   const hasMountedProductScrollRef = useRef(false);
   const isDaisyBouquetCandle = selectedProduct?.id === DAISY_BOUQUET_CANDLE_ID;
   const isTeddyCandle = selectedProduct?.id === TEDDY_CANDLE_ID;
-  const hasCandleOptions = selectedProduct?.category === 'candles' && (isDaisyBouquetCandle || isTeddyCandle);
+  const isRoseBouquetCandle = selectedProduct?.id === ROSE_BOUQUET_CANDLE_ID;
+  const hasCandleOptions =
+    selectedProduct?.category === 'candles' && (isDaisyBouquetCandle || isTeddyCandle || isRoseBouquetCandle);
   const showCandleOptions = hasCandleOptions && activeCategory === 'candles';
   const candleScentedPrice = selectedProduct ? resolveCandleScentedCharge(selectedProduct.id) : 0;
 
