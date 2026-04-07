@@ -35,21 +35,24 @@ export const DesignSelectionPage = () => {
   const isGlassTumbler = product?.category === 'tumblers' && product?.subCategory === 'glass-tumbler';
   const isDaisyBouquetCandle = product?.id === 'candle-daisy-flower-bouquet';
   const isNoDesignNeeded = order.designId === 'no-design-needed';
+  const isSelectedDesignSoldOut = !!selectedDesign && selectedDesign.availableQuantity === 0;
   const requiresPlacement =
     !isDaisyBouquetCandle &&
     !isNoDesignNeeded &&
     !isGlassTumbler &&
-    (!isStickerDesignFlowProduct || selectedDesign?.stickerSubCategory === 'full-wrap');
+    (!isStickerDesignFlowProduct || selectedDesign?.stickerSubCategory === 'full_wrap');
   const canAddToCart = isDaisyBouquetCandle
     ? true
-    : !!order.designId && (!requiresPlacement || order.letDaisyDecide || !!order.placementStyle);
+    : !!order.designId &&
+      !isSelectedDesignSoldOut &&
+      (!requiresPlacement || order.letDaisyDecide || !!order.placementStyle);
   const [previewDesign, setPreviewDesign] = useState<Design | null>(null);
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
   const placementSectionRef = useRef<HTMLDivElement | null>(null);
   const hasMountedDesignScrollRef = useRef(false);
   const groupedStickerDesigns = useMemo(() => {
-    const single = filteredDesigns.filter((design) => design.stickerSubCategory === 'single');
-    const fullWrap = filteredDesigns.filter((design) => design.stickerSubCategory === 'full-wrap');
+    const single = filteredDesigns.filter((design) => design.stickerSubCategory === 'single_sticker');
+    const fullWrap = filteredDesigns.filter((design) => design.stickerSubCategory === 'full_wrap');
     if (!isStickerDesignFlowProduct) {
       return [{ key: 'all', title: 'Designs', items: filteredDesigns }];
     }
@@ -199,11 +202,11 @@ export const DesignSelectionPage = () => {
                         onSelect={(id) => {
                           dispatch(setDesign(id));
                           const selected = filteredDesigns.find((entry) => entry.id === id);
-                          const needsPlacement = selected?.stickerSubCategory === 'full-wrap' && !isGlassTumbler;
+                          const needsPlacement = selected?.stickerSubCategory === 'full_wrap' && !isGlassTumbler;
                           if (isGlassTumbler) {
                             dispatch(setPlacementStyle(''));
                             dispatch(setLetDaisyDecide(false));
-                          } else if (selected?.stickerSubCategory === 'single') {
+                          } else if (selected?.stickerSubCategory === 'single_sticker') {
                             dispatch(setPlacementStyle(''));
                             dispatch(setLetDaisyDecide(false));
                           }

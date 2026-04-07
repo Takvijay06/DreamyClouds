@@ -14,13 +14,13 @@ import { evaluateCoupon } from './couponRules';
 
 const resolveStickerSubCategory = (value: unknown): StickerSubCategory => {
   if (typeof value !== 'string') {
-    return 'single';
+    return 'single_sticker';
   }
   const normalized = value.trim().toLowerCase().replace(/[_\s]+/g, '-');
   if (normalized === 'full-wrap' || normalized === 'fullwrap' || (normalized.includes('full') && normalized.includes('wrap'))) {
-    return 'full-wrap';
+    return 'full_wrap';
   }
-  return 'single';
+  return 'single_sticker';
 };
 const NO_DESIGN_NEEDED_ID = 'no-design-needed';
 const SINGLE_STICKER_WITH_DRINKWARE_CHARGE = 49;
@@ -34,7 +34,7 @@ const getStickerAddonCharge = (
   if (!isDrinkware || !stickerSubCategory) {
     return 0;
   }
-  return stickerSubCategory === 'full-wrap' ? FULL_WRAP_STICKER_WITH_DRINKWARE_CHARGE : SINGLE_STICKER_WITH_DRINKWARE_CHARGE;
+  return stickerSubCategory === 'full_wrap' ? FULL_WRAP_STICKER_WITH_DRINKWARE_CHARGE : SINGLE_STICKER_WITH_DRINKWARE_CHARGE;
 };
 
 export const selectOrder = (state: RootState) => state.order;
@@ -116,15 +116,16 @@ export const selectFilteredDesigns = (state: RootState) => {
         (design) =>
           design.productCategory === 'stickers' &&
           (singleStickerOnly
-            ? design.stickerSubCategory === 'single'
-            : design.stickerSubCategory === 'full-wrap' || design.stickerSubCategory === 'single')
+            ? design.stickerSubCategory === 'single_sticker'
+            : design.stickerSubCategory === 'full_wrap' || design.stickerSubCategory === 'single_sticker')
       )
       .map((design) => ({
         id: design.id,
         productCategory: 'stickers' as const,
         stickerSubCategory: resolveStickerSubCategory(design.stickerSubCategory),
         name: design.name,
-        image: design.image
+        image: design.image,
+        availableQuantity: design.availableQuantity ?? null
       }));
   }
 

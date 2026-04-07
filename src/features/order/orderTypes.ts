@@ -1,6 +1,6 @@
 export type ProductCategory = 'tumblers' | 'mugs' | 'bookmarks' | 'candles' | 'gift-hampers' | 'accessories' | 'stickers';
 export type TumblerSubCategory = 'steel-tumbler' | 'glass-tumbler';
-export type StickerSubCategory = 'full-wrap' | 'single';
+export type StickerSubCategory = 'full_wrap' | 'single_sticker';
 
 export interface Product {
   id: string;
