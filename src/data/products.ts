@@ -6,8 +6,11 @@ import img4 from './Products/tumblers/4.jpeg';
 import img5 from './Products/tumblers/5.jpeg';
 import levandarTumbler from './Products/tumblers/levandarTumbler.png';
 import orangeTumbler from './Products/tumblers/orangeTumbler.jpeg';
-// import warm from './Products/tumblers/warm.jpeg';
-// import img6 from './Products/tumblers/6.jpeg';
+import iceFlowTumbler1 from './Products/tumblers/iceFlow1.jpeg';
+import iceFlowTumbler2 from './Products/tumblers/iceFlow2.jpeg';
+import iceFlowTumblerGrey1 from './Products/tumblers/iceFlowGrey1.jpeg';
+import iceFlowTumblerGrey2 from './Products/tumblers/iceFlowGrey2.jpeg';
+import iceFlowTumblerGrey3 from './Products/tumblers/iceFlowGrey3.jpeg';
 import img7 from './Products/tumblers/7.jpeg';
 import img8 from './Products/tumblers/8.jpeg';
 import img9 from './Products/tumblers/9.jpeg';
@@ -26,6 +29,10 @@ import daisyFlower5 from './Products/candles/DaisyFlower5.png';
 import daisyFlower6 from './Products/candles/DaisyFlower6.png';
 import daisyFlower7 from './Products/candles/DaisyFlower7.png';
 import daisyFlower8 from './Products/candles/DaisyFlower8.png';
+import cupcake from './Products/candles/cupCake.png';
+import cuteElephant from './Products/candles/CUTEeLEPANT.png';
+import bigRainbow from './Products/candles/bigRainbow.png';
+import smallBubble from './Products/candles/smallbubble.png';
 import dreamycloudCandle from './Products/candles/dreamycloudsCandle.jpeg';
 import coffeLatte from './Products/candles/coffeelatte2.png';
 import colorfulStraw from './Products/accessories/colorfulStraw.jpeg';
@@ -40,25 +47,31 @@ import tc4 from "./Products/candles/TC4.jpeg"
 import tc5 from "./Products/candles/TC5.jpeg"
 import tc6 from "./Products/candles/TC6.jpeg"
 import roseCandle from "./Products/candles/roseCandle.jpg"
+import lotusCandle from "./Products/candles/lotusCandle.png"
 
 export const DAISY_BOUQUET_CANDLE_ID = 'candle-daisy-flower-bouquet';
 export const TEDDY_CANDLE_ID = 'candle-teddy';
 export const ROSE_BOUQUET_CANDLE_ID = 'rose-bouquet-candle';
+export const LOTUS_BOUQUET_CANDLE_ID = 'LOTUS_BOUQUET_CANDLE_ID';
+export const ELEPHANT_CANDLE_ID = 'Elephant_CANDLE_ID';
+export const SMALL_BUBBLE_CANDLE_ID = 'SMALL_BUBBLE_CANDLE';
+export const BIG_RAINBOW_CANDLE_ID = 'BIG_RAINBOW_CANDLE';
+export const CUP_CAKE_CANDLE_ID = 'CUP_CAKE_CANDLE';
 
 const BASE_PRODUCTS: Product[] = [
-  {
-    id: 'stanley-tri-color-pink',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Tri Color -Pink',
-    description: '1200 ml Stainless Steel Stanley Tubmler in Tri Color',
-    basePrice: 1399,
-    availableQuantity: 1,
-    imageFileNumber: 1,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
+  // {
+  //   id: 'stanley-tri-color-pink',
+  //   category: 'tumblers',
+  //   subCategory: 'steel-tumbler',
+  //   name: 'Stanley Tri Color -Pink',
+  //   description: '1200 ml Stainless Steel Stanley Tubmler in Tri Color',
+  //   basePrice: 1399,
+  //   availableQuantity: 1,
+  //   imageFileNumber: 1,
+  //   image: img1,
+  //   images: [img1],
+  //   overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
+  // },
   {
     id: 'stanley-tri-color-peach',
     category: 'tumblers',
@@ -186,32 +199,58 @@ const BASE_PRODUCTS: Product[] = [
     images: [img8],
     overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
   },
+  // {
+  //   id: 'stanley-quencher-creamy-white',
+  //   category: 'tumblers',
+  //   subCategory: 'steel-tumbler',
+  //   name: 'Stanley Quencher - Creamy White',
+  //   description: '1200 ml Stainless Steel Stanley Tubmler',
+  //   basePrice: 999,
+  //   availableQuantity: 2,
+  //   imageFileNumber: 9,
+  //   image: img9,
+  //   images: [img9],
+  //   overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
+  // },
+  // {
+  //   id: 'rainbow-tumbler-yellow',
+  //   category: 'tumblers',
+  //   subCategory: 'steel-tumbler',
+  //   name: 'Rainbow Tumbler -Yellow',
+  //   description: '900 ml Rainbow Tumbler with Double Drink Neo (Sip+Straw)',
+  //   basePrice: 799,
+  //   availableQuantity: 2,
+  //   imageFileNumber: 10,
+  //   image: img10,
+  //   images: [img10],
+  //   overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
+  // },
   {
-    id: 'stanley-quencher-creamy-white',
+    id: 'Stanley-Ice-Flow-FlipStraw-Charcoal-Black',
     category: 'tumblers',
     subCategory: 'steel-tumbler',
-    name: 'Stanley Quencher - Creamy White',
-    description: '1200 ml Stainless Steel Stanley Tubmler',
-    basePrice: 999,
-    availableQuantity: 2,
-    imageFileNumber: 9,
-    image: img9,
-    images: [img9],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  {
-    id: 'rainbow-tumbler-yellow',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Rainbow Tumbler -Yellow',
-    description: '900 ml Rainbow Tumbler with Double Drink Neo (Sip+Straw)',
-    basePrice: 799,
+    name: 'Stanley Ice Flow Flip Straw - Charcoal Black',
+    description: '900 ml Leak-Proof Stanley with Flip Straw',
+    basePrice: 1299,
     availableQuantity: 2,
     imageFileNumber: 10,
-    image: img10,
-    images: [img10],
+    image: iceFlowTumbler1,
+    images: [iceFlowTumbler1, iceFlowTumbler2],
     overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
+},
+{
+    id: 'Stanley-Ice-Flow-FlipStraw-grey',
+    category: 'tumblers',
+    subCategory: 'steel-tumbler',
+    name: 'Stanley Ice Flow Flip Straw - Grey',
+    description: '900 ml Leak-Proof Stanley with Flip Straw',
+    basePrice: 1299,
+    availableQuantity: 2,
+    imageFileNumber: 10,
+    image: iceFlowTumblerGrey1,
+    images: [iceFlowTumblerGrey1, iceFlowTumblerGrey2, iceFlowTumblerGrey3],
+    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
+},
   {
     id: 'coffee-mug-black',
     category: 'tumblers',
@@ -225,19 +264,19 @@ const BASE_PRODUCTS: Product[] = [
     images: [img11, img11a, img11b],
     overlayClassName: 'left-[24%] top-[28%] h-[36%] w-[50%]'
   },
-  {
-    id: 'coffee-mug-blue',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Coffee Mug - Blue',
-    description: '500 ml Stainless Steel Coffee Mug with Double Drink Neo (Sip+Straw)',
-    basePrice: 499,
-    availableQuantity: 1,
-    imageFileNumber: 12,
-    image: img12,
-    images: [img12],
-    overlayClassName: 'left-[24%] top-[28%] h-[36%] w-[50%]'
-  },
+  // {
+  //   id: 'coffee-mug-blue',
+  //   category: 'tumblers',
+  //   subCategory: 'steel-tumbler',
+  //   name: 'Coffee Mug - Blue',
+  //   description: '500 ml Stainless Steel Coffee Mug with Double Drink Neo (Sip+Straw)',
+  //   basePrice: 499,
+  //   availableQuantity: 1,
+  //   imageFileNumber: 12,
+  //   image: img12,
+  //   images: [img12],
+  //   overlayClassName: 'left-[24%] top-[28%] h-[36%] w-[50%]'
+  // },
   {
     id: 'candy-tumbler',
     category: 'tumblers',
@@ -446,6 +485,71 @@ const BASE_PRODUCTS: Product[] = [
     overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
   },
   {
+    id: LOTUS_BOUQUET_CANDLE_ID,
+    category: 'candles',
+    name: 'Lotus Bouquet Candle',
+    description: 'Single Lotus Flower Bouquet Candle',
+    basePrice: 150,
+    availableQuantity: null,
+    imageFileNumber: 27,
+    imageAvailable: true,
+    image: lotusCandle,
+    images: [lotusCandle],
+    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
+  },
+   {
+    id: ELEPHANT_CANDLE_ID,
+    category: 'candles',
+    name: 'Cute Elephant Candle',
+    description: 'Single Cute Elephant Candle',
+    basePrice: 150,
+    availableQuantity: null,
+    imageFileNumber: 27,
+    imageAvailable: true,
+    image: cuteElephant,
+    images: [cuteElephant],
+    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
+  },
+   {
+    id: SMALL_BUBBLE_CANDLE_ID,
+    category: 'candles',
+    name: 'Small Bubble Candle (Set of 5)',
+    description: 'Small Bubble Candle (Set of 5)',
+    basePrice: 150,
+    availableQuantity: null,
+    imageFileNumber: 27,
+    imageAvailable: true,
+    image: smallBubble,
+    images: [smallBubble],
+    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
+  },
+  {
+    id: BIG_RAINBOW_CANDLE_ID,
+    category: 'candles',
+    name: 'Big Rainbow Candle',
+    description: 'Big Rainbow Candle',
+    basePrice: 250,
+    availableQuantity: null,
+    imageFileNumber: 27,
+    imageAvailable: true,
+    image: cupcake,
+    images: [cupcake],
+    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
+  },
+   {
+    id: CUP_CAKE_CANDLE_ID,
+    category: 'candles',
+    name: 'Cup Cake Candle',
+    description: 'Cup cake Candle',
+    basePrice: 200,
+    availableQuantity: null,
+    imageFileNumber: 27,
+    imageAvailable: true,
+    image: bigRainbow,
+    images: [bigRainbow],
+    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
+  },
+  {
     id: 'candle-coffee-candle',
     category: 'candles',
     name: 'Coffee Candle',
@@ -605,6 +709,11 @@ export const PERSONALIZED_NAME_CHARGE_PER_LETTER = 10;
 export const CANDLE_SCENTED_CHARGE = 30;
 export const DAISY_CANDLE_SCENTED_CHARGE = 25;
 export const TEDDY_CANDLE_SCENTED_CHARGE = 30;
+export const LOTUS_CANDLE_SCENTED_CHARGE = 75;
+export const ELEPHANT_CANDLE_SCENTED_CHARGE = 50;
+export const SMALL_BUBBLE_CANDLE_SCENTED_CHARGE = 50;
+export const BIG_RAINBOW_CANDLE_SCENTED_CHARGE = 125;
+export const CUP_CAKE_CANDLE_SCENTED_CHARGE = 100;
 export const CANDLE_DAISY_NOTE_CHARGE = 10;
 
 export const resolveCandleScentedCharge = (productId: string) => {
@@ -613,6 +722,21 @@ export const resolveCandleScentedCharge = (productId: string) => {
   }
   if (productId === TEDDY_CANDLE_ID) {
     return TEDDY_CANDLE_SCENTED_CHARGE;
+  }
+  if (productId === LOTUS_BOUQUET_CANDLE_ID) {
+    return LOTUS_CANDLE_SCENTED_CHARGE;
+  }
+  if (productId === ELEPHANT_CANDLE_ID) {
+    return ELEPHANT_CANDLE_SCENTED_CHARGE;
+  }
+  if (productId === SMALL_BUBBLE_CANDLE_ID) {
+    return SMALL_BUBBLE_CANDLE_SCENTED_CHARGE;
+  }
+  if (productId === BIG_RAINBOW_CANDLE_ID) {
+    return BIG_RAINBOW_CANDLE_SCENTED_CHARGE;
+  }
+  if (productId === CUP_CAKE_CANDLE_ID) {
+    return CUP_CAKE_CANDLE_SCENTED_CHARGE;
   }
   return CANDLE_SCENTED_CHARGE;
 };

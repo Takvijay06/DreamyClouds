@@ -34,6 +34,7 @@ const BUSINESS_WHATSAPP_NUMBER = '6350422134';
 const BUSINESS_UPI_ID = 'Q725828237@ybl';
 const INDIAN_MOBILE_REGEX = /^[6-9]\d{9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+const CUP_CAKE_CANDLE_ID = 'CUP_CAKE_CANDLE';
 
 type ValidationField = 'fullName' | 'address' | 'contactNumber' | 'alternateNumber' | 'email';
 type ValidationErrors = Record<ValidationField, string>;
@@ -158,6 +159,7 @@ export const PreviewPage = () => {
               `*Item ${index + 1}*`,
               `- Product: ${item.product.name}`,
               ...(item.sticker ? [`- Sticker: ${item.sticker.name}`] : []),
+              ...(item.product.id === CUP_CAKE_CANDLE_ID ? [`- Design: ${item.selectedColor || 'HBD with teddy'}`] : []),
               ...(item.product.id === 'candle-daisy-flower-bouquet'
                 ? [
                     `- Color: ${item.selectedColor || 'White'}`,
@@ -245,7 +247,10 @@ export const PreviewPage = () => {
                         <p className="text-xs text-lavender-700">
                           Unit: {formatRupee(item.product.basePrice)} | Line: {formatRupee(item.lineTotalWithExtras)}
                         </p>
-                        {item.product.category === 'candles' ? (
+                        {item.product.id === CUP_CAKE_CANDLE_ID ? (
+                          <p className="text-xs text-lavender-700">Design: {item.selectedColor || 'HBD with teddy'}</p>
+                        ) : null}
+                        {item.product.category === 'candles' && item.product.id !== CUP_CAKE_CANDLE_ID && item.selectedColor ? (
                           <p className="text-xs text-lavender-700">Color: {item.selectedColor || 'White'}</p>
                         ) : null}
                         {item.product.category === 'candles' ? (

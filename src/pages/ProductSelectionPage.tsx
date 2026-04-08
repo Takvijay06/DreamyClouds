@@ -5,9 +5,14 @@ import { Layout } from '../components/Layout';
 import { ProductCard } from '../components/ProductCard';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import {
+  BIG_RAINBOW_CANDLE_ID,
+  CUP_CAKE_CANDLE_ID,
   DAISY_BOUQUET_CANDLE_ID,
+  ELEPHANT_CANDLE_ID,
+  LOTUS_BOUQUET_CANDLE_ID,
   PRODUCTS,
   ROSE_BOUQUET_CANDLE_ID,
+  SMALL_BUBBLE_CANDLE_ID,
   TEDDY_CANDLE_ID,
   resolveCandleScentedCharge
 } from '../data/products';
@@ -43,6 +48,8 @@ const DEFAULT_COLORS_BY_CATEGORY: Record<ProductCategory, string[]> = {
   accessories: ['Silver', 'Gold', 'Rose Gold', 'Black'],
   stickers: ['Multicolor']
 };
+const CUP_CAKE_CANDLE_DESIGNS = ['HBD with teddy', 'Pink with sprinkles', 'White with Hearts'];
+const DEFAULT_CUP_CAKE_CANDLE_DESIGN = CUP_CAKE_CANDLE_DESIGNS[0];
 
 export const ProductSelectionPage = () => {
   const INSTAGRAM_URL = 'https://www.instagram.com/dreamycloudsbydaisy/';
@@ -67,9 +74,28 @@ export const ProductSelectionPage = () => {
   const isDaisyBouquetCandle = selectedProduct?.id === DAISY_BOUQUET_CANDLE_ID;
   const isTeddyCandle = selectedProduct?.id === TEDDY_CANDLE_ID;
   const isRoseBouquetCandle = selectedProduct?.id === ROSE_BOUQUET_CANDLE_ID;
+  const isLotusBouquetCandle = selectedProduct?.id === LOTUS_BOUQUET_CANDLE_ID;
+  const isCuteElephantCandle = selectedProduct?.id === ELEPHANT_CANDLE_ID;
+  const isSmallBubbleCandle = selectedProduct?.id === SMALL_BUBBLE_CANDLE_ID;
+  const isBigRainbowCandle = selectedProduct?.id === BIG_RAINBOW_CANDLE_ID;
+  const isCupCakeCandle = selectedProduct?.id === CUP_CAKE_CANDLE_ID;
   const hasCandleOptions =
-    selectedProduct?.category === 'candles' && (isDaisyBouquetCandle || isTeddyCandle || isRoseBouquetCandle);
+    selectedProduct?.category === 'candles' &&
+    (
+      isDaisyBouquetCandle ||
+      isTeddyCandle ||
+      isRoseBouquetCandle ||
+      isLotusBouquetCandle ||
+      isCuteElephantCandle ||
+      isSmallBubbleCandle ||
+      isBigRainbowCandle ||
+      isCupCakeCandle
+    );
   const showCandleOptions = hasCandleOptions && activeCategory === 'candles';
+  const hideColorOptionForSelectedCandle =
+    isCuteElephantCandle || isBigRainbowCandle || isCupCakeCandle || isSmallBubbleCandle;
+  const showColorOption = showCandleOptions && !hideColorOptionForSelectedCandle;
+  const showCupCakeDesignOption = showCandleOptions && isCupCakeCandle;
   const candleScentedPrice = selectedProduct ? resolveCandleScentedCharge(selectedProduct.id) : 0;
 
   const filteredProducts = useMemo(
@@ -100,12 +126,16 @@ export const ProductSelectionPage = () => {
       return [];
     }
 
+    if (isCupCakeCandle) {
+      return CUP_CAKE_CANDLE_DESIGNS;
+    }
+
     if (selectedProduct.colors && selectedProduct.colors.length > 0) {
       return selectedProduct.colors;
     }
 
     return DEFAULT_COLORS_BY_CATEGORY[selectedProduct.category];
-  }, [hasCandleOptions, selectedProduct]);
+  }, [hasCandleOptions, isCupCakeCandle, selectedProduct, showColorOption]);
 
   useEffect(() => {
     if (!selectedProduct) {
@@ -122,10 +152,27 @@ export const ProductSelectionPage = () => {
       return;
     }
 
-    if (!order.selectedColor || !selectedColorOptions.includes(order.selectedColor)) {
-      dispatch(setSelectedColor(selectedColorOptions[0]));
+    if (!showColorOption && !showCupCakeDesignOption) {
+      if (order.selectedColor) {
+        dispatch(setSelectedColor(''));
+      }
+      return;
     }
-  }, [dispatch, order.candleScented, order.selectedColor, selectedColorOptions, selectedProduct, hasCandleOptions]);
+
+    if (!order.selectedColor || !selectedColorOptions.includes(order.selectedColor)) {
+      dispatch(setSelectedColor(isCupCakeCandle ? DEFAULT_CUP_CAKE_CANDLE_DESIGN : selectedColorOptions[0]));
+    }
+  }, [
+    dispatch,
+    isCupCakeCandle,
+    order.candleScented,
+    order.selectedColor,
+    selectedColorOptions,
+    selectedProduct,
+    hasCandleOptions,
+    showColorOption,
+    showCupCakeDesignOption
+  ]);
 
   useEffect(() => {
     const preloadLimit = typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches ? 6 : 12;
@@ -176,7 +223,10 @@ export const ProductSelectionPage = () => {
       return;
     }
 
-    const selectedColor = hasCandleOptions ? order.selectedColor || DEFAULT_COLORS_BY_CATEGORY.candles[0] : '';
+    const selectedColor =
+      hasCandleOptions && (showColorOption || showCupCakeDesignOption)
+        ? order.selectedColor || (isCupCakeCandle ? DEFAULT_CUP_CAKE_CANDLE_DESIGN : DEFAULT_COLORS_BY_CATEGORY.candles[0])
+        : '';
 
     dispatch(
       addToCart({
@@ -291,20 +341,24 @@ export const ProductSelectionPage = () => {
         {showCandleOptions ? (
           <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h3 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Candle Options</h3>
-            <label className="block space-y-1.5">
-              <span className="text-sm font-semibold text-lavender-800">Color</span>
-              <select
-                className="input"
-                value={order.selectedColor}
-                onChange={(event) => dispatch(setSelectedColor(event.target.value))}
-              >
-                {selectedColorOptions.map((color) => (
-                  <option key={color} value={color}>
-                    {color}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {showColorOption || showCupCakeDesignOption ? (
+              <label className="block space-y-1.5">
+                <span className="text-sm font-semibold text-lavender-800">
+                  {showCupCakeDesignOption ? 'Select Design' : 'Color'}
+                </span>
+                <select
+                  className="input"
+                  value={order.selectedColor}
+                  onChange={(event) => dispatch(setSelectedColor(event.target.value))}
+                >
+                  {selectedColorOptions.map((color) => (
+                    <option key={color} value={color}>
+                      {color}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
 
             <label className="flex items-center gap-3 rounded-2xl border border-lavender-200/80 bg-white p-4">
               <input

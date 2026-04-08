@@ -1,5 +1,7 @@
 import { Pricing, Product, Design, CustomerDetails } from '../features/order/orderTypes';
 
+const CUP_CAKE_CANDLE_ID = 'CUP_CAKE_CANDLE';
+
 interface WhatsAppPayload {
   product: Product;
   design: Design | null;
@@ -44,6 +46,7 @@ export const buildWhatsAppMessage = ({
       : [
           '*Selected Product Details*',
           `- Product: ${product.name}`,
+          ...(product.id === CUP_CAKE_CANDLE_ID ? [`- Design: ${selectedColor || 'HBD with teddy'}`] : []),
           ...(product.id === 'candle-daisy-flower-bouquet' ? [`- Color: ${selectedColor || 'White'}`] : []),
           `- Design: ${design?.name ?? 'Not selected'}`,
           `- Placement: ${
