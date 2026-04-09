@@ -11,6 +11,7 @@ import iceFlowTumbler2 from './Products/tumblers/iceFlow2.jpeg';
 import iceFlowTumblerGrey1 from './Products/tumblers/iceFlowGrey1.jpeg';
 import iceFlowTumblerGrey2 from './Products/tumblers/iceFlowGrey2.jpeg';
 import iceFlowTumblerGrey3 from './Products/tumblers/iceFlowGrey3.jpeg';
+import img6 from './Products/tumblers/6.jpeg';
 import img7 from './Products/tumblers/7.jpeg';
 import img8 from './Products/tumblers/8.jpeg';
 // import img9 from './Products/tumblers/9.jpeg';
@@ -160,19 +161,19 @@ const BASE_PRODUCTS: Product[] = [
   //   images: [warm],
   //   overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
   // },
-  // {
-  //   id: 'stanley-quencher-dashing-black',
-  //   category: 'tumblers',
-  //   subCategory: 'steel-tumbler',
-  //   name: 'Stanley Quencher - Dashing Black',
-  //   description: '1200 ml Stainless Steel Stanley Tubmler',
-  //   basePrice: 999,
-  //   availableQuantity: 2,
-  //   imageFileNumber: 6,
-  //   image: img6,
-  //   images: [img6],
-  //   overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  // },
+  {
+    id: 'stanley-quencher-dashing-black',
+    category: 'tumblers',
+    subCategory: 'steel-tumbler',
+    name: 'Stanley Quencher - Dashing Black',
+    description: '1200 ml Stainless Steel Stanley Tubmler',
+    basePrice: 999,
+    availableQuantity: 2,
+    imageFileNumber: 6,
+    image: img6,
+    images: [img6],
+    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
+  },
   {
     id: 'stanley-quencher-hot-pink',
     category: 'tumblers',
@@ -489,7 +490,7 @@ const BASE_PRODUCTS: Product[] = [
     category: 'candles',
     name: 'Lotus Bouquet Candle',
     description: 'Single Lotus Flower Bouquet Candle',
-    basePrice: 150,
+    basePrice: 149,
     availableQuantity: null,
     imageFileNumber: 27,
     imageAvailable: true,
@@ -502,7 +503,7 @@ const BASE_PRODUCTS: Product[] = [
     category: 'candles',
     name: 'Cute Elephant Candle',
     description: 'Single Cute Elephant Candle',
-    basePrice: 150,
+    basePrice: 149,
     availableQuantity: null,
     imageFileNumber: 27,
     imageAvailable: true,
@@ -515,7 +516,7 @@ const BASE_PRODUCTS: Product[] = [
     category: 'candles',
     name: 'Small Bubble Candle (Set of 5)',
     description: 'Small Bubble Candle (Set of 5)',
-    basePrice: 150,
+    basePrice: 149,
     availableQuantity: null,
     imageFileNumber: 27,
     imageAvailable: true,
@@ -528,7 +529,7 @@ const BASE_PRODUCTS: Product[] = [
     category: 'candles',
     name: 'Big Rainbow Candle',
     description: 'Big Rainbow Candle',
-    basePrice: 250,
+    basePrice: 249,
     availableQuantity: null,
     imageFileNumber: 27,
     imageAvailable: true,
@@ -541,7 +542,7 @@ const BASE_PRODUCTS: Product[] = [
     category: 'candles',
     name: 'Cup Cake Candle',
     description: 'Cup cake Candle',
-    basePrice: 200,
+    basePrice: 199,
     availableQuantity: null,
     imageFileNumber: 27,
     imageAvailable: true,
@@ -708,6 +709,7 @@ export const GIFT_WRAP_CHARGE_PER_ITEM = 25;
 export const PERSONALIZED_NAME_CHARGE_PER_LETTER = 10;
 export const CANDLE_SCENTED_CHARGE = 30;
 export const DAISY_CANDLE_SCENTED_CHARGE = 25;
+export const ROSE_BOUQUET_CANDLE_SCENTED_CHARGE = 25;
 export const TEDDY_CANDLE_SCENTED_CHARGE = 30;
 export const LOTUS_CANDLE_SCENTED_CHARGE = 75;
 export const ELEPHANT_CANDLE_SCENTED_CHARGE = 50;
@@ -719,6 +721,9 @@ export const CANDLE_DAISY_NOTE_CHARGE = 10;
 export const resolveCandleScentedCharge = (productId: string) => {
   if (productId === DAISY_BOUQUET_CANDLE_ID) {
     return DAISY_CANDLE_SCENTED_CHARGE;
+  }
+  if (productId === ROSE_BOUQUET_CANDLE_ID) {
+    return ROSE_BOUQUET_CANDLE_SCENTED_CHARGE;
   }
   if (productId === TEDDY_CANDLE_ID) {
     return TEDDY_CANDLE_SCENTED_CHARGE;
