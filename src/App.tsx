@@ -8,6 +8,7 @@ import { fetchProducts, selectProductsStatus } from './features/products/product
 import { ContactUsPage } from './pages/ContactUsPage';
 import { DesignSelectionPage } from './pages/DesignSelectionPage';
 import { PreviewPage } from './pages/PreviewPage';
+import { ProductPreviewPage } from './pages/ProductPreviewPage';
 import { ProductSelectionPage } from './pages/ProductSelectionPage';
 
 const App = () => {
@@ -81,6 +82,7 @@ const App = () => {
         <ScrollToTop />
         <Routes>
           <Route path="/" element={<ProductSelectionPage />} />
+          <Route path="/product/:productId" element={<ProductPreviewPage />} />
           <Route path="/design" element={<DesignSelectionPage />} />
           <Route path="/preview" element={<PreviewPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />

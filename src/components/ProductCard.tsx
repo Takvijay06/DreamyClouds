@@ -293,7 +293,7 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
           onClick={() => onPreview(product)}
           className="btn-secondary w-full px-3 py-2 text-xs sm:text-sm"
         >
-          Preview
+          Preview & Share
         </button>
         <div className="flex items-center justify-between">
           <div>
