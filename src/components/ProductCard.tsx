@@ -1,18 +1,22 @@
 import { KeyboardEvent, TouchEvent, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NoImageBanner } from './NoImageBanner';
 import { Product } from '../features/order/orderTypes';
 import { formatRupee } from '../utils/currency';
 
+const DAISY_BOUQUET_CANDLE_ID = 'candle-daisy-flower-bouquet';
+
 interface ProductCardProps {
   product: Product;
-  selected: boolean;
-  onSelect: (id: string) => void;
-  onPreview: (product: Product) => void;
+  onShare: (product: Product) => void;
+  onBuyNow: (product: Product) => void;
+  /** Shown only for Daisy bouquet candle — sets product in order so candle options appear below. */
+  onRequestCandleOptions?: () => void;
 }
 
 const IMAGE_SLIDE_MS = 240;
 
-export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductCardProps) => {
+export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions }: ProductCardProps) => {
   const hasImage = product.imageAvailable !== false;
   const productImages = hasImage ? (product.images && product.images.length > 0 ? product.images : [product.image]) : [];
   const hasMultipleImages = productImages.length > 1;
@@ -34,6 +38,8 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
   const touchLastYRef = useRef<number | null>(null);
   const hasTouchMovedRef = useRef(false);
   const lastSwipeAtRef = useRef(0);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [modalImageIndex, setModalImageIndex] = useState(0);
   const categoryLabel =
     product.category === 'tumblers'
       ? product.subCategory === 'glass-tumbler'
@@ -51,6 +57,24 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!imageModalOpen) {
+      return;
+    }
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setImageModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [imageModalOpen]);
 
   useEffect(() => {
     setActiveImageIndex(0);
@@ -109,7 +133,8 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
     }
 
     event.preventDefault();
-    onSelect(product.id);
+    setModalImageIndex(activeImageIndex);
+    setImageModalOpen(true);
   };
 
   const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
@@ -165,14 +190,29 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
     hasTouchMovedRef.current = false;
   };
 
-  const handleSelect = () => {
+  const handleImageAreaClick = () => {
     if (isSoldOut) {
       return;
     }
     if (Date.now() - lastSwipeAtRef.current < 350) {
       return;
     }
-    onSelect(product.id);
+    setModalImageIndex(activeImageIndex);
+    setImageModalOpen(true);
+  };
+
+  const modalShowPrevious = () => {
+    if (!hasMultipleImages) {
+      return;
+    }
+    setModalImageIndex((i) => (i - 1 + productImages.length) % productImages.length);
+  };
+
+  const modalShowNext = () => {
+    if (!hasMultipleImages) {
+      return;
+    }
+    setModalImageIndex((i) => (i + 1) % productImages.length);
   };
 
   const enteringStartClass = slideDirection === 'next' ? 'translate-x-full' : '-translate-x-full';
@@ -186,25 +226,93 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
 
   const previousImageClass = hasSlideStarted ? exitingEndClass : 'translate-x-0';
 
+  const imageModal =
+    imageModalOpen && typeof document !== 'undefined'
+      ? createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6">
+            <button
+              type="button"
+              aria-label="Close image"
+              className="absolute inset-0 bg-lavender-900/55 backdrop-blur-sm"
+              onClick={() => setImageModalOpen(false)}
+            />
+            <div className="relative z-10 flex max-h-[min(90vh,880px)] w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-lavender-200 bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-lavender-100 px-4 py-3">
+                <p className="font-['Sora'] text-sm font-bold text-lavender-900 sm:text-base">{product.name}</p>
+                <button
+                  type="button"
+                  className="rounded-xl border border-lavender-300 bg-white px-3 py-1.5 text-sm font-semibold text-lavender-800 transition hover:bg-lavender-50"
+                  onClick={() => setImageModalOpen(false)}
+                >
+                  Close
+                </button>
+              </div>
+              <div className="relative flex min-h-[240px] flex-1 items-center justify-center bg-lavender-50/80 p-4">
+                {hasImage ? (
+                  <img
+                    src={productImages[modalImageIndex]}
+                    alt={`${product.name} ${modalImageIndex + 1}`}
+                    className="max-h-[min(75vh,720px)] w-full object-contain"
+                    loading="eager"
+                  />
+                ) : (
+                  <div className="relative h-72 w-full max-w-lg">
+                    <NoImageBanner category={product.category} className="rounded-2xl" />
+                  </div>
+                )}
+                {hasMultipleImages ? (
+                  <>
+                    <button
+                      type="button"
+                      aria-label="Previous image"
+                      className="absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-lavender-900/25 to-transparent transition hover:from-lavender-900/35"
+                      onClick={modalShowPrevious}
+                    />
+                    <button
+                      type="button"
+                      aria-label="Next image"
+                      className="absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-lavender-900/25 to-transparent transition hover:from-lavender-900/35"
+                      onClick={modalShowNext}
+                    />
+                    <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 gap-1.5 rounded-full bg-white/90 px-3 py-1.5 shadow-sm">
+                      {productImages.map((image, index) => (
+                        <button
+                          key={`modal-${image}-${index}`}
+                          type="button"
+                          aria-label={`Show image ${index + 1}`}
+                          className={`h-2 w-2 rounded-full transition ${index === modalImageIndex ? 'bg-lavender-700' : 'bg-lavender-300 hover:bg-lavender-500'}`}
+                          onClick={() => setModalImageIndex(index)}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+              </div>
+            </div>
+          </div>,
+          document.body
+        )
+      : null;
+
   return (
     <div
-      className={`group w-full overflow-hidden rounded-3xl border text-left transition duration-200 ${
-        selected
-          ? 'border-lavender-600 bg-lavender-50/70 ring-2 ring-lavender-300'
-          : 'border-lavender-200 bg-white hover:-translate-y-1 hover:border-lavender-400 hover:shadow-soft'
-      } ${isSoldOut ? 'opacity-70' : ''}`}
+      className={`group w-full overflow-hidden rounded-3xl border border-lavender-200 bg-white text-left transition duration-200 hover:-translate-y-1 hover:border-lavender-400 hover:shadow-soft ${
+        isSoldOut ? 'opacity-70' : ''
+      }`}
     >
+      {imageModal}
       <div
         role="button"
         tabIndex={isSoldOut ? -1 : 0}
         aria-disabled={isSoldOut}
-        onClick={handleSelect}
+        aria-label={`View ${product.name} images`}
+        onClick={handleImageAreaClick}
         onKeyDown={onImageKeyDown}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         className={`relative block w-full overflow-hidden bg-lavender-50/40 text-left outline-none focus-visible:ring-2 focus-visible:ring-lavender-400 ${
-          isSoldOut ? 'cursor-not-allowed' : 'cursor-pointer'
+          isSoldOut ? 'cursor-not-allowed' : 'cursor-zoom-in'
         }`}
       >
         <div className="relative h-44 w-full overflow-hidden">
@@ -274,34 +382,51 @@ export const ProductCard = ({ product, selected, onSelect, onPreview }: ProductC
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => onSelect(product.id)}
-        className={`w-full text-left ${isSoldOut ? 'cursor-not-allowed' : ''}`}
-        disabled={isSoldOut}
-      >
-        <div className="space-y-2.5 p-4">
-          <h3 className="font-['Sora'] text-base font-bold text-lavender-900">{product.name}</h3>
-          <p className="text-sm text-lavender-700">{product.description}</p>
-          {/* <p className="text-xs font-semibold text-lavender-600">{stockLabel}</p> */}
-        </div>
-      </button>
+      <div className="space-y-2.5 p-4">
+        <h3 className="font-['Sora'] text-base font-bold text-lavender-900">{product.name}</h3>
+        <p className="text-sm text-lavender-700">{product.description}</p>
+      </div>
 
       <div className="space-y-3 border-t border-lavender-100 px-4 pb-4 pt-3">
-        <button
-          type="button"
-          onClick={() => onPreview(product)}
-          className="btn-secondary w-full px-3 py-2 text-xs sm:text-sm"
-        >
-          Preview & Share
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              onShare(product);
+            }}
+            className="btn-secondary px-2 py-2 text-xs sm:px-3 sm:text-sm"
+          >
+            Share
+          </button>
+          <button
+            type="button"
+            disabled={isSoldOut}
+            onClick={(event) => {
+              event.stopPropagation();
+              onBuyNow(product);
+            }}
+            className="btn-primary px-2 py-2 text-xs sm:px-3 sm:text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Buy now
+          </button>
+        </div>
+        {product.id === DAISY_BOUQUET_CANDLE_ID && onRequestCandleOptions ? (
+          <button
+            type="button"
+            className="btn-secondary w-full px-3 py-2 text-xs sm:text-sm"
+            onClick={(event) => {
+              event.stopPropagation();
+              onRequestCandleOptions();
+            }}
+          >
+            Customize candle options
+          </button>
+        ) : null}
         <div className="flex items-center justify-between">
           <div>
             <p className="text-base font-bold text-lavender-800">{formatRupee(product.basePrice)}</p>
           </div>
-          {selected && !isSoldOut ? (
-            <span className="rounded-full bg-lavender-600 px-2.5 py-1 text-[11px] font-bold text-white">Selected</span>
-          ) : null}
         </div>
       </div>
     </div>
