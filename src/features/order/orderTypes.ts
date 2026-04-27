@@ -14,6 +14,7 @@ export interface Product {
   imageAvailable?: boolean;
   name: string;
   description: string;
+  shippingCharge?: number;
   basePrice: number;
   originalPrice?: number;
   image: string;
