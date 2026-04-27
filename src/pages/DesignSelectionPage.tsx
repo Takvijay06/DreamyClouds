@@ -159,9 +159,6 @@ export const DesignSelectionPage = () => {
         {!isDaisyBouquetCandle ? (
           <section className="space-y-2 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
             <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Select Design</h2>
-            <p className="text-xs font-bold uppercase tracking-[0.12em] text-lavender-700">
-              Order Step -2: click to select the sticker
-            </p>
             {designsStatus === 'loading' ? (
               <div className="rounded-2xl border border-lavender-200/80 bg-white/85 p-3 text-xs font-semibold text-lavender-700">
                 Loading the latest designs…
