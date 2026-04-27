@@ -1,12 +1,14 @@
 export type ProductCategory = 'tumblers' | 'mugs' | 'bookmarks' | 'candles' | 'gift-hampers' | 'accessories' | 'stickers';
 export type TumblerSubCategory = 'steel-tumbler' | 'glass-tumbler';
-export type StickerSubCategory = 'full-wrap' | 'single';
+export type StickerSubCategory = 'full_wrap' | 'single_sticker';
 
 export interface Product {
   id: string;
   category: ProductCategory;
   subCategory?: TumblerSubCategory | StickerSubCategory;
   colors?: string[];
+  /** Per-item add-on when the candle is ordered scented (from products API `scented_price`). */
+  scentedAddonPrice?: number;
   availableQuantity?: number | null;
   imageFileNumber?: number;
   imageAvailable?: boolean;
@@ -26,6 +28,8 @@ export interface Design {
   stickerSubCategory?: StickerSubCategory;
   name: string;
   image: string;
+  basePrice?: number;
+  availableQuantity?: number | null;
 }
 
 export interface CustomerDetails {

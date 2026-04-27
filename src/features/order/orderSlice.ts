@@ -1,9 +1,26 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
+import { toAvailableQuantityCap, toCartLineQuantity } from '../../utils/cartQuantity';
 import { normalizeCouponCode } from './couponRules';
-import { CustomerDetails, OrderState } from './orderTypes';
+import { CustomerDetails, CartItem, OrderState } from './orderTypes';
 
 export const STORAGE_KEY = 'dreamyclouds-order';
+
+const normalizeCartItemsQuantities = (items: unknown): CartItem[] => {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+  return items.map((entry) => {
+    if (!entry || typeof entry !== 'object' || !('id' in entry) || !('productId' in entry)) {
+      return entry as CartItem;
+    }
+    const e = entry as Record<string, unknown>;
+    return {
+      ...e,
+      quantity: toCartLineQuantity(e.quantity)
+    } as CartItem;
+  });
+};
 
 const initialCustomerDetails: CustomerDetails = {
   fullName: '',
@@ -59,9 +76,14 @@ const hydrateState = (): OrderState => {
 
   try {
     const parsed = JSON.parse(raw) as Partial<OrderState>;
+    const nextQuantity = toCartLineQuantity(parsed.quantity ?? defaultState.quantity);
     return {
       ...defaultState,
       ...parsed,
+      quantity: nextQuantity,
+      cartItems: normalizeCartItemsQuantities(
+        (parsed as { cartItems?: unknown }).cartItems ?? defaultState.cartItems
+      ),
       customerDetails: {
         ...initialCustomerDetails,
         ...(parsed.customerDetails ?? {})
@@ -103,7 +125,7 @@ const orderSlice = createSlice({
       state.couponCode = '';
     },
     setQuantity(state, action: PayloadAction<number>) {
-      state.quantity = Math.max(1, action.payload);
+      state.quantity = toCartLineQuantity(action.payload);
     },
     addToCart(
       state,
@@ -130,7 +152,7 @@ const orderSlice = createSlice({
       } = action.payload;
       const normalizedPersonalizedNote = personalizedNote.trim();
       const normalizedCandleNote = candleNote.trim();
-      const normalizedQty = Math.max(1, quantity);
+      const normalizedQty = toCartLineQuantity(quantity);
       const existingByProductDesign = state.cartItems.find(
         (item) =>
           item.productId === productId &&
@@ -156,7 +178,7 @@ const orderSlice = createSlice({
           (item.candleNote ?? '') === normalizedCandleNote
       );
       if (existing) {
-        existing.quantity += normalizedQty;
+        existing.quantity = toCartLineQuantity(toCartLineQuantity(existing.quantity) + normalizedQty);
         return;
       }
 
@@ -184,21 +206,45 @@ const orderSlice = createSlice({
       if (!item) {
         return;
       }
-      item.quantity = Math.max(1, action.payload.quantity);
+      item.quantity = toCartLineQuantity(action.payload.quantity);
     },
-    incrementCartItemQuantity(state, action: PayloadAction<string>) {
-      const item = state.cartItems.find((entry) => entry.id === action.payload);
+    incrementCartItemQuantity(
+      state,
+      action: PayloadAction<string | { id: string; cap?: number | null }>
+    ) {
+      const { id, rawCap } =
+        typeof action.payload === 'string'
+          ? { id: action.payload, rawCap: null as number | null | undefined }
+          : { id: action.payload.id, rawCap: action.payload.cap };
+      const item = state.cartItems.find((entry) => entry.id === id);
       if (!item) {
         return;
       }
-      item.quantity += 1;
+      const current = toCartLineQuantity(item.quantity);
+      const cap = toAvailableQuantityCap(rawCap);
+      if (cap != null && current >= cap) {
+        return;
+      }
+      item.quantity = toCartLineQuantity(current + 1);
     },
     decrementCartItemQuantity(state, action: PayloadAction<string>) {
-      const item = state.cartItems.find((entry) => entry.id === action.payload);
+      const itemIndex = state.cartItems.findIndex((entry) => entry.id === action.payload);
+      if (itemIndex < 0) {
+        return;
+      }
+      const item = state.cartItems[itemIndex];
       if (!item) {
         return;
       }
-      item.quantity = Math.max(1, item.quantity - 1);
+      const current = toCartLineQuantity(item.quantity);
+      if (current <= 1) {
+        state.cartItems.splice(itemIndex, 1);
+        if (state.cartItems.length === 0) {
+          resetSelectionAndPricingState(state);
+        }
+        return;
+      }
+      item.quantity = toCartLineQuantity(current - 1);
     },
     clearCart(state) {
       state.cartItems = [];

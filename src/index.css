@@ -51,6 +51,26 @@ body::before {
   @apply inline-flex items-center justify-center rounded-2xl border border-lavender-300 bg-white/90 px-5 py-3 text-sm font-semibold text-lavender-700 transition duration-200 hover:-translate-y-0.5 hover:border-lavender-400 hover:bg-lavender-100;
 }
 
+.trending-tab-border {
+  position: relative;
+  isolation: isolate;
+}
+
+.trending-tab-border::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid rgba(217, 70, 239, 0.5);
+  pointer-events: none;
+  opacity: 0.8;
+  animation: trendingBorderWave 1.9s ease-in-out infinite;
+}
+
+.trending-tab-border-active::after {
+  animation-duration: 1.2s;
+}
+
 .contact-fab {
   position: fixed;
   right: clamp(12px, 2.2vw, 24px);
@@ -537,5 +557,23 @@ body::before {
   100% {
     transform: translateY(145%);
     opacity: 0;
+  }
+}
+
+@keyframes trendingBorderWave {
+  0%,
+  100% {
+    border-color: rgba(217, 70, 239, 0.45);
+    opacity: 0.65;
+  }
+  50% {
+    border-color: rgba(124, 58, 237, 0.95);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trending-tab-border::after {
+    animation: none;
   }
 }

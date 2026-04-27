@@ -1,747 +1,123 @@
-import { Product } from '../features/order/orderTypes';
-import img1 from './Products/tumblers/1.jpeg';
-import img2 from './Products/tumblers/2.jpeg';
-import marbleBlue from './Products/tumblers/marbleBlue.jpeg';
-import img4 from './Products/tumblers/4.jpeg';
-import img5 from './Products/tumblers/5.jpeg';
-import levandarTumbler from './Products/tumblers/levandarTumbler.png';
-import orangeTumbler from './Products/tumblers/orangeTumbler.jpeg';
-import iceFlowTumbler1 from './Products/tumblers/iceFlow1.jpeg';
-import iceFlowTumbler2 from './Products/tumblers/iceFlow2.jpeg';
-import iceFlowTumblerGrey1 from './Products/tumblers/iceFlowGrey1.jpeg';
-import iceFlowTumblerGrey2 from './Products/tumblers/iceFlowGrey2.jpeg';
-import iceFlowTumblerGrey3 from './Products/tumblers/iceFlowGrey3.jpeg';
-import img6 from './Products/tumblers/6.jpeg';
-import img7 from './Products/tumblers/7.jpeg';
-import img8 from './Products/tumblers/8.jpeg';
-// import img9 from './Products/tumblers/9.jpeg';
-// import img10 from './Products/tumblers/10.jpeg';
-import img11 from './Products/tumblers/11.jpeg';
-import img11a from './Products/tumblers/11-1.jpeg';
-import img11b from './Products/tumblers/11-2.jpeg';
-// import img12 from './Products/tumblers/12.jpeg';
-import img13 from './Products/tumblers/13.jpeg';
-import img14 from './Products/tumblers/14.jpeg';
-import daisyFlower1 from './Products/candles/DaisyFlower1.png';
-import daisyFlower2 from './Products/candles/DaisyFlower2.png';
-import daisyFlower3 from './Products/candles/DaisyFlower3.png';
-import daisyFlower4 from './Products/candles/DaisyFlower4.png';
-import daisyFlower5 from './Products/candles/DaisyFlower5.png';
-import daisyFlower6 from './Products/candles/DaisyFlower6.png';
-import daisyFlower7 from './Products/candles/DaisyFlower7.png';
-import daisyFlower8 from './Products/candles/DaisyFlower8.png';
-import cupcake from './Products/candles/cupCake.png';
-import cuteElephant from './Products/candles/CUTEeLEPANT.png';
-import bigRainbow from './Products/candles/bigRainbow.png';
-import smallBubble from './Products/candles/smallbubble.png';
-import dreamycloudCandle from './Products/candles/dreamycloudsCandle.jpeg';
-import coffeLatte from './Products/candles/coffeelatte2.png';
-import colorfulStraw from './Products/accessories/colorfulStraw.jpeg';
-import steelStraw1 from './Products/accessories/steelStraw1.png';
-import steelStraw2 from './Products/accessories/steelStraw2.jpeg';
-import mugWithStraw from './Products/mugs/mugExtra2.png';
-import qrImage from './Products/QR.jpeg';
-import tc1 from "./Products/candles/TC1.jpeg"
-import tc2 from "./Products/candles/TC2.jpeg"
-import tc3 from "./Products/candles/TC3.jpeg"
-import tc4 from "./Products/candles/TC4.jpeg"
-import tc5 from "./Products/candles/TC5.jpeg"
-import tc6 from "./Products/candles/TC6.jpeg"
-import roseCandle from "./Products/candles/roseCandle.jpg"
-import lotusCandle from "./Products/candles/lotusCandle.png"
+import { Product, ProductCategory, StickerSubCategory, TumblerSubCategory } from '../features/order/orderTypes';
+import { toAvailableQuantityCap } from '../utils/cartQuantity';
 
-export const DAISY_BOUQUET_CANDLE_ID = 'candle-daisy-flower-bouquet';
-export const TEDDY_CANDLE_ID = 'candle-teddy';
-export const ROSE_BOUQUET_CANDLE_ID = 'rose-bouquet-candle';
-export const LOTUS_BOUQUET_CANDLE_ID = 'LOTUS_BOUQUET_CANDLE_ID';
-export const ELEPHANT_CANDLE_ID = 'Elephant_CANDLE_ID';
-export const SMALL_BUBBLE_CANDLE_ID = 'SMALL_BUBBLE_CANDLE';
-export const BIG_RAINBOW_CANDLE_ID = 'BIG_RAINBOW_CANDLE';
-export const CUP_CAKE_CANDLE_ID = 'CUP_CAKE_CANDLE';
+const DEFAULT_OVERLAY_BY_CATEGORY: Record<ProductCategory, string> = {
+  tumblers: 'left-[28%] top-[27%] h-[38%] w-[44%]',
+  mugs: 'left-[22%] top-[34%] h-[30%] w-[48%]',
+  bookmarks: 'left-[38%] top-[18%] h-[62%] w-[24%]',
+  candles: 'left-[24%] top-[34%] h-[30%] w-[45%]',
+  'gift-hampers': 'left-[24%] top-[34%] h-[30%] w-[45%]',
+  accessories: 'left-[26%] top-[30%] h-[36%] w-[46%]',
+  stickers: 'left-[20%] top-[20%] h-[60%] w-[60%]'
+};
 
-const BASE_PRODUCTS: Product[] = [
-  // {
-  //   id: 'stanley-tri-color-pink',
-  //   category: 'tumblers',
-  //   subCategory: 'steel-tumbler',
-  //   name: 'Stanley Tri Color -Pink',
-  //   description: '1200 ml Stainless Steel Stanley Tubmler in Tri Color',
-  //   basePrice: 1399,
-  //   availableQuantity: 1,
-  //   imageFileNumber: 1,
-  //   image: img1,
-  //   images: [img1],
-  //   overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  // },
-  {
-    id: 'stanley-tri-color-peach',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Tri Color -Peach',
-    description: '1200 ml Stainless Steel Stanley Tubmler in Tri Color',
-    basePrice: 1399,
-    availableQuantity: 1,
-    imageFileNumber: 2,
-    image: img2,
-    images: [img2],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  {
-    id: 'stanley-marble-blue',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Marble - Blue',
-    description: '1200 ml Stainless Steel Stanley Marble Finish Tubmler',
-    basePrice: 1199,
-    availableQuantity: 2,
-    imageFileNumber: 3,
-    image: marbleBlue,
-    images: [marbleBlue],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  {
-    id: 'stanley-ice-flow-flip-straw-creamy-white',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Ice Flow Flip Straw - Creamy White',
-    description: '900 ml Leak-Proof Stanley with Flip Straw',
-    basePrice: 1299,
-    availableQuantity: 1,
-    imageFileNumber: 4,
-    image: img4,
-    images: [img4],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  {
-    id: 'stanley-ice-flow-flip-straw-purple',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Ice Flow Flip Straw - Purple',
-    description: '900 ml Leak-Proof Stanley with Flip Straw',
-    basePrice: 1299,
-    availableQuantity: 1,
-    imageFileNumber: 5,
-    image: img5,
-    images: [img5],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  {
-    id: 'stanley-ice-flow-flip-straw-lavender',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Ice Flow Flip Straw - Lavender',
-    description: '900 ML Leakproof Stanley with Flip Straw',
-    basePrice: 1299,
-    availableQuantity: 1,
-    image: levandarTumbler,
-    images: [levandarTumbler],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-   {
-    id: 'Stanley-Ice-Flow-Flip-Straw-Orange',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Ice Flow Flip Straw- Orange',
-    description: '900 ML leakproof Stanley with flip straw',
-    basePrice: 1299,
-    availableQuantity: 1,
-    image: orangeTumbler,
-    images: [orangeTumbler],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  // {
-  //   id: 'Stanley-Marble-Warm-Serene',
-  //   category: 'tumblers',
-  //   subCategory: 'steel-tumbler',
-  //   name: 'Stanley Marble - Warm Serene',
-  //   description: '1200 ml Stainless Steel Stanley Marble Finish Tumbler ',
-  //   basePrice: 1199,
-  //   availableQuantity: 1,
-  //   image: warm,
-  //   images: [warm],
-  //   overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  // },
-  {
-    id: 'stanley-quencher-dashing-black',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Quencher - Dashing Black',
-    description: '1200 ml Stainless Steel Stanley Tubmler',
-    basePrice: 999,
-    availableQuantity: 2,
-    imageFileNumber: 6,
-    image: img6,
-    images: [img6],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  {
-    id: 'stanley-quencher-hot-pink',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Quencher - Hot Pink',
-    description: '1200 ml Stainless Steel Stanley Tubmler',
-    basePrice: 999,
-    availableQuantity: 1,
-    imageFileNumber: 7,
-    image: img7,
-    images: [img7],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  {
-    id: 'stanley-quencher-army-green',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Quencher - Army Green',
-    description: '1200 ml Stainless Steel Stanley Tubmler',
-    basePrice: 999,
-    availableQuantity: 2,
-    imageFileNumber: 8,
-    image: img8,
-    images: [img8],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  // {
-  //   id: 'stanley-quencher-creamy-white',
-  //   category: 'tumblers',
-  //   subCategory: 'steel-tumbler',
-  //   name: 'Stanley Quencher - Creamy White',
-  //   description: '1200 ml Stainless Steel Stanley Tubmler',
-  //   basePrice: 999,
-  //   availableQuantity: 2,
-  //   imageFileNumber: 9,
-  //   image: img9,
-  //   images: [img9],
-  //   overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  // },
-  // {
-  //   id: 'rainbow-tumbler-yellow',
-  //   category: 'tumblers',
-  //   subCategory: 'steel-tumbler',
-  //   name: 'Rainbow Tumbler -Yellow',
-  //   description: '900 ml Rainbow Tumbler with Double Drink Neo (Sip+Straw)',
-  //   basePrice: 799,
-  //   availableQuantity: 2,
-  //   imageFileNumber: 10,
-  //   image: img10,
-  //   images: [img10],
-  //   overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  // },
-  {
-    id: 'Stanley-Ice-Flow-FlipStraw-Charcoal-Black',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Ice Flow Flip Straw - Charcoal Black',
-    description: '900 ml Leak-Proof Stanley with Flip Straw',
-    basePrice: 1299,
-    availableQuantity: 2,
-    imageFileNumber: 10,
-    image: iceFlowTumbler1,
-    images: [iceFlowTumbler1, iceFlowTumbler2],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-},
-{
-    id: 'Stanley-Ice-Flow-FlipStraw-grey',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Stanley Ice Flow Flip Straw - Grey',
-    description: '900 ml Leak-Proof Stanley with Flip Straw',
-    basePrice: 1299,
-    availableQuantity: 2,
-    imageFileNumber: 10,
-    image: iceFlowTumblerGrey1,
-    images: [iceFlowTumblerGrey1, iceFlowTumblerGrey2, iceFlowTumblerGrey3],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-},
-  {
-    id: 'coffee-mug-black',
-    category: 'tumblers',
-    subCategory: 'steel-tumbler',
-    name: 'Coffee Mug - Black',
-    description: '500 ml Stainless Steel Coffee Mug with Double Drink Neo (Sip+Straw)',
-    basePrice: 499,
-    availableQuantity: 5,
-    imageFileNumber: 11,
-    image: img11,
-    images: [img11, img11a, img11b],
-    overlayClassName: 'left-[24%] top-[28%] h-[36%] w-[50%]'
-  },
-  // {
-  //   id: 'coffee-mug-blue',
-  //   category: 'tumblers',
-  //   subCategory: 'steel-tumbler',
-  //   name: 'Coffee Mug - Blue',
-  //   description: '500 ml Stainless Steel Coffee Mug with Double Drink Neo (Sip+Straw)',
-  //   basePrice: 499,
-  //   availableQuantity: 1,
-  //   imageFileNumber: 12,
-  //   image: img12,
-  //   images: [img12],
-  //   overlayClassName: 'left-[24%] top-[28%] h-[36%] w-[50%]'
-  // },
-  {
-    id: 'candy-tumbler',
-    category: 'tumblers',
-    subCategory: 'glass-tumbler',
-    name: 'Candy Tumbler',
-    description: '510 ml Customisable Glass Tumbler with Bamboo Lid and Glass Straw',
-    basePrice: 199,
-    availableQuantity: null,
-    imageFileNumber: 13,
-    image: img13,
-    images: [img13],
-    overlayClassName: 'left-[28%] top-[27%] h-[38%] w-[44%]'
-  },
-  {
-    id: 'mason-jar',
-    category: 'mugs',
-    name: 'Mason Jar',
-    description: '450 ml Customisable Mason Jar with Colorful Straw',
-    basePrice: 149,
-    availableQuantity: null,
-    imageFileNumber: 14,
-    image: mugWithStraw,
-    images: [mugWithStraw, img14],
-    overlayClassName: 'left-[22%] top-[34%] h-[30%] w-[48%]'
-  },
-  {
-    id: 'bookmark-sunflower',
-    category: 'bookmarks',
-    name: 'Sunflower',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 1,
-    imageFileNumber: 15,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: 'bookmark-dream-catcher',
-    category: 'bookmarks',
-    name: 'Dream Catcher',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 1,
-    imageFileNumber: 16,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: 'bookmark-rainbow',
-    category: 'bookmarks',
-    name: 'Rainbow',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 1,
-    imageFileNumber: 17,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: 'bookmark-lotus',
-    category: 'bookmarks',
-    name: 'Lotus',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 1,
-    imageFileNumber: 18,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: 'bookmark-flower-pattles',
-    category: 'bookmarks',
-    name: 'Flower Pattles',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 1,
-    imageFileNumber: 19,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: 'bookmark-go-with-the-flow',
-    category: 'bookmarks',
-    name: 'Go with the Flow',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 1,
-    imageFileNumber: 20,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: 'bookmark-reading-therapy',
-    category: 'bookmarks',
-    name: 'Reading Therapy',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 1,
-    imageFileNumber: 21,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: 'bookmark-lost-story',
-    category: 'bookmarks',
-    name: 'Lost Story',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 1,
-    imageFileNumber: 22,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: 'bookmark-booked',
-    category: 'bookmarks',
-    name: 'Booked',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 1,
-    imageFileNumber: 23,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: 'bookmark-better-book',
-    category: 'bookmarks',
-    name: 'Better Book',
-    description: 'Acrylic Bookmark with High Quality UV-DTF Print and Charm',
-    basePrice: 99,
-    availableQuantity: 2,
-    imageFileNumber: 24,
-    imageAvailable: false,
-    image: img1,
-    images: [img1],
-    overlayClassName: 'left-[38%] top-[18%] h-[62%] w-[24%]'
-  },
-  {
-    id: DAISY_BOUQUET_CANDLE_ID,
-    category: 'candles',
-    name: 'Daisy Flower Bouquet',
-    description: 'Single Daisy Flower Bouquet Candle',
-    basePrice: 49,
-    availableQuantity: null,
-    imageFileNumber: 25,
-    imageAvailable: true,
-    image: daisyFlower1,
-    images: [daisyFlower3, daisyFlower2, daisyFlower1, daisyFlower4,daisyFlower5,daisyFlower6, daisyFlower7, daisyFlower8],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-  {
-    id: 'candle-dreamy-clouds',
-    category: 'candles',
-    name: 'Dreamy Clouds',
-    description: 'Jar Candle with Clouds',
-    basePrice: 299,
-    availableQuantity: null,
-    imageFileNumber: 26,
-    imageAvailable: true,
-    image: dreamycloudCandle,
-    images: [dreamycloudCandle],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-  {
-    id: TEDDY_CANDLE_ID,
-    category: 'candles',
-    name: 'Teddy candle',
-    description: 'Teddy candle',
-    basePrice: 119,
-    availableQuantity: null,
-    imageAvailable: true,
-    image: tc1,
-    images: [tc1, tc2, tc3, tc4,tc5, tc6],
-    colors: ['Brown', 'Pink', 'Purple', 'Peach', 'Creamy white'],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-  {
-    id: ROSE_BOUQUET_CANDLE_ID,
-    category: 'candles',
-    name: 'Rose Bouquet Candle',
-    description: 'Single Rose Flower Bouquet Candle',
-    basePrice: 49,
-    availableQuantity: null,
-    imageFileNumber: 27,
-    imageAvailable: true,
-    image: roseCandle,
-    images: [roseCandle],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-  {
-    id: LOTUS_BOUQUET_CANDLE_ID,
-    category: 'candles',
-    name: 'Lotus Bouquet Candle',
-    description: 'Single Lotus Flower Bouquet Candle',
-    basePrice: 149,
-    availableQuantity: null,
-    imageFileNumber: 27,
-    imageAvailable: true,
-    image: lotusCandle,
-    images: [lotusCandle],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-   {
-    id: ELEPHANT_CANDLE_ID,
-    category: 'candles',
-    name: 'Cute Elephant Candle',
-    description: 'Single Cute Elephant Candle',
-    basePrice: 149,
-    availableQuantity: null,
-    imageFileNumber: 27,
-    imageAvailable: true,
-    image: cuteElephant,
-    images: [cuteElephant],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-   {
-    id: SMALL_BUBBLE_CANDLE_ID,
-    category: 'candles',
-    name: 'Small Bubble Candle (Set of 5)',
-    description: 'Small Bubble Candle (Set of 5)',
-    basePrice: 149,
-    availableQuantity: null,
-    imageFileNumber: 27,
-    imageAvailable: true,
-    image: smallBubble,
-    images: [smallBubble],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-  {
-    id: BIG_RAINBOW_CANDLE_ID,
-    category: 'candles',
-    name: 'Big Rainbow Candle',
-    description: 'Big Rainbow Candle',
-    basePrice: 249,
-    availableQuantity: null,
-    imageFileNumber: 27,
-    imageAvailable: true,
-    image: cupcake,
-    images: [cupcake],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-   {
-    id: CUP_CAKE_CANDLE_ID,
-    category: 'candles',
-    name: 'Cup Cake Candle',
-    description: 'Cup cake Candle',
-    basePrice: 199,
-    availableQuantity: null,
-    imageFileNumber: 27,
-    imageAvailable: true,
-    image: bigRainbow,
-    images: [bigRainbow],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-  {
-    id: 'candle-coffee-candle',
-    category: 'candles',
-    name: 'Coffee Candle',
-    description: 'Santed Coffee Latte Candle',
-    basePrice: 499,
-    availableQuantity: null,
-    imageFileNumber: 27,
-    imageAvailable: true,
-    image: coffeLatte,
-    images: [coffeLatte],
-    overlayClassName: 'left-[24%] top-[34%] h-[30%] w-[45%]'
-  },
-  {
-    id: 'accessory-colorful-straw',
-    category: 'accessories',
-    name: 'Colorful Straw',
-    description: 'Set of 2 (Random Color Shipped)',
-    basePrice: 49,
-    availableQuantity: 10,
-    imageFileNumber: 28,
-    imageAvailable: true,
-    image: colorfulStraw,
-    images: [colorfulStraw],
-    overlayClassName: 'left-[26%] top-[30%] h-[36%] w-[46%]'
-  },
-  {
-    id: 'accessory-steel-combo',
-    category: 'accessories',
-    name: 'Steel Combo',
-    description: 'Steel Straw and Straw Cleaning Brush Combo',
-    basePrice: 49,
-    availableQuantity: 2,
-    imageFileNumber: 29,
-    imageAvailable: true,
-    image: steelStraw1,
-    images: [steelStraw1,steelStraw2],
-    overlayClassName: 'left-[26%] top-[30%] h-[36%] w-[46%]'
-  }
-];
-
-const stickerImage = (subFolder: 'Single' | 'Full Wrap', num: number) =>
-  new URL(`./Products/Stickers/${subFolder}/${num}.png`, import.meta.url).href;
-
-const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-
-const SINGLE_STICKERS: Array<{ image: number; name: string }> = [
-  { image: 1, name: 'Mor Pankh_1' },
-  { image: 2, name: 'Mor Pankh_2' },
-  { image: 3, name: 'Girl with Flowers' },
-  { image: 4, name: 'Bike- Black' },
-  { image: 7, name: 'Goku - Half' },
-  { image: 8, name: 'Goku' },
-  { image: 9, name: 'Tom and Jerry' },
-  { image: 10, name: 'Naruto' },
-  { image: 11, name: 'Batman - Kid' },
-  { image: 12, name: 'Pink Panther' },
-  { image: 13, name: 'Batman - Dark' },
-  { image: 14, name: 'Captian America' },
-  { image: 15, name: 'Bluee' },
-  { image: 16, name: 'Stitch' },
-  { image: 17, name: 'Dog Lover' },
-  { image: 18, name: 'Pink Crown' },
-  { image: 19, name: "Valentine's Day" },
-  { image: 20, name: 'Cute Love' },
-  { image: 21, name: 'Groot' },
-  { image: 22, name: 'Pikachu' },
-  { image: 23, name: 'Batman' },
-  { image: 24, name: 'Dr. Strange' },
-  { image: 25, name: 'Micky Mouse Club House' },
-  // { image: 26, name: 'Mustang' },
-  { image: 27, name: 'Pokemon' },
-  { image: 28, name: 'Hunter 350' },
-  { image: 30, name: 'Dead Pool' },
-  { image: 31, name: 'Biker' },
-  { image: 32, name: 'Spiderman - Half' },
-  { image: 33, name: 'Pikachu - Half' },
-  { image: 34, name: 'Spiderman' },
-  { image: 35, name: 'Flower Bouquet' }
-];
-
-const FULL_WRAP_STICKERS: Array<{ image: number; name: string }> = [
-  { image: 36, name: 'God is much bigger' },
-  { image: 37, name: 'Rainbow' },
-  { image: 38, name: 'Clouds' },
-  { image: 39, name: 'Shinchen' },
-  { image: 40, name: "I'm just a Girl" },
-  { image: 41, name: 'Bow - Black' },
-  { image: 42, name: 'Be You' },
-  { image: 43, name: 'Heart - Big' },
-  // { image: 44, name: 'Cup of Positivity' },
-  { image: 45, name: 'Flowers and Bow' },
-  { image: 46, name: 'Duckly' },
-  { image: 47, name: 'Cute Teddy Bear' },
-  { image: 48, name: 'Ocean' },
-  { image: 49, name: 'I am fearfully and Wonderfully Made' },
-  { image: 50, name: 'Daisy Flowers - Multi Colour' },
-  { image: 51, name: 'Daisy Flowers - White' },
-  { image: 52, name: 'Tiny Dropping Hearts' },
-  { image: 53, name: 'Cat Lover' },
-  { image: 54, name: 'Tulip - Small' },
-  { image: 55, name: 'Disco Dancer' },
-  { image: 56, name: 'Harry Porter' },
-  { image: 57, name: 'Snow - Blue' },
-  { image: 58, name: 'Snow - Pink' },
-  { image: 59, name: 'Flowers - Purple' },
-  { image: 60, name: 'Tulip - Big' },
-  { image: 61, name: 'Barbie' },
-  { image: 62, name: 'Butterfly Girl' },
-  { image: 63, name: 'God fills my Cup' },
-  { image: 64, name: 'Bow - Baby Pink' },
-  { image: 65, name: 'Tiny Hearts' },
-  { image: 66, name: 'Sunflower' }
-];
-
-const STICKER_PRODUCTS: Product[] = [
-  ...SINGLE_STICKERS.map((item) => ({
-    id: `sticker-single-${item.image}-${slugify(item.name)}`,
-    category: 'stickers' as const,
-    subCategory: 'single' as const,
-    name: item.name,
-    description: 'Single sticker',
-    basePrice: 49,
-    availableQuantity: 1,
-    imageFileNumber: item.image,
-    image: stickerImage('Single', item.image),
-    images: [stickerImage('Single', item.image)],
-    overlayClassName: 'left-[20%] top-[20%] h-[60%] w-[60%]'
-  })),
-  ...FULL_WRAP_STICKERS.map((item) => ({
-    id: `sticker-full-wrap-${item.image}-${slugify(item.name)}`,
-    category: 'stickers' as const,
-    subCategory: 'full-wrap' as const,
-    name: item.name,
-    description: 'Full wrap sticker',
-    basePrice: 299,
-    availableQuantity: 1,
-    imageFileNumber: item.image,
-    image: stickerImage('Full Wrap', item.image),
-    images: [stickerImage('Full Wrap', item.image)],
-    overlayClassName: 'left-[20%] top-[20%] h-[60%] w-[60%]'
-  }))
-];
-
-const QR_IMAGE = qrImage;
-const BASE_PRODUCTS_WITH_QR = BASE_PRODUCTS.map((product) => ({ ...product, qrImage: QR_IMAGE }));
-const STICKER_PRODUCTS_WITH_QR = STICKER_PRODUCTS.map((product) => ({ ...product, qrImage: QR_IMAGE }));
-
-export const PRODUCTS: Product[] = [...BASE_PRODUCTS_WITH_QR, ...STICKER_PRODUCTS_WITH_QR];
+export type ApiProduct = {
+  id: string;
+  category: ProductCategory;
+  sub_category: TumblerSubCategory | StickerSubCategory | null;
+  isTrending?: unknown;
+  is_trending?: unknown;
+  name: string;
+  description: string;
+  base_price: number;
+  available_quantity: number | null;
+  image_file_number?: number | null;
+  image?: string | null;
+  images?: string[] | null;
+  created_at?: string;
+  scented_price?: number | null;
+  color_available?: unknown;
+  shipping?: number | null;
+};
 
 export const DELIVERY_CHARGE = 70;
+
+const parseColorAvailableList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((entry) => (typeof entry === 'string' ? entry.trim() : String(entry).trim()))
+    .filter((s) => s.length > 0);
+};
+
+const normalizeScentedAddonPrice = (value: unknown): number => {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.max(0, value);
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+  }
+  return 0;
+};
+
+const normalizeShippingCharge = (value: unknown, fallback: number): number => {
+  if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+    return value;
+  }
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+  }
+  return fallback;
+};
+
+const normalizeIsTrending = (value: unknown): boolean => {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    return value === 1;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    return normalized === 'true' || normalized === '1' || normalized === 'yes';
+  }
+  return false;
+};
+
+export const buildProductsFromApi = (apiProducts: ApiProduct[]): Product[] => {
+  const mapped = apiProducts.map((apiProduct) => {
+    const category = (apiProduct.category ?? 'tumblers') as ProductCategory;
+    const apiImages =
+      Array.isArray(apiProduct.images) && apiProduct.images.length > 0
+        ? apiProduct.images.filter((img) => typeof img === 'string' && img.trim().length > 0)
+        : [];
+    const apiImage = apiProduct.image && apiProduct.image.trim().length > 0 ? apiProduct.image : '';
+    const images = apiImages.length > 0 ? apiImages : apiImage ? [apiImage] : [];
+    const image = images[0] ?? '';
+    const imageAvailable = images.length > 0;
+    const colorList = parseColorAvailableList(apiProduct.color_available);
+    const colors =
+      category === 'candles' ? colorList : colorList.length > 0 ? colorList : undefined;
+    const scentedAddonPrice = normalizeScentedAddonPrice(apiProduct.scented_price);
+    const shippingCharge = normalizeShippingCharge(apiProduct.shipping, DELIVERY_CHARGE);
+    const isTrending = normalizeIsTrending(apiProduct.isTrending ?? apiProduct.is_trending);
+
+    return {
+      id: apiProduct.id,
+      category,
+      subCategory: (apiProduct.sub_category ?? undefined) as TumblerSubCategory | StickerSubCategory | undefined,
+      isTrending,
+      name: apiProduct.name,
+      description: apiProduct.description,
+      basePrice: apiProduct.base_price,
+      availableQuantity: toAvailableQuantityCap(apiProduct.available_quantity),
+      imageFileNumber: apiProduct.image_file_number ?? undefined,
+      imageAvailable,
+      image,
+      images,
+      colors,
+      scentedAddonPrice,
+      shippingCharge,
+      overlayClassName: DEFAULT_OVERLAY_BY_CATEGORY[category] ?? DEFAULT_OVERLAY_BY_CATEGORY.tumblers
+    };
+  });
+
+  return mapped;
+};
+
 export const GIFT_WRAP_CHARGE_PER_ITEM = 25;
 export const PERSONALIZED_NAME_CHARGE_PER_LETTER = 10;
-export const CANDLE_SCENTED_CHARGE = 30;
-export const DAISY_CANDLE_SCENTED_CHARGE = 25;
-export const ROSE_BOUQUET_CANDLE_SCENTED_CHARGE = 25;
-export const TEDDY_CANDLE_SCENTED_CHARGE = 30;
-export const LOTUS_CANDLE_SCENTED_CHARGE = 75;
-export const ELEPHANT_CANDLE_SCENTED_CHARGE = 50;
-export const SMALL_BUBBLE_CANDLE_SCENTED_CHARGE = 50;
-export const BIG_RAINBOW_CANDLE_SCENTED_CHARGE = 125;
-export const CUP_CAKE_CANDLE_SCENTED_CHARGE = 100;
 export const CANDLE_DAISY_NOTE_CHARGE = 10;
-
-export const resolveCandleScentedCharge = (productId: string) => {
-  if (productId === DAISY_BOUQUET_CANDLE_ID) {
-    return DAISY_CANDLE_SCENTED_CHARGE;
-  }
-  if (productId === ROSE_BOUQUET_CANDLE_ID) {
-    return ROSE_BOUQUET_CANDLE_SCENTED_CHARGE;
-  }
-  if (productId === TEDDY_CANDLE_ID) {
-    return TEDDY_CANDLE_SCENTED_CHARGE;
-  }
-  if (productId === LOTUS_BOUQUET_CANDLE_ID) {
-    return LOTUS_CANDLE_SCENTED_CHARGE;
-  }
-  if (productId === ELEPHANT_CANDLE_ID) {
-    return ELEPHANT_CANDLE_SCENTED_CHARGE;
-  }
-  if (productId === SMALL_BUBBLE_CANDLE_ID) {
-    return SMALL_BUBBLE_CANDLE_SCENTED_CHARGE;
-  }
-  if (productId === BIG_RAINBOW_CANDLE_ID) {
-    return BIG_RAINBOW_CANDLE_SCENTED_CHARGE;
-  }
-  if (productId === CUP_CAKE_CANDLE_ID) {
-    return CUP_CAKE_CANDLE_SCENTED_CHARGE;
-  }
-  return CANDLE_SCENTED_CHARGE;
-};
