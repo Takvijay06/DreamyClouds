@@ -29,7 +29,7 @@ const shippingChargeForProduct = (p: Product | null | undefined): number => {
   if (!p) {
     return 0;
   }
-  const s = p.shippingCharge;
+  const s = p.shippingCharge ?? 70;
   return typeof s === 'number' && Number.isFinite(s) && s >= 0 ? s : 0;
 };
 
