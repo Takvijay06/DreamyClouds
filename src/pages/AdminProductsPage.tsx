@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { ProductCategory, Product, StickerSubCategory } from '../features/order/orderTypes';
 import { ProductMutationInput, ProductSubCategory } from '../features/products/productsApi';
 import {
+  createProduct,
   fetchProducts,
   resetProductSaveState,
   selectProductSaveError,
@@ -70,6 +71,22 @@ const parseListInput = (value: string): string[] =>
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0);
 
+const createEmptyProductForm = (category: ProductCategory = 'tumblers'): ProductFormState => ({
+  id: '',
+  name: '',
+  description: '',
+  category,
+  subCategory: buildDefaultSubCategory(category),
+  basePrice: '',
+  availableQuantity: '',
+  image: '',
+  imagesText: '',
+  isTrending: false,
+  scentedAddonPrice: '',
+  colorsText: '',
+  shippingCharge: ''
+});
+
 const toFormState = (product: Product): ProductFormState => ({
   id: product.id,
   name: product.name,
@@ -129,6 +146,7 @@ export const AdminProductsPage = () => {
   const [activeCategory, setActiveCategory] = useState<ProductCategoryTab>('steel-tumblers');
   const [activeStickerSubCategory, setActiveStickerSubCategory] = useState<StickerSubCategory>('full_wrap');
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
+  const [productModalMode, setProductModalMode] = useState<'create' | 'edit'>('edit');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormState | null>(null);
   const [formErrors, setFormErrors] = useState<ProductFormErrors>({});
@@ -177,8 +195,33 @@ export const AdminProductsPage = () => {
   const handleEditProduct = (product: Product) => {
     dispatch(resetProductSaveState());
     setSuccessMessage('');
+    setProductModalMode('edit');
     setEditingProduct(product);
     setForm(toFormState(product));
+    setFormErrors({});
+  };
+
+  const handleCreateProduct = () => {
+    const nextCategory: ProductCategory = activeCategory === 'glass-tumblers' || activeCategory === 'steel-tumblers' || activeCategory === 'trending'
+      ? 'tumblers'
+      : activeCategory === 'stickers'
+        ? 'stickers'
+        : activeCategory;
+    const nextForm = createEmptyProductForm(nextCategory);
+    nextForm.subCategory =
+      activeCategory === 'glass-tumblers'
+        ? 'glass-tumbler'
+        : activeCategory === 'steel-tumblers'
+          ? 'steel-tumbler'
+          : activeCategory === 'stickers'
+            ? activeStickerSubCategory
+            : buildDefaultSubCategory(nextCategory);
+
+    dispatch(resetProductSaveState());
+    setSuccessMessage('');
+    setProductModalMode('create');
+    setEditingProduct(null);
+    setForm(nextForm);
     setFormErrors({});
   };
 
@@ -187,6 +230,9 @@ export const AdminProductsPage = () => {
       return {};
     }
     const nextErrors: ProductFormErrors = {};
+    if (!form.id.trim()) {
+      nextErrors.id = 'Product ID is required.';
+    }
     if (!form.name.trim()) {
       nextErrors.name = 'Product name is required.';
     }
@@ -244,7 +290,7 @@ export const AdminProductsPage = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!editingProduct) {
+    if (!form) {
       return;
     }
 
@@ -262,11 +308,20 @@ export const AdminProductsPage = () => {
     }
 
     try {
-      const updated = await dispatch(updateProduct({ id: editingProduct.id, input: payload })).unwrap();
-      await dispatch(fetchProducts()).unwrap();
-      setSuccessMessage(`Updated "${updated.name}" successfully.`);
-      setEditingProduct(updated);
-      setForm(toFormState(updated));
+      if (productModalMode === 'create') {
+        const created = await dispatch(createProduct(payload)).unwrap();
+        await dispatch(fetchProducts()).unwrap();
+        setSuccessMessage(`Created "${created.name}" successfully.`);
+        setEditingProduct(created);
+        setProductModalMode('edit');
+        setForm(toFormState(created));
+      } else if (editingProduct) {
+        const updated = await dispatch(updateProduct({ id: editingProduct.id, input: payload })).unwrap();
+        await dispatch(fetchProducts()).unwrap();
+        setSuccessMessage(`Updated "${updated.name}" successfully.`);
+        setEditingProduct(updated);
+        setForm(toFormState(updated));
+      }
     } catch {
       return;
     }
@@ -376,15 +431,24 @@ export const AdminProductsPage = () => {
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between">
-          <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">
-            {activeCategory === 'stickers'
-              ? STICKER_SUBCATEGORY_TABS.find((tab) => tab.key === activeStickerSubCategory)?.label
-              : CATEGORY_TABS.find((tab) => tab.key === activeCategory)?.label}
-          </h2>
-          <span className="rounded-full bg-lavender-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-lavender-700">
-            {filteredProducts.length} options
-          </span>
+        <div className="flex flex-col gap-3 rounded-[2rem] border border-lavender-200/80 bg-gradient-to-r from-white via-lavender-50 to-rose-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-lavender-500">Catalog Controls</p>
+            <h2 className="mt-2 font-['Sora'] text-lg font-bold text-lavender-900">
+              {activeCategory === 'stickers'
+                ? STICKER_SUBCATEGORY_TABS.find((tab) => tab.key === activeStickerSubCategory)?.label
+                : CATEGORY_TABS.find((tab) => tab.key === activeCategory)?.label}
+            </h2>
+            <p className="mt-1 text-sm text-lavender-700">Add a new product or update an existing one without leaving the gallery.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="rounded-full bg-lavender-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-lavender-700">
+              {filteredProducts.length} options
+            </span>
+            <button className="btn-primary whitespace-nowrap px-4 py-2.5 text-sm" type="button" onClick={handleCreateProduct}>
+              Add New Product
+            </button>
+          </div>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -434,24 +498,55 @@ export const AdminProductsPage = () => {
 
       <ProductPreviewModal product={previewProduct} open={!!previewProduct} onClose={() => setPreviewProduct(null)} />
 
-      {editingProduct && form ? (
+      {form ? (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <button type="button" className="absolute inset-0 bg-lavender-950/55 backdrop-blur-sm" onClick={() => setEditingProduct(null)} />
+          <button
+            type="button"
+            className="absolute inset-0 bg-lavender-950/55 backdrop-blur-sm"
+            onClick={() => {
+              setEditingProduct(null);
+              setForm(null);
+            }}
+          />
           <div className="relative z-10 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[2rem] border border-lavender-200 bg-white p-5 shadow-2xl sm:p-6">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-lavender-500">Update Product</p>
-                <h2 className="mt-2 font-['Sora'] text-2xl font-bold text-lavender-950">{editingProduct.name}</h2>
-                <p className="mt-1 text-sm text-lavender-700">Update the live product record and keep the storefront in sync.</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-lavender-500">
+                  {productModalMode === 'create' ? 'Create Product' : 'Update Product'}
+                </p>
+                <h2 className="mt-2 font-['Sora'] text-2xl font-bold text-lavender-950">
+                  {productModalMode === 'create' ? 'Add a New Product' : editingProduct?.name}
+                </h2>
+                <p className="mt-1 text-sm text-lavender-700">
+                  {productModalMode === 'create'
+                    ? 'Fill in the product details below and publish it straight to the live catalog.'
+                    : 'Update the live product record and keep the storefront in sync.'}
+                </p>
               </div>
-              <button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => setEditingProduct(null)}>
+              <button
+                type="button"
+                className="btn-secondary px-3 py-2 text-xs"
+                onClick={() => {
+                  setEditingProduct(null);
+                  setForm(null);
+                }}
+              >
                 Close
               </button>
             </div>
 
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="grid gap-4 md:grid-cols-2">
-                <FormInput id="product-id" label="Product ID" value={form.id} onChange={() => undefined} readOnly />
+                <FormInput
+                  id="product-id"
+                  label="Product ID"
+                  value={form.id}
+                  onChange={(value) => setForm((current) => (current ? { ...current, id: value } : current))}
+                  error={formErrors.id}
+                  readOnly={productModalMode === 'edit'}
+                  placeholder="example: blush-steel-tumbler"
+                  required
+                />
                 <FormInput
                   id="product-name"
                   label="Product Name"
@@ -541,11 +636,18 @@ export const AdminProductsPage = () => {
               </div>
 
               <div className="flex justify-end gap-3">
-                <button className="btn-secondary" type="button" onClick={() => setEditingProduct(null)}>
+                <button
+                  className="btn-secondary"
+                  type="button"
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setForm(null);
+                  }}
+                >
                   Cancel
                 </button>
                 <button className="btn-primary" type="submit" disabled={productSaveStatus === 'saving'}>
-                  {productSaveStatus === 'saving' ? 'Updating...' : 'Update Product'}
+                  {productSaveStatus === 'saving' ? (productModalMode === 'create' ? 'Creating...' : 'Updating...') : productModalMode === 'create' ? 'Create Product' : 'Update Product'}
                 </button>
               </div>
             </form>

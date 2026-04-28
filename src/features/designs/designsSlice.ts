@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { buildStickerProductsFromDesigns } from '../../data/designs';
 import { Design } from '../order/orderTypes';
-import { DesignMutationInput, fetchDesignsFromApi, updateDesignInApi } from './designsApi';
+import { createDesignInApi, DesignMutationInput, fetchDesignsFromApi, updateDesignInApi } from './designsApi';
 
 type DesignsState = {
   items: Design[];
@@ -27,6 +27,18 @@ export const fetchDesigns = createAsyncThunk<Design[]>(
   async (_, { rejectWithValue }) => {
     try {
       return await fetchDesignsFromApi();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const createDesign = createAsyncThunk<Design, DesignMutationInput>(
+  'designs/create',
+  async (input, { rejectWithValue }) => {
+    try {
+      return await createDesignInApi(input);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return rejectWithValue(message);
@@ -69,6 +81,20 @@ const designsSlice = createSlice({
       .addCase(fetchDesigns.rejected, (state, action) => {
         state.status = 'failed';
         state.error = typeof action.payload === 'string' ? action.payload : 'Failed to load designs';
+      })
+      .addCase(createDesign.pending, (state) => {
+        state.saveStatus = 'saving';
+        state.saveError = null;
+      })
+      .addCase(createDesign.fulfilled, (state, action) => {
+        state.saveStatus = 'succeeded';
+        state.saveError = null;
+        state.items = [action.payload, ...state.items.filter((item) => item.id !== action.payload.id)];
+        state.lastUpdated = new Date().toISOString();
+      })
+      .addCase(createDesign.rejected, (state, action) => {
+        state.saveStatus = 'failed';
+        state.saveError = typeof action.payload === 'string' ? action.payload : 'Failed to create design';
       })
       .addCase(updateDesign.pending, (state) => {
         state.saveStatus = 'saving';

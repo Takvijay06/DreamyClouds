@@ -61,6 +61,22 @@ export const fetchDesignsFromApi = async (): Promise<Design[]> => {
   return parseDesignsResponse(response);
 };
 
+export const createDesignInApi = async (input: DesignMutationInput): Promise<Design> => {
+  const response = await fetch(DESIGNS_API_URL, {
+    method: 'POST',
+    headers: buildHeaders(true),
+    body: JSON.stringify(buildMutationPayload(input))
+  });
+
+  const designs = await parseDesignsResponse(response);
+  const created = designs[0];
+  if (!created) {
+    throw new Error('Design was created but no design data was returned.');
+  }
+
+  return created;
+};
+
 export const updateDesignInApi = async (id: string, input: DesignMutationInput): Promise<Design> => {
   const url = new URL(DESIGNS_API_URL);
   url.searchParams.set('id', `eq.${id}`);

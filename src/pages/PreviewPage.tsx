@@ -27,6 +27,7 @@ import {
   selectSelectedProduct
 } from '../features/order/selectors';
 import { Product } from '../features/order/orderTypes';
+import { remainingAvailableQuantity } from '../utils/cartQuantity';
 import { formatRupee } from '../utils/currency';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../utils/whatsapp';
 
@@ -66,6 +67,13 @@ export const PreviewPage = () => {
   const isBookmarkCart = cartItems.length > 0 && cartItems.every((item) => item.product.category === 'bookmarks');
   const displayProduct = product ?? cartItems[0]?.product ?? null;
   const shouldRedirectToHome = !displayProduct && !hasCartItems;
+  const cartReservedProductQuantityById = useMemo(() => {
+    const nextMap: Record<string, number> = {};
+    cartItems.forEach((item) => {
+      nextMap[item.product.id] = (nextMap[item.product.id] ?? 0) + item.quantity;
+    });
+    return nextMap;
+  }, [cartItems]);
 
   useEffect(() => {
     if (!product && !hasCartItems) {
@@ -222,8 +230,11 @@ export const PreviewPage = () => {
               </div>
               <div className="space-y-2">
                 {cartItems.map((item) => {
-                  const maxQty = item.product.availableQuantity ?? null;
-                  const reachedMax = maxQty !== null && item.quantity >= maxQty;
+                  const maxQtyForLine = remainingAvailableQuantity(
+                    item.product.availableQuantity ?? null,
+                    (cartReservedProductQuantityById[item.product.id] ?? 0) - item.quantity
+                  );
+                  const reachedMax = maxQtyForLine !== null && item.quantity >= maxQtyForLine;
 
                   return (
                   <div
@@ -296,14 +307,14 @@ export const PreviewPage = () => {
                         -
                       </button>
                       <span className="w-8 text-center text-sm font-bold text-lavender-900">{item.quantity}</span>
-                      <button
-                        type="button"
-                        className="btn-secondary h-9 w-9 p-0 text-lg"
-                        disabled={reachedMax}
-                        onClick={() => dispatch(incrementCartItemQuantity(item.id))}
-                      >
-                        +
-                      </button>
+                        <button
+                          type="button"
+                          className="btn-secondary h-9 w-9 p-0 text-lg"
+                          disabled={reachedMax}
+                          onClick={() => dispatch(incrementCartItemQuantity({ id: item.id, cap: maxQtyForLine }))}
+                        >
+                          +
+                        </button>
                       <button
                         type="button"
                         className="btn-secondary px-3 py-2 text-xs"
