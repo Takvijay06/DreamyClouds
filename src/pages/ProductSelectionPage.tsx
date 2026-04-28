@@ -29,6 +29,7 @@ import {
   selectProductsError,
   selectProductsStatus,
 } from "../features/products/productsSlice";
+import { remainingAvailableQuantity, toCartLineQuantity } from "../utils/cartQuantity";
 import { formatRupee } from "../utils/currency";
 
 type ProductCategoryTab = ProductCategory | "trending" | "steel-tumblers" | "glass-tumblers";
@@ -147,6 +148,39 @@ export const ProductSelectionPage = () => {
       ),
     [activeCategory, activeStickerSubCategory, products, stickerProducts],
   );
+  const reservedProductQuantityById = useMemo(() => {
+    const nextMap: Record<string, number> = {};
+    order.cartItems.forEach((item) => {
+      nextMap[item.productId] = (nextMap[item.productId] ?? 0) + toCartLineQuantity(item.quantity);
+    });
+    return nextMap;
+  }, [order.cartItems]);
+  const productCards = useMemo(
+    () =>
+      filteredProducts.map((product: any) => {
+        const remainingQuantity = remainingAvailableQuantity(
+          product.availableQuantity ?? null,
+          reservedProductQuantityById[product.id] ?? 0,
+        );
+        return {
+          ...product,
+          availableQuantity: remainingQuantity,
+        };
+      }),
+    [filteredProducts, reservedProductQuantityById],
+  );
+  const selectedProductRemainingQuantity = useMemo(() => {
+    if (!selectedProduct) {
+      return null;
+    }
+    return remainingAvailableQuantity(
+      selectedProduct.availableQuantity ?? null,
+      reservedProductQuantityById[selectedProduct.id] ?? 0,
+    );
+  }, [reservedProductQuantityById, selectedProduct]);
+  const canAddSelectedProductToCart =
+    !!selectedProduct &&
+    (selectedProductRemainingQuantity === null || selectedProductRemainingQuantity >= toCartLineQuantity(order.quantity));
 
   useEffect(() => {
     if (activeCategory !== "stickers") {
@@ -311,6 +345,13 @@ export const ProductSelectionPage = () => {
   };
 
   const handleBuyNow = (product: Product) => {
+    const remainingQuantity = remainingAvailableQuantity(
+      product.availableQuantity ?? null,
+      reservedProductQuantityById[product.id] ?? 0,
+    );
+    if (remainingQuantity !== null && remainingQuantity < toCartLineQuantity(order.quantity)) {
+      return;
+    }
     dispatch(setProduct(product.id));
     if (shouldUseDesignStep(product)) {
       navigate("/design");
@@ -321,7 +362,7 @@ export const ProductSelectionPage = () => {
   };
 
   const handleNext = () => {
-    if (!selectedProduct) {
+    if (!selectedProduct || !canAddSelectedProductToCart) {
       return;
     }
 
@@ -460,7 +501,7 @@ export const ProductSelectionPage = () => {
             </div>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredProducts.map((product:any) => (
+              {productCards.map((product:any) => (
                 <ProductCard
                   key={product.id}
                   product={product}
@@ -552,7 +593,7 @@ export const ProductSelectionPage = () => {
             <button
               className="btn-primary"
               type="button"
-              disabled={!selectedProduct}
+              disabled={!canAddSelectedProductToCart}
               onClick={handleNext}
             >
               {selectedProduct && shouldUseDesignStep(selectedProduct)
@@ -567,6 +608,7 @@ export const ProductSelectionPage = () => {
             <button
               className="btn-primary w-full"
               type="button"
+              disabled={!canAddSelectedProductToCart}
               onClick={handleNext}
             >
               {shouldUseDesignStep(selectedProduct)

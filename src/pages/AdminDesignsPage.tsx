@@ -5,6 +5,7 @@ import { FormInput } from '../components/FormInput';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { Design, ProductCategory, StickerSubCategory } from '../features/order/orderTypes';
 import {
+  createDesign,
   fetchDesigns,
   resetDesignSaveState,
   selectDesignSaveError,
@@ -49,6 +50,16 @@ const toFormState = (design: Design): DesignFormState => ({
     typeof design.availableQuantity === 'number' && Number.isFinite(design.availableQuantity)
       ? String(design.availableQuantity)
       : ''
+});
+
+const createEmptyDesignForm = (productCategory: ProductCategory = 'tumblers'): DesignFormState => ({
+  id: '',
+  name: '',
+  productCategory,
+  stickerSubCategory: productCategory === 'stickers' ? 'single_sticker' : '',
+  image: '',
+  basePrice: '',
+  availableQuantity: ''
 });
 
 const buildPayload = (form: DesignFormState): DesignMutationInput => ({
@@ -97,6 +108,7 @@ export const AdminDesignsPage = () => {
   const designSaveError = useAppSelector(selectDesignSaveError);
 
   const [previewDesign, setPreviewDesign] = useState<Design | null>(null);
+  const [designModalMode, setDesignModalMode] = useState<'create' | 'edit'>('edit');
   const [editingDesign, setEditingDesign] = useState<Design | null>(null);
   const [form, setForm] = useState<DesignFormState | null>(null);
   const [formErrors, setFormErrors] = useState<DesignFormErrors>({});
@@ -152,8 +164,18 @@ export const AdminDesignsPage = () => {
   const handleEditDesign = (design: Design) => {
     dispatch(resetDesignSaveState());
     setSuccessMessage('');
+    setDesignModalMode('edit');
     setEditingDesign(design);
     setForm(toFormState(design));
+    setFormErrors({});
+  };
+
+  const handleCreateDesign = () => {
+    dispatch(resetDesignSaveState());
+    setSuccessMessage('');
+    setDesignModalMode('create');
+    setEditingDesign(null);
+    setForm(createEmptyDesignForm());
     setFormErrors({});
   };
 
@@ -163,6 +185,9 @@ export const AdminDesignsPage = () => {
     }
 
     const nextErrors: DesignFormErrors = {};
+    if (!form.id.trim()) {
+      nextErrors.id = 'Design ID is required.';
+    }
     if (!form.name.trim()) {
       nextErrors.name = 'Design name is required.';
     }
@@ -186,7 +211,7 @@ export const AdminDesignsPage = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!editingDesign || !form) {
+    if (!form) {
       return;
     }
 
@@ -199,11 +224,20 @@ export const AdminDesignsPage = () => {
     }
 
     try {
-      const updated = await dispatch(updateDesign({ id: editingDesign.id, input: buildPayload(form) })).unwrap();
-      await dispatch(fetchDesigns()).unwrap();
-      setSuccessMessage(`Updated "${updated.name}" successfully.`);
-      setEditingDesign(updated);
-      setForm(toFormState(updated));
+      if (designModalMode === 'create') {
+        const created = await dispatch(createDesign(buildPayload(form))).unwrap();
+        await dispatch(fetchDesigns()).unwrap();
+        setSuccessMessage(`Created "${created.name}" successfully.`);
+        setEditingDesign(created);
+        setDesignModalMode('edit');
+        setForm(toFormState(created));
+      } else if (editingDesign) {
+        const updated = await dispatch(updateDesign({ id: editingDesign.id, input: buildPayload(form) })).unwrap();
+        await dispatch(fetchDesigns()).unwrap();
+        setSuccessMessage(`Updated "${updated.name}" successfully.`);
+        setEditingDesign(updated);
+        setForm(toFormState(updated));
+      }
     } catch {
       return;
     }
@@ -235,6 +269,19 @@ export const AdminDesignsPage = () => {
             {successMessage}
           </div>
         ) : null}
+
+        <section className="rounded-[2rem] border border-lavender-200/80 bg-gradient-to-r from-white via-lavender-50 to-rose-50 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-lavender-500">Design Controls</p>
+              <h2 className="mt-2 font-['Sora'] text-lg font-bold text-lavender-900">Create and Organize Designs</h2>
+              <p className="mt-1 text-sm text-lavender-700">Add new artwork in a modal, validate it, and publish it to the same catalog used by the storefront.</p>
+            </div>
+            <button className="btn-primary whitespace-nowrap px-4 py-2.5 text-sm" type="button" onClick={handleCreateDesign}>
+              Add New Design
+            </button>
+          </div>
+        </section>
 
         {groupedDesigns.map((group) => (
           <section key={group.key} className="space-y-2 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
@@ -277,24 +324,55 @@ export const AdminDesignsPage = () => {
 
       <DesignPreviewModal design={previewDesign} onClose={() => setPreviewDesign(null)} />
 
-      {editingDesign && form ? (
+      {form ? (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-          <button type="button" className="absolute inset-0 bg-lavender-950/55 backdrop-blur-sm" onClick={() => setEditingDesign(null)} />
+          <button
+            type="button"
+            className="absolute inset-0 bg-lavender-950/55 backdrop-blur-sm"
+            onClick={() => {
+              setEditingDesign(null);
+              setForm(null);
+            }}
+          />
           <div className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-[2rem] border border-lavender-200 bg-white p-5 shadow-2xl sm:p-6">
             <div className="mb-5 flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-lavender-500">Update Design</p>
-                <h2 className="mt-2 font-['Sora'] text-2xl font-bold text-lavender-950">{editingDesign.name}</h2>
-                <p className="mt-1 text-sm text-lavender-700">Update the live design record used by the storefront.</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-lavender-500">
+                  {designModalMode === 'create' ? 'Create Design' : 'Update Design'}
+                </p>
+                <h2 className="mt-2 font-['Sora'] text-2xl font-bold text-lavender-950">
+                  {designModalMode === 'create' ? 'Add a New Design' : editingDesign?.name}
+                </h2>
+                <p className="mt-1 text-sm text-lavender-700">
+                  {designModalMode === 'create'
+                    ? 'Collect the design details here and save them directly to the live design library.'
+                    : 'Update the live design record used by the storefront.'}
+                </p>
               </div>
-              <button type="button" className="btn-secondary px-3 py-2 text-xs" onClick={() => setEditingDesign(null)}>
+              <button
+                type="button"
+                className="btn-secondary px-3 py-2 text-xs"
+                onClick={() => {
+                  setEditingDesign(null);
+                  setForm(null);
+                }}
+              >
                 Close
               </button>
             </div>
 
             <form className="space-y-5" onSubmit={handleSubmit}>
               <div className="grid gap-4 md:grid-cols-2">
-                <FormInput id="design-id" label="Design ID" value={form.id} onChange={() => undefined} readOnly />
+                <FormInput
+                  id="design-id"
+                  label="Design ID"
+                  value={form.id}
+                  onChange={(value) => setForm((current) => (current ? { ...current, id: value } : current))}
+                  error={formErrors.id}
+                  readOnly={designModalMode === 'edit'}
+                  placeholder="example: floral-bookmark-01"
+                  required
+                />
                 <FormInput
                   id="design-name"
                   label="Design Name"
@@ -373,11 +451,18 @@ export const AdminDesignsPage = () => {
               />
 
               <div className="flex justify-end gap-3">
-                <button className="btn-secondary" type="button" onClick={() => setEditingDesign(null)}>
+                <button
+                  className="btn-secondary"
+                  type="button"
+                  onClick={() => {
+                    setEditingDesign(null);
+                    setForm(null);
+                  }}
+                >
                   Cancel
                 </button>
                 <button className="btn-primary" type="submit" disabled={designSaveStatus === 'saving'}>
-                  {designSaveStatus === 'saving' ? 'Updating...' : 'Update Design'}
+                  {designSaveStatus === 'saving' ? (designModalMode === 'create' ? 'Creating...' : 'Updating...') : designModalMode === 'create' ? 'Create Design' : 'Update Design'}
                 </button>
               </div>
             </form>

@@ -21,6 +21,7 @@ import {
 } from '../features/order/selectors';
 import { Design } from '../features/order/orderTypes';
 import { selectDesignsError, selectDesignsStatus } from '../features/designs/designsSlice';
+import { remainingAvailableQuantity, toCartLineQuantity } from '../utils/cartQuantity';
 
 export const DesignSelectionPage = () => {
   const navigate = useNavigate();
@@ -35,7 +36,28 @@ export const DesignSelectionPage = () => {
   const isGlassTumbler = product?.category === 'tumblers' && product?.subCategory === 'glass-tumbler';
   const isDaisyBouquetCandle = product?.id === 'candle-daisy-flower-bouquet';
   const isNoDesignNeeded = order.designId === 'no-design-needed';
-  const isSelectedDesignSoldOut = !!selectedDesign && selectedDesign.availableQuantity === 0;
+  const reservedDesignQuantityById = useMemo(() => {
+    const nextMap: Record<string, number> = {};
+    order.cartItems.forEach((item) => {
+      if (!item.selectedStickerId) {
+        return;
+      }
+      nextMap[item.selectedStickerId] = (nextMap[item.selectedStickerId] ?? 0) + toCartLineQuantity(item.quantity);
+    });
+    return nextMap;
+  }, [order.cartItems]);
+  const selectedDesignRemainingQuantity = useMemo(() => {
+    if (!selectedDesign || selectedDesign.productCategory !== 'stickers') {
+      return null;
+    }
+    return remainingAvailableQuantity(
+      selectedDesign.availableQuantity ?? null,
+      reservedDesignQuantityById[selectedDesign.id] ?? 0
+    );
+  }, [reservedDesignQuantityById, selectedDesign]);
+  const isSelectedDesignSoldOut = !!selectedDesign && selectedDesignRemainingQuantity === 0;
+  const hasEnoughSelectedDesignStock =
+    selectedDesignRemainingQuantity === null || selectedDesignRemainingQuantity >= toCartLineQuantity(order.quantity);
   const requiresPlacement =
     !isDaisyBouquetCandle &&
     !isNoDesignNeeded &&
@@ -45,6 +67,7 @@ export const DesignSelectionPage = () => {
     ? true
     : !!order.designId &&
       !isSelectedDesignSoldOut &&
+      hasEnoughSelectedDesignStock &&
       (!requiresPlacement || order.letDaisyDecide || !!order.placementStyle);
   const [previewDesign, setPreviewDesign] = useState<Design | null>(null);
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
@@ -193,7 +216,16 @@ export const DesignSelectionPage = () => {
                     {group.items.map((design) => (
                       <DesignCard
                         key={design.id}
-                        design={design}
+                        design={{
+                          ...design,
+                          availableQuantity:
+                            design.productCategory === 'stickers'
+                              ? remainingAvailableQuantity(
+                                  design.availableQuantity ?? null,
+                                  reservedDesignQuantityById[design.id] ?? 0
+                                )
+                              : design.availableQuantity
+                        }}
                         selected={order.designId === design.id}
                         onPreview={(selected) => setPreviewDesign(selected)}
                         onSelect={(id) => {

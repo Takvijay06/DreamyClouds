@@ -39,6 +39,7 @@ export const FormInput = ({
         readOnly={readOnly}
         onChange={(event) => onChange(event.target.value)}
       />
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </label>
   );
 };
