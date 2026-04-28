@@ -9,6 +9,7 @@ interface FormInputProps {
   required?: boolean;
   placeholder?: string;
   error?: string;
+  readOnly?: boolean;
 }
 
 export const FormInput = ({
@@ -19,7 +20,8 @@ export const FormInput = ({
   type = 'text',
   required = false,
   placeholder,
-  error = ''
+  error = '',
+  readOnly = false
 }: FormInputProps) => {
   return (
     <label className="block space-y-1.5">
@@ -34,6 +36,7 @@ export const FormInput = ({
         value={value}
         required={required}
         placeholder={placeholder}
+        readOnly={readOnly}
         onChange={(event) => onChange(event.target.value)}
       />
     </label>

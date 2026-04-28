@@ -13,16 +13,13 @@ const DEFAULT_OVERLAY_BY_CATEGORY: Record<ProductCategory, string> = {
 
 export type ApiProduct = {
   id: string;
-  category: ProductCategory;
+  category: ProductCategory | null;
   sub_category: TumblerSubCategory | StickerSubCategory | null;
   isTrending?: unknown;
-  is_trending?: unknown;
-  name: string;
-  description: string;
-  base_price: number;
+  name: string | null;
+  description: string | null;
+  base_price: number | null;
   available_quantity: number | null;
-  image_file_number?: number | null;
-  image?: string | null;
   images?: string[] | null;
   created_at?: string;
   scented_price?: number | null;
@@ -84,8 +81,7 @@ export const buildProductsFromApi = (apiProducts: ApiProduct[]): Product[] => {
       Array.isArray(apiProduct.images) && apiProduct.images.length > 0
         ? apiProduct.images.filter((img) => typeof img === 'string' && img.trim().length > 0)
         : [];
-    const apiImage = apiProduct.image && apiProduct.image.trim().length > 0 ? apiProduct.image : '';
-    const images = apiImages.length > 0 ? apiImages : apiImage ? [apiImage] : [];
+    const images = apiImages;
     const image = images[0] ?? '';
     const imageAvailable = images.length > 0;
     const colorList = parseColorAvailableList(apiProduct.color_available);
@@ -93,18 +89,17 @@ export const buildProductsFromApi = (apiProducts: ApiProduct[]): Product[] => {
       category === 'candles' ? colorList : colorList.length > 0 ? colorList : undefined;
     const scentedAddonPrice = normalizeScentedAddonPrice(apiProduct.scented_price);
     const shippingCharge = normalizeShippingCharge(apiProduct.shipping, DELIVERY_CHARGE);
-    const isTrending = normalizeIsTrending(apiProduct.isTrending ?? apiProduct.is_trending);
+    const isTrending = normalizeIsTrending(apiProduct.isTrending);
 
     return {
       id: apiProduct.id,
       category,
       subCategory: (apiProduct.sub_category ?? undefined) as TumblerSubCategory | StickerSubCategory | undefined,
       isTrending,
-      name: apiProduct.name,
-      description: apiProduct.description,
-      basePrice: apiProduct.base_price,
+      name: apiProduct.name ?? '',
+      description: apiProduct.description ?? '',
+      basePrice: typeof apiProduct.base_price === 'number' ? apiProduct.base_price : 0,
       availableQuantity: toAvailableQuantityCap(apiProduct.available_quantity),
-      imageFileNumber: apiProduct.image_file_number ?? undefined,
       imageAvailable,
       image,
       images,
