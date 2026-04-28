@@ -1,42 +1,44 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
-import { ApiDesign, buildDesignsFromApi, buildStickerProductsFromDesigns } from '../../data/designs';
+import { buildStickerProductsFromDesigns } from '../../data/designs';
 import { Design } from '../order/orderTypes';
-
-const DESIGNS_API_URL = 'https://ftyqsddrhhqodlytyyca.supabase.co/rest/v1/designs';
-const DESIGNS_API_KEY = 'sb_publishable_11G_1zZ-Uv55Jdw15gdaSQ_8yHltBRH';
+import { DesignMutationInput, fetchDesignsFromApi, updateDesignInApi } from './designsApi';
 
 type DesignsState = {
   items: Design[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null;
   lastUpdated: string | null;
+  saveStatus: 'idle' | 'saving' | 'succeeded' | 'failed';
+  saveError: string | null;
 };
 
 const initialState: DesignsState = {
   items: [],
   status: 'idle',
   error: null,
-  lastUpdated: null
+  lastUpdated: null,
+  saveStatus: 'idle',
+  saveError: null
 };
 
 export const fetchDesigns = createAsyncThunk<Design[]>(
   'designs/fetch',
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(DESIGNS_API_URL, {
-        headers: {
-          apikey: DESIGNS_API_KEY,
-          Authorization: `Bearer ${DESIGNS_API_KEY}`
-        }
-      });
+      return await fetchDesignsFromApi();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return rejectWithValue(message);
+    }
+  }
+);
 
-      if (!response.ok) {
-        throw new Error(`Request failed with ${response.status}`);
-      }
-
-      const data = (await response.json()) as ApiDesign[];
-      return buildDesignsFromApi(Array.isArray(data) ? data : []);
+export const updateDesign = createAsyncThunk<Design, { id: string; input: DesignMutationInput }>(
+  'designs/update',
+  async ({ id, input }, { rejectWithValue }) => {
+    try {
+      return await updateDesignInApi(id, input);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return rejectWithValue(message);
@@ -47,7 +49,12 @@ export const fetchDesigns = createAsyncThunk<Design[]>(
 const designsSlice = createSlice({
   name: 'designs',
   initialState,
-  reducers: {},
+  reducers: {
+    resetDesignSaveState(state) {
+      state.saveStatus = 'idle';
+      state.saveError = null;
+    }
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchDesigns.pending, (state) => {
@@ -62,14 +69,31 @@ const designsSlice = createSlice({
       .addCase(fetchDesigns.rejected, (state, action) => {
         state.status = 'failed';
         state.error = typeof action.payload === 'string' ? action.payload : 'Failed to load designs';
+      })
+      .addCase(updateDesign.pending, (state) => {
+        state.saveStatus = 'saving';
+        state.saveError = null;
+      })
+      .addCase(updateDesign.fulfilled, (state, action) => {
+        state.saveStatus = 'succeeded';
+        state.saveError = null;
+        state.items = state.items.map((item) => (item.id === action.payload.id ? action.payload : item));
+        state.lastUpdated = new Date().toISOString();
+      })
+      .addCase(updateDesign.rejected, (state, action) => {
+        state.saveStatus = 'failed';
+        state.saveError = typeof action.payload === 'string' ? action.payload : 'Failed to update design';
       });
   }
 });
 
 export const designsReducer = designsSlice.reducer;
+export const { resetDesignSaveState } = designsSlice.actions;
 
 export const selectDesigns = (state: RootState) => state.designs.items;
 export const selectDesignsStatus = (state: RootState) => state.designs.status;
 export const selectDesignsError = (state: RootState) => state.designs.error;
 export const selectDesignsLastUpdated = (state: RootState) => state.designs.lastUpdated;
+export const selectDesignSaveStatus = (state: RootState) => state.designs.saveStatus;
+export const selectDesignSaveError = (state: RootState) => state.designs.saveError;
 export const selectStickerProducts = (state: RootState) => buildStickerProductsFromDesigns(selectDesigns(state));

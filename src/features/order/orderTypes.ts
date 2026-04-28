@@ -6,11 +6,11 @@ export interface Product {
   id: string;
   category: ProductCategory;
   subCategory?: TumblerSubCategory | StickerSubCategory;
+  isTrending?: boolean;
   colors?: string[];
   /** Per-item add-on when the candle is ordered scented (from products API `scented_price`). */
   scentedAddonPrice?: number;
   availableQuantity?: number | null;
-  imageFileNumber?: number;
   imageAvailable?: boolean;
   name: string;
   description: string;

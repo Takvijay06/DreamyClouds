@@ -5,6 +5,9 @@ import { ScrollToTop } from './components/ScrollToTop';
 import faviconDd from './data/Logos/favicon_dd.png';
 import { fetchDesigns, selectDesignsStatus } from './features/designs/designsSlice';
 import { fetchProducts, selectProductsStatus } from './features/products/productsSlice';
+import { AdminDashboardPage } from './pages/AdminDashboardPage';
+import { AdminDesignsPage } from './pages/AdminDesignsPage';
+import { AdminProductsPage } from './pages/AdminProductsPage';
 import { ContactUsPage } from './pages/ContactUsPage';
 import { DesignSelectionPage } from './pages/DesignSelectionPage';
 import { PreviewPage } from './pages/PreviewPage';
@@ -81,6 +84,9 @@ const App = () => {
       <div className="relative z-10">
         <ScrollToTop />
         <Routes>
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/products" element={<AdminProductsPage />} />
+          <Route path="/admin/designs" element={<AdminDesignsPage />} />
           <Route path="/" element={<ProductSelectionPage />} />
           <Route path="/product/:productId" element={<ProductPreviewPage />} />
           <Route path="/design" element={<DesignSelectionPage />} />
