@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { FormInput } from '../components/FormInput';
 import { Layout } from '../components/Layout';
@@ -65,6 +65,7 @@ export const PreviewPage = () => {
   const hasCartItems = cartItems.length > 0;
   const isBookmarkCart = cartItems.length > 0 && cartItems.every((item) => item.product.category === 'bookmarks');
   const displayProduct = product ?? cartItems[0]?.product ?? null;
+  const shouldRedirectToHome = !displayProduct && !hasCartItems;
 
   useEffect(() => {
     if (!product && !hasCartItems) {
@@ -76,12 +77,6 @@ export const PreviewPage = () => {
     setCouponInput(order.couponCode);
   }, [order.couponCode]);
 
-  if (!displayProduct && !hasCartItems) {
-    return null;
-  }
-  if (!displayProduct) {
-    return null;
-  }
   const canSubmit = useMemo(() => {
     const details = order.customerDetails;
     const hasRequiredFields = !!(
@@ -95,6 +90,13 @@ export const PreviewPage = () => {
     const hasValidEmail = EMAIL_REGEX.test(details.email.trim());
     return hasRequiredFields && hasValidContact && hasValidAlt && hasValidEmail;
   }, [order.customerDetails]);
+
+  if (shouldRedirectToHome) {
+    return <Navigate to="/" replace />;
+  }
+  if (!displayProduct) {
+    return null;
+  }
 
   const validateField = (field: ValidationField, details = order.customerDetails): string => {
     if (field === 'fullName') {
@@ -283,7 +285,13 @@ export const PreviewPage = () => {
                       <button
                         type="button"
                         className="btn-secondary h-9 w-9 p-0 text-lg"
-                        onClick={() => dispatch(decrementCartItemQuantity(item.id))}
+                        onClick={() => {
+                          const isLastUnitInCart = cartItems.length === 1 && item.quantity <= 1;
+                          dispatch(decrementCartItemQuantity(item.id));
+                          if (isLastUnitInCart) {
+                            navigate('/');
+                          }
+                        }}
                       >
                         -
                       </button>
