@@ -10,13 +10,6 @@ interface FestivalSlide {
 
 const FESTIVAL_SLIDES: FestivalSlide[] = [
   {
-    title: 'Launch Offer',
-    subtitle: 'Free Shipping on First 100 Orders',
-    details: 'Use Coupon: FIRST100',
-    gradient: 'from-[#ff9f45] via-[#ff6b6b] to-[#ff2e63]',
-    chip: 'FIRST100'
-  },
-  {
     title: 'Full Sticker Offer',
     subtitle: 'With our tumblers, sticker charge is only INR 199.',
     details: 'Sticker Only INR 299',

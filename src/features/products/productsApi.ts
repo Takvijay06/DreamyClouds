@@ -14,7 +14,7 @@ export type ProductMutationInput = {
   subCategory: ProductSubCategory;
   basePrice: number;
   availableQuantity: number | null;
-  image: string;
+  image: string | null;
   images: string[];
   isTrending: boolean;
   scentedAddonPrice: number | null;
@@ -46,7 +46,7 @@ const sanitizeStringList = (values: string[]): string[] =>
   values.map((value) => value.trim()).filter((value) => value.length > 0);
 
 const buildMutationPayload = (input: ProductMutationInput) => {
-  const primaryImage = input.image.trim();
+  const primaryImage = input.image?.trim() ?? '';
   const galleryImages = sanitizeStringList(input.images).filter((value) => value !== primaryImage);
   const images = primaryImage ? [primaryImage, ...galleryImages] : galleryImages;
   const colorAvailable = sanitizeStringList(input.colors);

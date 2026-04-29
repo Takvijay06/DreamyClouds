@@ -33,6 +33,7 @@ import { remainingAvailableQuantity, toCartLineQuantity } from "../utils/cartQua
 import { formatRupee } from "../utils/currency";
 
 type ProductCategoryTab = ProductCategory | "trending" | "steel-tumblers" | "glass-tumblers";
+type SortOption = "high-to-low" | "low-to-high";
 
 const CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
   { key: "trending", label: "Trending" },
@@ -104,9 +105,12 @@ export const ProductSelectionPage = () => {
         ? normalizeStickerSubCategory(selectedProduct.subCategory)
         : "full_wrap",
     );
+  const [sortOption, setSortOption] = useState<SortOption>("low-to-high");
   const buttonAreaRef = useRef<HTMLDivElement | null>(null);
+  const candleOptionsRef = useRef<HTMLElement | null>(null);
   const hasMountedProductScrollRef = useRef(false);
   const hasStickerSubCategoryInitializedRef = useRef(false);
+  const pendingCandleOptionsScrollRef = useRef(false);
   const isDaisyBouquetCandle =
     selectedProduct?.id === "candle-daisy-flower-bouquet";
 
@@ -148,6 +152,16 @@ export const ProductSelectionPage = () => {
       ),
     [activeCategory, activeStickerSubCategory, products, stickerProducts],
   );
+  const sortedProducts = useMemo(() => {
+    const productsToSort = [...filteredProducts];
+    productsToSort.sort((left: Product, right: Product) => {
+      if (sortOption === "high-to-low") {
+        return right.basePrice - left.basePrice;
+      }
+      return left.basePrice - right.basePrice;
+    });
+    return productsToSort;
+  }, [filteredProducts, sortOption]);
   const reservedProductQuantityById = useMemo(() => {
     const nextMap: Record<string, number> = {};
     order.cartItems.forEach((item) => {
@@ -157,7 +171,7 @@ export const ProductSelectionPage = () => {
   }, [order.cartItems]);
   const productCards = useMemo(
     () =>
-      filteredProducts.map((product: any) => {
+      sortedProducts.map((product: any) => {
         const remainingQuantity = remainingAvailableQuantity(
           product.availableQuantity ?? null,
           reservedProductQuantityById[product.id] ?? 0,
@@ -167,7 +181,7 @@ export const ProductSelectionPage = () => {
           availableQuantity: remainingQuantity,
         };
       }),
-    [filteredProducts, reservedProductQuantityById],
+    [reservedProductQuantityById, sortedProducts],
   );
   const selectedProductRemainingQuantity = useMemo(() => {
     if (!selectedProduct) {
@@ -319,11 +333,38 @@ export const ProductSelectionPage = () => {
     });
   }, [order.productId]);
 
+  useEffect(() => {
+    if (!pendingCandleOptionsScrollRef.current || !isDaisyBouquetCandle) {
+      return;
+    }
+    pendingCandleOptionsScrollRef.current = false;
+    scrollToCandleOptions();
+  }, [isDaisyBouquetCandle]);
+
   const shouldUseDesignStep = (product: Product | null) => {
     if (!product) {
       return false;
     }
     return product.category === "tumblers" || product.category === "mugs";
+  };
+
+  const shouldUseCandleCustomizationStep = (product: Product | null) => {
+    if (!product) {
+      return false;
+    }
+    return product.id === "candle-daisy-flower-bouquet";
+  };
+
+  const scrollToCandleOptions = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      candleOptionsRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   };
 
   const buildCartPayloadForProduct = (product: Product) => {
@@ -353,6 +394,13 @@ export const ProductSelectionPage = () => {
       return;
     }
     dispatch(setProduct(product.id));
+    if (shouldUseCandleCustomizationStep(product)) {
+      pendingCandleOptionsScrollRef.current = true;
+      if (order.productId === product.id) {
+        scrollToCandleOptions();
+      }
+      return;
+    }
     if (shouldUseDesignStep(product)) {
       navigate("/design");
       return;
@@ -373,6 +421,14 @@ export const ProductSelectionPage = () => {
 
     dispatch(addToCart(buildCartPayloadForProduct(selectedProduct)));
     navigate("/preview");
+  };
+
+  const handleRequestCandleOptions = () => {
+    dispatch(setProduct("candle-daisy-flower-bouquet"));
+    pendingCandleOptionsScrollRef.current = true;
+    if (order.productId === "candle-daisy-flower-bouquet") {
+      scrollToCandleOptions();
+    }
   };
 
   return (
@@ -479,18 +535,32 @@ export const ProductSelectionPage = () => {
             </div>
           ) : null}
 
-          <div className="flex items-center justify-between">
-            <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">
-              {activeCategory === "stickers"
-                ? STICKER_SUBCATEGORY_TABS.find(
-                    (tab) => tab.key === activeStickerSubCategory,
-                  )?.label
-                : CATEGORY_TABS.find((tab) => tab.key === activeCategory)
-                    ?.label}
-            </h2>
-            <span className="rounded-full bg-lavender-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-lavender-700">
-              {filteredProducts.length} options
-            </span>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">
+                {activeCategory === "stickers"
+                  ? STICKER_SUBCATEGORY_TABS.find(
+                      (tab) => tab.key === activeStickerSubCategory,
+                    )?.label
+                  : CATEGORY_TABS.find((tab) => tab.key === activeCategory)
+                      ?.label}
+              </h2>
+              <span className="rounded-full bg-lavender-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-lavender-700">
+                {filteredProducts.length} options
+              </span>
+            </div>
+            <label className="flex items-center gap-2 text-sm font-semibold text-lavender-700">
+              <select
+                className="input w-auto min-w-[150px] py-2"
+                value={sortOption}
+                onChange={(event) =>
+                  setSortOption(event.target.value as SortOption)
+                }
+              >
+                <option value="high-to-low">High to Low</option>
+                <option value="low-to-high">Low to High</option>
+              </select>
+            </label>
           </div>
 
           {activeCategory === "stickers" &&
@@ -509,7 +579,7 @@ export const ProductSelectionPage = () => {
                   onBuyNow={handleBuyNow}
                   onRequestCandleOptions={
                     product.id === "candle-daisy-flower-bouquet"
-                      ? () => dispatch(setProduct("candle-daisy-flower-bouquet"))
+                      ? handleRequestCandleOptions
                       : undefined
                   }
                 />
@@ -519,7 +589,10 @@ export const ProductSelectionPage = () => {
         </section>
 
         {isDaisyBouquetCandle ? (
-          <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
+          <section
+            ref={candleOptionsRef}
+            className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5"
+          >
             <h3 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">
               Candle Options
             </h3>
@@ -588,7 +661,7 @@ export const ProductSelectionPage = () => {
         <div ref={buttonAreaRef} className="flex justify-end">
           <div className="flex flex-col items-end gap-1.5">
             <p className="text-right text-xs text-lavender-600">
-              For Daisy bouquet: tap &quot;Customize candle options&quot; first, or use Buy now. Otherwise use Buy now on a card.
+              For Daisy bouquet: Buy now opens candle options below. Use Next after customizing to continue.
             </p>
             <button
               className="btn-primary"

@@ -239,9 +239,6 @@ export const AdminProductsPage = () => {
     if (!form.description.trim()) {
       nextErrors.description = 'Description is required.';
     }
-    if (!form.image.trim()) {
-      nextErrors.image = 'Primary image URL is required.';
-    }
     const basePrice = Number(form.basePrice);
     if (form.basePrice.trim() === '' || !Number.isFinite(basePrice) || basePrice < 0) {
       nextErrors.basePrice = 'Enter a valid base price.';
@@ -279,8 +276,8 @@ export const AdminProductsPage = () => {
       subCategory: normalizeSubCategory(form.category, form.subCategory),
       basePrice: Number(form.basePrice),
       availableQuantity: form.availableQuantity.trim() === '' ? null : Number(form.availableQuantity),
-      image: form.image.trim(),
-      images: parseListInput(form.imagesText).length > 0 ? parseListInput(form.imagesText) : [form.image.trim()],
+      image: form.image.trim() === '' ? null : form.image.trim(),
+      images: parseListInput(form.imagesText),
       isTrending: form.isTrending,
       scentedAddonPrice: form.scentedAddonPrice.trim() === '' ? null : Number(form.scentedAddonPrice),
       colors: parseListInput(form.colorsText),
@@ -312,9 +309,9 @@ export const AdminProductsPage = () => {
         const created = await dispatch(createProduct(payload)).unwrap();
         await dispatch(fetchProducts()).unwrap();
         setSuccessMessage(`Created "${created.name}" successfully.`);
-        setEditingProduct(created);
-        setProductModalMode('edit');
-        setForm(toFormState(created));
+        setEditingProduct(null);
+        setForm(null);
+        setFormErrors({});
       } else if (editingProduct) {
         const updated = await dispatch(updateProduct({ id: editingProduct.id, input: payload })).unwrap();
         await dispatch(fetchProducts()).unwrap();
@@ -617,7 +614,7 @@ export const AdminProductsPage = () => {
               </label>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <FormInput id="product-image" label="Primary Image URL" value={form.image} onChange={(value) => setForm((current) => (current ? { ...current, image: value } : current))} error={formErrors.image} required />
+                <FormInput id="product-image" label="Primary Image URL" value={form.image} onChange={(value) => setForm((current) => (current ? { ...current, image: value } : current))} error={formErrors.image} />
                 <label className="flex items-center gap-3 rounded-2xl border border-lavender-200 bg-lavender-50/70 px-4 py-3 text-sm font-medium text-lavender-900">
                   <input type="checkbox" checked={form.isTrending} onChange={(event) => setForm((current) => (current ? { ...current, isTrending: event.target.checked } : current))} />
                   Mark as trending

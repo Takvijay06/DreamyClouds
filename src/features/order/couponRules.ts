@@ -20,16 +20,7 @@ interface CouponEvaluationContext {
   subtotalExcludingDelivery: number;
 }
 
-const COUPON_RULES: CouponRule[] = [
-  {
-    code: 'FIRST100',
-    discountType: 'flat',
-    discountValue: 70,
-    minOrderAmount: 1,
-    appliesOn: 'subtotal_excluding_delivery',
-    isActive: true
-  }
-];
+const COUPON_RULES: CouponRule[] = [];
 
 const EMPTY_RESULT: CouponEvaluationResult = {
   status: 'none',

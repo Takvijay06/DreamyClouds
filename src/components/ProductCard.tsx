@@ -388,7 +388,7 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
       </div>
 
       <div className="space-y-3 border-t border-lavender-100 px-4 pb-4 pt-3">
-        <div className="grid grid-cols-2 gap-2">
+        <div className={`grid gap-2 ${isSoldOut ? 'grid-cols-1' : 'grid-cols-2'}`}>
           <button
             type="button"
             onClick={(event) => {
@@ -399,17 +399,18 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
           >
             Share
           </button>
-          <button
-            type="button"
-            disabled={isSoldOut}
-            onClick={(event) => {
-              event.stopPropagation();
-              onBuyNow(product);
-            }}
-            className="btn-primary px-2 py-2 text-xs sm:px-3 sm:text-sm disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Buy now
-          </button>
+          {!isSoldOut ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onBuyNow(product);
+              }}
+              className="btn-primary px-2 py-2 text-xs sm:px-3 sm:text-sm"
+            >
+              Buy now
+            </button>
+          ) : null}
         </div>
         {product.id === DAISY_BOUQUET_CANDLE_ID && onRequestCandleOptions ? (
           <button

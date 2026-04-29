@@ -203,7 +203,7 @@ body::before {
 }
 
 .input {
-  @apply w-full rounded-2xl border border-lavender-200 bg-white/95 px-3.5 py-2.5 text-sm text-lavender-900 outline-none transition placeholder:text-lavender-400 focus:border-lavender-500 focus:ring-2 focus:ring-lavender-200;
+  @apply w-full rounded-2xl border border-lavender-200 bg-white/95 px-3.5 py-2.5 text-base text-lavender-900 outline-none transition placeholder:text-lavender-400 focus:border-lavender-500 focus:ring-2 focus:ring-lavender-200 sm:text-sm;
 }
 
 
