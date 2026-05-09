@@ -6,9 +6,10 @@ import {
 import { RootState } from '../../app/store';
 import { selectDesigns, selectStickerProducts } from '../designs/designsSlice';
 import { selectProducts } from '../products/productsSlice';
-import { Pricing, Product, ProductCategory, StickerSubCategory } from './orderTypes';
+import { Pricing, ProductCategory, StickerSubCategory } from './orderTypes';
 import { evaluateCoupon } from './couponRules';
 import { toCartLineQuantity } from '../../utils/cartQuantity';
+import { computeCartDeliveryCharge } from '../../utils/shipping';
 
 const resolveStickerSubCategory = (value: unknown): StickerSubCategory => {
   if (typeof value !== 'string') {
@@ -24,14 +25,6 @@ const NO_DESIGN_NEEDED_ID = 'no-design-needed';
 const SINGLE_STICKER_WITH_DRINKWARE_CHARGE = 49;
 const FULL_WRAP_STICKER_WITH_DRINKWARE_CHARGE = 199;
 const DAISY_BOUQUET_CANDLE_ID = 'candle-daisy-flower-bouquet';
-
-const shippingChargeForProduct = (p: Product | null | undefined): number => {
-  if (!p) {
-    return 0;
-  }
-  const s = p.shippingCharge ?? 70;
-  return typeof s === 'number' && Number.isFinite(s) && s >= 0 ? s : 0;
-};
 
 const candleScentedRatePerItem = (product: { category: ProductCategory; scentedAddonPrice?: number }): number => {
   if (product.category !== 'candles') {
@@ -230,12 +223,29 @@ export const selectPricing = (state: RootState): Pricing => {
   const couponEvaluation = selectCouponEvaluation(state);
   const discountAmount = couponEvaluation.status === 'applied' ? couponEvaluation.discountAmount : 0;
   const totalBeforeDelivery = Math.max(0, subtotalBeforeDiscount - discountAmount);
+  const candleMerchandiseSubtotal =
+    cartItems.length > 0
+      ? cartItems
+          .filter((item) => item.product.category === 'candles')
+          .reduce((sum, item) => sum + item.lineTotal, 0)
+      : product?.category === 'candles'
+        ? fallbackUnitPrice * billableQuantity
+        : 0;
+  const shippingLines =
+    cartItems.length > 0
+      ? cartItems.map((item) => ({ product: item.product, quantity: toCartLineQuantity(item.quantity) }))
+      : product && billableQuantity > 0
+        ? [{ product, quantity: billableQuantity }]
+        : [];
   const deliveryCharge =
     quantityTotal <= 0
       ? 0
-      : cartItems.length > 0
-        ? cartItems.reduce((sum, item) => sum + shippingChargeForProduct(item.product), 0)
-        : shippingChargeForProduct(product);
+      : shippingLines.length > 0
+        ? computeCartDeliveryCharge(shippingLines, {
+            candleMerchandiseSubtotal,
+            orderTotalBeforeDelivery: totalBeforeDelivery
+          })
+        : 0;
   const grandTotal = totalBeforeDelivery + deliveryCharge;
 
   return {

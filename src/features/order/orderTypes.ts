@@ -1,12 +1,17 @@
 export type ProductCategory = 'tumblers' | 'mugs' | 'bookmarks' | 'candles' | 'gift-hampers' | 'accessories' | 'stickers';
 export type TumblerSubCategory = 'steel-tumbler' | 'glass-tumbler';
 export type StickerSubCategory = 'full_wrap' | 'single_sticker';
+export type ShippingQuantityMode = 'per_item' | 'per_line';
 
 export interface Product {
   id: string;
   category: ProductCategory;
   subCategory?: TumblerSubCategory | StickerSubCategory;
   isTrending?: boolean;
+  /** How configured shipping applies for this SKU: multiply by line quantity or once per cart line (e.g. a set). */
+  shippingQuantityMode?: ShippingQuantityMode;
+  /** When false, candle uses tiered non-jar shipping; when true/undefined, uses configured shipping charge. */
+  candleJarPackaged?: boolean;
   colors?: string[];
   /** Per-item add-on when the candle is ordered scented (from products API `scented_price`). */
   scentedAddonPrice?: number;

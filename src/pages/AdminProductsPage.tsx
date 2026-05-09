@@ -3,7 +3,7 @@ import { AdminAccessGate } from '../components/AdminAccessGate';
 import { FormInput } from '../components/FormInput';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { ProductCategory, Product, StickerSubCategory } from '../features/order/orderTypes';
+import { ProductCategory, Product, StickerSubCategory, ShippingQuantityMode } from '../features/order/orderTypes';
 import { ProductMutationInput, ProductSubCategory } from '../features/products/productsApi';
 import {
   createProduct,
@@ -17,6 +17,7 @@ import {
   updateProduct
 } from '../features/products/productsSlice';
 import { selectDesignsError, selectDesignsStatus, selectStickerProducts } from '../features/designs/designsSlice';
+import { useAlternatingTrendingTabLabel } from '../hooks/useAlternatingTrendingTabLabel';
 import { formatRupee } from '../utils/currency';
 
 type ProductCategoryTab = ProductCategory | 'trending' | 'steel-tumblers' | 'glass-tumblers';
@@ -50,6 +51,8 @@ type ProductFormState = {
   scentedAddonPrice: string;
   colorsText: string;
   shippingCharge: string;
+  shippingQuantityMode: ShippingQuantityMode;
+  candleJarPackaged: boolean;
 };
 
 type ProductFormErrors = Partial<Record<keyof ProductFormState, string>>;
@@ -84,7 +87,9 @@ const createEmptyProductForm = (category: ProductCategory = 'tumblers'): Product
   isTrending: false,
   scentedAddonPrice: '',
   colorsText: '',
-  shippingCharge: ''
+  shippingCharge: '',
+  shippingQuantityMode: 'per_item',
+  candleJarPackaged: true
 });
 
 const toFormState = (product: Product): ProductFormState => ({
@@ -109,7 +114,9 @@ const toFormState = (product: Product): ProductFormState => ({
   shippingCharge:
     typeof product.shippingCharge === 'number' && Number.isFinite(product.shippingCharge)
       ? String(product.shippingCharge)
-      : ''
+      : '',
+  shippingQuantityMode: product.shippingQuantityMode === 'per_line' ? 'per_line' : 'per_item',
+  candleJarPackaged: product.category === 'candles' ? product.candleJarPackaged !== false : true
 });
 
 const buildDefaultSubCategory = (category: ProductCategory): ProductSubCategory => {
@@ -151,6 +158,8 @@ export const AdminProductsPage = () => {
   const [form, setForm] = useState<ProductFormState | null>(null);
   const [formErrors, setFormErrors] = useState<ProductFormErrors>({});
   const [successMessage, setSuccessMessage] = useState('');
+  const { label: alternatingTrendingLabel, isMothersDaySpecial } =
+    useAlternatingTrendingTabLabel();
 
   useEffect(() => {
     if (productsStatus === 'idle') {
@@ -281,7 +290,10 @@ export const AdminProductsPage = () => {
       isTrending: form.isTrending,
       scentedAddonPrice: form.scentedAddonPrice.trim() === '' ? null : Number(form.scentedAddonPrice),
       colors: parseListInput(form.colorsText),
-      shippingCharge: form.shippingCharge.trim() === '' ? null : Number(form.shippingCharge)
+      shippingCharge: form.shippingCharge.trim() === '' ? null : Number(form.shippingCharge),
+      shippingQuantityMode:
+        form.category === 'stickers' || form.category === 'accessories' ? null : form.shippingQuantityMode,
+      candleJarPackaged: form.category === 'candles' ? form.candleJarPackaged : null
     };
   };
 
@@ -383,7 +395,7 @@ export const AdminProductsPage = () => {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveCategory(tab.key)}
-                className={`${isTrendingTab ? 'trending-tab-border' : ''} ${isTrendingTab && isActive ? 'trending-tab-border-active' : ''} rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+                className={`${isTrendingTab ? 'trending-tab-border' : ''} ${isTrendingTab && isActive ? 'trending-tab-border-active' : ''} ${isTrendingTab && isMothersDaySpecial ? (isActive ? 'mothers-day-tab-attention-active' : 'mothers-day-tab-attention') : ''} rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
                   isTrendingTab
                     ? isActive
                       ? 'border-fuchsia-500 bg-gradient-to-r from-fuchsia-600 via-violet-600 to-lavender-600 text-white shadow-lg shadow-fuchsia-300/40'
@@ -394,7 +406,17 @@ export const AdminProductsPage = () => {
                 }`}
               >
                 <span className="inline-flex items-center gap-1.5">
-                  <span>{tab.label}</span>
+                  <span
+                    className={
+                      isTrendingTab && isMothersDaySpecial
+                        ? isActive
+                          ? 'mothers-day-label-attention-active'
+                          : 'mothers-day-label-attention'
+                        : undefined
+                    }
+                  >
+                    {isTrendingTab ? alternatingTrendingLabel : tab.label}
+                  </span>
                   {isTrendingTab ? (
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide ${isActive ? 'bg-white/20 text-white' : 'bg-fuchsia-100 text-fuchsia-700'}`}>
                       HOT
@@ -564,7 +586,11 @@ export const AdminProductsPage = () => {
                           ? {
                               ...current,
                               category: event.target.value as ProductCategory,
-                              subCategory: buildDefaultSubCategory(event.target.value as ProductCategory)
+                              subCategory: buildDefaultSubCategory(event.target.value as ProductCategory),
+                              candleJarPackaged:
+                                (event.target.value as ProductCategory) === 'candles'
+                                  ? current.candleJarPackaged
+                                  : true
                             }
                           : current
                       )
@@ -604,6 +630,40 @@ export const AdminProductsPage = () => {
                 <FormInput id="base-price" label="Base Price" type="number" value={form.basePrice} onChange={(value) => setForm((current) => (current ? { ...current, basePrice: value } : current))} error={formErrors.basePrice} required />
                 <FormInput id="available-quantity" label="Available Quantity" type="number" value={form.availableQuantity} onChange={(value) => setForm((current) => (current ? { ...current, availableQuantity: value } : current))} error={formErrors.availableQuantity} placeholder="Leave blank for unlimited" />
                 <FormInput id="shipping-charge" label="Shipping Charge" type="number" value={form.shippingCharge} onChange={(value) => setForm((current) => (current ? { ...current, shippingCharge: value } : current))} error={formErrors.shippingCharge} />
+                {form.category !== 'stickers' && form.category !== 'accessories' ? (
+                  <div>
+                    <label className="mb-1 block text-sm font-medium text-lavender-900" htmlFor="shipping-qty-mode">
+                      Shipping basis
+                    </label>
+                    <select
+                      id="shipping-qty-mode"
+                      className="input"
+                      value={form.shippingQuantityMode}
+                      onChange={(event) =>
+                        setForm((current) =>
+                          current
+                            ? { ...current, shippingQuantityMode: event.target.value as ShippingQuantityMode }
+                            : current
+                        )
+                      }
+                    >
+                      <option value="per_item">Per item (multiply charge by line quantity)</option>
+                      <option value="per_line">Per line / set (charge once per cart line)</option>
+                    </select>
+                  </div>
+                ) : null}
+                {form.category === 'candles' ? (
+                  <label className="flex items-center gap-3 rounded-2xl border border-lavender-200 bg-lavender-50/70 px-4 py-3 text-sm font-medium text-lavender-900">
+                    <input
+                      type="checkbox"
+                      checked={form.candleJarPackaged}
+                      onChange={(event) =>
+                        setForm((current) => (current ? { ...current, candleJarPackaged: event.target.checked } : current))
+                      }
+                    />
+                    Jar / glass packaging (uses shipping charge above; uncheck for pillar or non-jar tiered shipping)
+                  </label>
+                ) : null}
                 <FormInput id="scented-addon" label="Scented Add-on Price" type="number" value={form.scentedAddonPrice} onChange={(value) => setForm((current) => (current ? { ...current, scentedAddonPrice: value } : current))} error={formErrors.scentedAddonPrice} />
               </div>
 

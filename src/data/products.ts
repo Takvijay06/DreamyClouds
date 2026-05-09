@@ -1,4 +1,4 @@
-import { Product, ProductCategory, StickerSubCategory, TumblerSubCategory } from '../features/order/orderTypes';
+import { Product, ProductCategory, ShippingQuantityMode, StickerSubCategory, TumblerSubCategory } from '../features/order/orderTypes';
 import { toAvailableQuantityCap } from '../utils/cartQuantity';
 
 const DEFAULT_OVERLAY_BY_CATEGORY: Record<ProductCategory, string> = {
@@ -25,6 +25,8 @@ export type ApiProduct = {
   scented_price?: number | null;
   color_available?: unknown;
   shipping?: number | null;
+  shipping_quantity_mode?: unknown;
+  candle_jar_packaged?: unknown;
 };
 
 export const DELIVERY_CHARGE = 70;
@@ -60,6 +62,46 @@ const normalizeShippingCharge = (value: unknown, fallback: number): number => {
   return fallback;
 };
 
+const normalizeShippingQuantityMode = (value: unknown): ShippingQuantityMode | undefined => {
+  if (value === 'per_line' || value === 'per_item') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase().replace(/-/g, '_');
+    if (normalized === 'per_line' || normalized === 'perline') {
+      return 'per_line';
+    }
+    if (normalized === 'per_item' || normalized === 'peritem') {
+      return 'per_item';
+    }
+  }
+  return undefined;
+};
+
+const normalizeCandleJarPackaged = (value: unknown): boolean | undefined => {
+  if (value === true || value === false) {
+    return value;
+  }
+  if (typeof value === 'number') {
+    if (value === 1) {
+      return true;
+    }
+    if (value === 0) {
+      return false;
+    }
+  }
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'true' || normalized === '1' || normalized === 'yes') {
+      return true;
+    }
+    if (normalized === 'false' || normalized === '0' || normalized === 'no') {
+      return false;
+    }
+  }
+  return undefined;
+};
+
 const normalizeIsTrending = (value: unknown): boolean => {
   if (typeof value === 'boolean') {
     return value;
@@ -90,12 +132,17 @@ export const buildProductsFromApi = (apiProducts: ApiProduct[]): Product[] => {
     const scentedAddonPrice = normalizeScentedAddonPrice(apiProduct.scented_price);
     const shippingCharge = normalizeShippingCharge(apiProduct.shipping, DELIVERY_CHARGE);
     const isTrending = normalizeIsTrending(apiProduct.isTrending);
+    const shippingQuantityMode = normalizeShippingQuantityMode(apiProduct.shipping_quantity_mode);
+    const candleJarPackaged =
+      category === 'candles' ? normalizeCandleJarPackaged(apiProduct.candle_jar_packaged) ?? true : undefined;
 
     return {
       id: apiProduct.id,
       category,
       subCategory: (apiProduct.sub_category ?? undefined) as TumblerSubCategory | StickerSubCategory | undefined,
       isTrending,
+      shippingQuantityMode,
+      candleJarPackaged,
       name: apiProduct.name ?? '',
       description: apiProduct.description ?? '',
       basePrice: typeof apiProduct.base_price === 'number' ? apiProduct.base_price : 0,

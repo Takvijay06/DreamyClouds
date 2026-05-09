@@ -1,5 +1,5 @@
 import { ApiProduct, buildProductsFromApi } from '../../data/products';
-import { Product, ProductCategory, StickerSubCategory, TumblerSubCategory } from '../order/orderTypes';
+import { Product, ProductCategory, ShippingQuantityMode, StickerSubCategory, TumblerSubCategory } from '../order/orderTypes';
 
 export const PRODUCTS_API_URL = 'https://ftyqsddrhhqodlytyyca.supabase.co/rest/v1/products';
 export const PRODUCTS_API_KEY = 'sb_publishable_11G_1zZ-Uv55Jdw15gdaSQ_8yHltBRH';
@@ -20,6 +20,8 @@ export type ProductMutationInput = {
   scentedAddonPrice: number | null;
   colors: string[];
   shippingCharge: number | null;
+  shippingQuantityMode: ShippingQuantityMode | null;
+  candleJarPackaged: boolean | null;
 };
 
 const buildHeaders = (includeWriteHeaders = false): HeadersInit => ({
@@ -50,6 +52,10 @@ const buildMutationPayload = (input: ProductMutationInput) => {
   const galleryImages = sanitizeStringList(input.images).filter((value) => value !== primaryImage);
   const images = primaryImage ? [primaryImage, ...galleryImages] : galleryImages;
   const colorAvailable = sanitizeStringList(input.colors);
+
+  // Do not send shipping_quantity_mode or candle_jar_packaged until those columns exist on
+  // `products` in Supabase; otherwise PostgREST returns a schema cache error. Reads still
+  // accept them via buildProductsFromApi when the API returns them.
 
   return {
     id: input.id.trim(),
