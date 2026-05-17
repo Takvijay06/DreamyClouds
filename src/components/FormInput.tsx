@@ -24,7 +24,7 @@ export const FormInput = ({
   readOnly = false
 }: FormInputProps) => {
   return (
-    <label className="block space-y-1.5">
+    <label className="block space-y-1.5" {...(id ? { htmlFor: id } : {})}>
       <span className="text-sm font-semibold text-lavender-800">
         {label}
         {required ? ' *' : ''}

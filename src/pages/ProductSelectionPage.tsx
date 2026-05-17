@@ -29,7 +29,6 @@ import {
   selectProductsError,
   selectProductsStatus,
 } from "../features/products/productsSlice";
-import { useAlternatingTrendingTabLabel } from "../hooks/useAlternatingTrendingTabLabel";
 import { remainingAvailableQuantity, toCartLineQuantity } from "../utils/cartQuantity";
 import { formatRupee } from "../utils/currency";
 
@@ -119,8 +118,6 @@ export const ProductSelectionPage = () => {
   const DAISY_BOUQUET_CANDLE_ID = "candle-daisy-flower-bouquet";
   const isDaisyBouquetCandle = selectedProduct?.id === DAISY_BOUQUET_CANDLE_ID;
   const showCandleOptionsPanel = selectedProduct?.category === "candles";
-  const { label: alternatingTrendingLabel, isMothersDaySpecial } =
-    useAlternatingTrendingTabLabel();
 
   const filteredProducts = useMemo(
     () =>
@@ -451,14 +448,14 @@ export const ProductSelectionPage = () => {
   return (
     <Layout currentStep={1}>
       <div className="space-y-8">
-        <section className="rounded-2xl border border-lavender-200/80 bg-white/85 p-4 text-sm text-lavender-800">
+        <section className="rounded-2xl border border-lavender-200/80 bg-gradient-to-r from-white/95 via-lavender-50/35 to-fuchsia-50/20 p-4 text-sm leading-relaxed text-lavender-800 shadow-sm backdrop-blur-sm sm:p-5">
           <p>
             Follow us on Instagram for latest designs:{" "}
             <a
               href={INSTAGRAM_URL}
               target="_blank"
               rel="noreferrer"
-              className="font-semibold text-lavender-700 underline decoration-lavender-300 underline-offset-2 hover:text-lavender-900"
+              className="rounded font-semibold text-lavender-700 underline decoration-lavender-300 underline-offset-4 transition hover:text-lavender-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-lavender-400 focus-visible:ring-offset-2"
             >
               @dreamycloudsbydaisy
             </a>
@@ -499,7 +496,7 @@ export const ProductSelectionPage = () => {
                   onClick={() => {
                     setActiveCategory(tab.key);
                   }}
-                  className={`${isTrendingTab ? "trending-tab-border" : ""} ${isTrendingTab && isActive ? "trending-tab-border-active" : ""} ${isTrendingTab && isMothersDaySpecial ? (isActive ? "mothers-day-tab-attention-active" : "mothers-day-tab-attention") : ""} rounded-2xl border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${
+                  className={`${isTrendingTab ? "trending-tab-border" : ""} ${isTrendingTab && isActive ? "trending-tab-border-active" : ""} rounded-2xl border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${
                     isTrendingTab
                       ? isActive
                         ? "border-fuchsia-500 bg-gradient-to-r from-fuchsia-600 via-violet-600 to-lavender-600 text-white shadow-lg shadow-fuchsia-300/40 focus-visible:ring-fuchsia-300"
@@ -510,17 +507,7 @@ export const ProductSelectionPage = () => {
                   }`}
                 >
                   <span className="inline-flex items-center gap-1.5">
-                    <span
-                      className={
-                        isTrendingTab && isMothersDaySpecial
-                          ? isActive
-                            ? "mothers-day-label-attention-active"
-                            : "mothers-day-label-attention"
-                          : undefined
-                      }
-                    >
-                      {isTrendingTab ? alternatingTrendingLabel : tab.label}
-                    </span>
+                    <span>{tab.label}</span>
                     {isTrendingTab ? (
                       <span
                         className={`rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide ${

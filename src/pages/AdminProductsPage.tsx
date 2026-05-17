@@ -17,7 +17,6 @@ import {
   updateProduct
 } from '../features/products/productsSlice';
 import { selectDesignsError, selectDesignsStatus, selectStickerProducts } from '../features/designs/designsSlice';
-import { useAlternatingTrendingTabLabel } from '../hooks/useAlternatingTrendingTabLabel';
 import { formatRupee } from '../utils/currency';
 
 type ProductCategoryTab = ProductCategory | 'trending' | 'steel-tumblers' | 'glass-tumblers';
@@ -159,8 +158,6 @@ export const AdminProductsPage = () => {
   const [form, setForm] = useState<ProductFormState | null>(null);
   const [formErrors, setFormErrors] = useState<ProductFormErrors>({});
   const [successMessage, setSuccessMessage] = useState('');
-  const { label: alternatingTrendingLabel, isMothersDaySpecial } =
-    useAlternatingTrendingTabLabel();
 
   useEffect(() => {
     if (productsStatus === 'idle') {
@@ -399,7 +396,7 @@ export const AdminProductsPage = () => {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveCategory(tab.key)}
-                className={`${isTrendingTab ? 'trending-tab-border' : ''} ${isTrendingTab && isActive ? 'trending-tab-border-active' : ''} ${isTrendingTab && isMothersDaySpecial ? (isActive ? 'mothers-day-tab-attention-active' : 'mothers-day-tab-attention') : ''} rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+                className={`${isTrendingTab ? 'trending-tab-border' : ''} ${isTrendingTab && isActive ? 'trending-tab-border-active' : ''} rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
                   isTrendingTab
                     ? isActive
                       ? 'border-fuchsia-500 bg-gradient-to-r from-fuchsia-600 via-violet-600 to-lavender-600 text-white shadow-lg shadow-fuchsia-300/40'
@@ -410,17 +407,7 @@ export const AdminProductsPage = () => {
                 }`}
               >
                 <span className="inline-flex items-center gap-1.5">
-                  <span
-                    className={
-                      isTrendingTab && isMothersDaySpecial
-                        ? isActive
-                          ? 'mothers-day-label-attention-active'
-                          : 'mothers-day-label-attention'
-                        : undefined
-                    }
-                  >
-                    {isTrendingTab ? alternatingTrendingLabel : tab.label}
-                  </span>
+                  <span>{tab.label}</span>
                   {isTrendingTab ? (
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold tracking-wide ${isActive ? 'bg-white/20 text-white' : 'bg-fuchsia-100 text-fuchsia-700'}`}>
                       HOT

@@ -170,17 +170,17 @@ export const DesignSelectionPage = () => {
   return (
     <Layout currentStep={2}>
       <div className="space-y-5">
-        <div className="rounded-2xl border border-lavender-200/80 bg-lavender-50/80 p-4">
-          <p className="text-sm text-lavender-700">
+        <div className="rounded-2xl border border-lavender-200/80 bg-gradient-to-br from-lavender-50/90 via-white/80 to-lavender-100/30 p-4 shadow-sm backdrop-blur-sm">
+          <p className="text-sm leading-relaxed text-lavender-700">
             Selected product: <span className="font-semibold text-lavender-900">{product.name}</span>
           </p>
-          <p className="mt-1 text-xs text-lavender-600 sm:text-sm">
+          <p className="mt-1.5 text-xs leading-relaxed text-lavender-600 sm:text-sm">
             {isDaisyBouquetCandle ? 'Add your custom note/branding/wishes.' : 'Pick a design that best matches your style.'}
           </p>
         </div>
 
         {!isDaisyBouquetCandle ? (
-          <section className="space-y-2 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5">
+          <section className="space-y-2 rounded-3xl border border-lavender-200/80 bg-white/92 p-4 shadow-md shadow-lavender-200/15 backdrop-blur-sm sm:p-5">
             <h2 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">Select Design</h2>
             {designsStatus === 'loading' ? (
               <div className="rounded-2xl border border-lavender-200/80 bg-white/85 p-3 text-xs font-semibold text-lavender-700">

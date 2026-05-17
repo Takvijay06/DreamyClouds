@@ -33,10 +33,10 @@ export const DesignCard = ({ design, selected, onSelect, onPreview }: DesignCard
         }
       }}
       onClick={handleSelect}
-      className={`group overflow-hidden rounded-3xl border text-left transition duration-200 ${
+      className={`group overflow-hidden rounded-3xl border text-left outline-none transition duration-300 focus-visible:ring-2 focus-visible:ring-lavender-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white ${
         selected
-          ? 'border-lavender-600 bg-lavender-50/70 ring-2 ring-lavender-300'
-          : 'border-lavender-200 bg-white hover:-translate-y-1 hover:border-lavender-400 hover:shadow-soft'
+          ? 'border-lavender-600 bg-lavender-50/70 shadow-lg shadow-lavender-300/30 ring-2 ring-lavender-300'
+          : 'border-lavender-200 bg-white shadow-sm hover:-translate-y-1 hover:border-lavender-400 hover:shadow-soft'
       } ${isSoldOut ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
     >
       <div className="relative overflow-hidden bg-lavender-50/40">

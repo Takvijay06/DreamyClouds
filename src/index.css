@@ -8,6 +8,17 @@
   color-scheme: only light;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+::selection {
+  background-color: rgba(196, 181, 253, 0.45);
+  color: #2f1952;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -40,15 +51,21 @@ body::before {
 }
 
 .card {
-  @apply rounded-3xl border border-lavender-200/80 bg-white/80 shadow-soft backdrop-blur-md;
+  @apply rounded-3xl border border-lavender-200/80 bg-white/85 shadow-soft backdrop-blur-md transition-[box-shadow,background-color] duration-300 ease-out;
+}
+
+.card-interactive:hover {
+  box-shadow:
+    0 10px 30px -12px rgba(132, 70, 216, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
 }
 
 .btn-primary {
-  @apply inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-lavender-700 to-lavender-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_28px_-12px_rgba(97,57,171,0.65)] transition duration-200 hover:-translate-y-0.5 hover:from-lavender-800 hover:to-lavender-600 focus:outline-none focus:ring-2 focus:ring-lavender-400 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+  @apply inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-lavender-700 to-lavender-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_28px_-12px_rgba(97,57,171,0.65)] transition duration-200 hover:-translate-y-0.5 hover:from-lavender-800 hover:to-lavender-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-lavender-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center rounded-2xl border border-lavender-300 bg-white/90 px-5 py-3 text-sm font-semibold text-lavender-700 transition duration-200 hover:-translate-y-0.5 hover:border-lavender-400 hover:bg-lavender-100;
+  @apply inline-flex items-center justify-center rounded-2xl border border-lavender-300 bg-white/90 px-5 py-3 text-sm font-semibold text-lavender-700 transition duration-200 hover:-translate-y-0.5 hover:border-lavender-400 hover:bg-lavender-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-lavender-400 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:translate-y-0 disabled:hover:bg-white/90;
 }
 
 .trending-tab-border {
@@ -93,7 +110,17 @@ body::before {
   background: radial-gradient(circle at 35% 25%, #ffffff 0%, #f0e2ff 56%, #e3d0ff 100%);
   box-shadow: 0 12px 28px -14px rgba(92, 50, 162, 0.85);
   text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.contact-fab-icon:focus-visible {
+  outline: none;
+  box-shadow:
+    0 12px 28px -14px rgba(92, 50, 162, 0.85),
+    0 0 0 3px rgba(196, 181, 253, 0.95),
+    0 0 0 6px rgba(246, 239, 255, 0.9);
 }
 
 .contact-fab-icon span {
@@ -140,7 +167,17 @@ body::before {
   background: radial-gradient(circle at 35% 25%, #ffffff 0%, #f0e2ff 56%, #e3d0ff 100%);
   box-shadow: 0 12px 28px -14px rgba(92, 50, 162, 0.85);
   text-decoration: none;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cart-fab-icon:focus-visible {
+  outline: none;
+  box-shadow:
+    0 12px 28px -14px rgba(92, 50, 162, 0.85),
+    0 0 0 3px rgba(196, 181, 253, 0.95),
+    0 0 0 6px rgba(246, 239, 255, 0.9);
 }
 
 .cart-fab-icon span {
@@ -203,12 +240,18 @@ body::before {
 }
 
 .input {
-  @apply w-full rounded-2xl border border-lavender-200 bg-white/95 px-3.5 py-2.5 text-base text-lavender-900 outline-none transition placeholder:text-lavender-400 focus:border-lavender-500 focus:ring-2 focus:ring-lavender-200 sm:text-sm;
+  @apply w-full rounded-2xl border border-lavender-200/90 bg-white/95 px-3.5 py-2.5 text-base text-lavender-900 shadow-sm outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-lavender-400 focus:border-lavender-500 focus:bg-white focus:shadow-md focus:shadow-lavender-500/10 focus:ring-2 focus:ring-lavender-200/80 sm:text-sm;
 }
 
 
 .hero-glow {
-  background: radial-gradient(circle at top right, rgba(187, 143, 255, 0.48), rgba(255, 255, 255, 0.72) 55%);
+  background:
+    radial-gradient(ellipse 90% 80% at 100% 0%, rgba(187, 143, 255, 0.38), transparent 50%),
+    radial-gradient(ellipse 70% 60% at 0% 100%, rgba(233, 213, 255, 0.45), transparent 45%),
+    linear-gradient(165deg, rgba(255, 255, 255, 0.94) 0%, rgba(248, 244, 255, 0.88) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.75) inset,
+    0 20px 50px -28px rgba(107, 59, 181, 0.28);
 }
 
 .floating-orb {
@@ -572,74 +615,6 @@ body::before {
   }
 }
 
-/* Extra draw when the rotating label shows "Mother's Day Special" */
-@keyframes mothersDayTabGlow {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 0 rgba(236, 72, 153, 0.35),
-      0 0 18px -4px rgba(244, 114, 182, 0.45);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow:
-      0 0 0 5px rgba(236, 72, 153, 0.2),
-      0 0 32px 0 rgba(244, 114, 182, 0.55);
-    transform: scale(1.04);
-  }
-}
-
-@keyframes mothersDayLabelShimmer {
-  0%,
-  100% {
-    filter: brightness(1);
-  }
-  33% {
-    filter: brightness(1.2);
-  }
-  66% {
-    filter: brightness(1.08);
-  }
-}
-
-@keyframes mothersDayActiveGlow {
-  0%,
-  100% {
-    box-shadow:
-      0 0 0 0 rgba(255, 255, 255, 0.35),
-      0 10px 28px -8px rgba(192, 38, 211, 0.65);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow:
-      0 0 0 4px rgba(255, 255, 255, 0.25),
-      0 14px 36px -6px rgba(236, 72, 153, 0.85);
-    transform: scale(1.03);
-  }
-}
-
-.mothers-day-tab-attention {
-  animation: mothersDayTabGlow 1.15s ease-in-out infinite;
-}
-
-.mothers-day-tab-attention-active {
-  animation: mothersDayActiveGlow 1.15s ease-in-out infinite;
-}
-
-.mothers-day-label-attention {
-  animation: mothersDayLabelShimmer 1.2s ease-in-out infinite;
-  display: inline-block;
-  text-shadow: 0 0 14px rgba(251, 207, 232, 0.95);
-}
-
-.mothers-day-label-attention-active {
-  animation: mothersDayLabelShimmer 1.2s ease-in-out infinite;
-  display: inline-block;
-  text-shadow:
-    0 0 12px rgba(255, 255, 255, 0.95),
-    0 0 22px rgba(253, 224, 255, 0.85);
-}
-
 /* Offers carousel (FestivalBanner) */
 @keyframes festivalOfferShimmer {
   0% {
@@ -684,6 +659,53 @@ body::before {
   animation: festivalOffersGlow 5s ease-in-out infinite;
 }
 
+@keyframes festivalBannerBlob {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(12px, -14px) scale(1.08);
+  }
+  66% {
+    transform: translate(-10px, 8px) scale(0.95);
+  }
+}
+
+.festival-banner-blob {
+  animation: festivalBannerBlob 14s ease-in-out infinite;
+}
+
+.festival-banner-blob-delayed {
+  animation: festivalBannerBlob 18s ease-in-out infinite;
+  animation-delay: -6s;
+}
+
+.festival-banner-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.45) 1.5px, transparent 1.5px);
+  background-size: 18px 18px;
+}
+
+@keyframes festivalOfferProgress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.festival-offer-progress {
+  animation-name: festivalOfferProgress;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-iteration-count: 1;
+}
+
+.festival-offer-progress-paused {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .festival-slide-enter {
     animation: none;
@@ -697,20 +719,12 @@ body::before {
     animation: none;
   }
 
+  .festival-banner-blob,
+  .festival-banner-blob-delayed {
+    animation: none;
+  }
+
   .trending-tab-border::after {
     animation: none;
-  }
-
-  .mothers-day-tab-attention,
-  .mothers-day-tab-attention-active,
-  .mothers-day-label-attention,
-  .mothers-day-label-attention-active {
-    animation: none;
-  }
-
-  .mothers-day-tab-attention,
-  .mothers-day-tab-attention-active {
-    transform: none;
-    box-shadow: none;
   }
 }

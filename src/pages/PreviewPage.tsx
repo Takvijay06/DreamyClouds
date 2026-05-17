@@ -27,7 +27,7 @@ import {
   selectSelectedProduct
 } from '../features/order/selectors';
 import { Product } from '../features/order/orderTypes';
-import { remainingAvailableQuantity } from '../utils/cartQuantity';
+import { remainingAvailableQuantity, toCartLineQuantity } from '../utils/cartQuantity';
 import { formatRupee } from '../utils/currency';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../utils/whatsapp';
 
@@ -67,13 +67,14 @@ export const PreviewPage = () => {
   const isBookmarkCart = cartItems.length > 0 && cartItems.every((item) => item.product.category === 'bookmarks');
   const displayProduct = product ?? cartItems[0]?.product ?? null;
   const shouldRedirectToHome = !displayProduct && !hasCartItems;
+  /** Sum quantities per product from raw cart so stock caps match Redux even if a line is temporarily unresolved in the UI. */
   const cartReservedProductQuantityById = useMemo(() => {
     const nextMap: Record<string, number> = {};
-    cartItems.forEach((item) => {
-      nextMap[item.product.id] = (nextMap[item.product.id] ?? 0) + item.quantity;
+    order.cartItems.forEach((item) => {
+      nextMap[item.productId] = (nextMap[item.productId] ?? 0) + toCartLineQuantity(item.quantity);
     });
     return nextMap;
-  }, [cartItems]);
+  }, [order.cartItems]);
 
   useEffect(() => {
     if (!product && !hasCartItems) {
@@ -217,13 +218,15 @@ export const PreviewPage = () => {
     <Layout currentStep={3} crossedSteps={isBookmarkCart || isBookmarkProduct ? [2] : undefined}>
       <form className="grid gap-6 lg:grid-cols-2" onSubmit={handleSubmit}>
         <div className="space-y-4">
-          <div className="rounded-3xl border border-lavender-200/80 bg-white p-4 sm:p-5">
-            <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">Cart</h2>
-            <p className="mt-1 text-xs text-lavender-600 sm:text-sm">Review your selected items and adjust quantities.</p>
+          <div className="rounded-3xl border border-lavender-200/80 bg-white/95 p-4 shadow-md shadow-lavender-200/20 backdrop-blur-sm sm:p-5">
+            <h2 className="font-['Sora'] text-lg font-bold tracking-tight text-lavender-900">Cart</h2>
+            <p className="mt-1 text-xs leading-relaxed text-lavender-600 sm:text-sm">
+              Review your selected items and adjust quantities.
+            </p>
           </div>
 
           {cartItems.length > 0 ? (
-            <div className="rounded-3xl border border-lavender-200/80 bg-white p-4 text-sm sm:p-5">
+            <div className="rounded-3xl border border-lavender-200/80 bg-white/95 p-4 text-sm shadow-md shadow-lavender-200/15 backdrop-blur-sm sm:p-5">
               <div className="mb-3 flex items-center justify-between">
                 <h3 className="font-['Sora'] text-base font-bold text-lavender-900">Order Details</h3>
                 <span className="rounded-full bg-lavender-100 px-2.5 py-1 text-xs font-semibold text-lavender-700">
@@ -241,7 +244,7 @@ export const PreviewPage = () => {
                   return (
                   <div
                     key={item.id}
-                    className="flex flex-col gap-3 rounded-2xl border border-lavender-200 bg-lavender-50/60 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 rounded-2xl border border-lavender-200/80 bg-gradient-to-br from-lavender-50/70 to-white/80 p-3 shadow-sm transition-shadow hover:shadow-md sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex items-start gap-3">
                       <button
@@ -294,11 +297,13 @@ export const PreviewPage = () => {
                         ) : null}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="relative z-20 flex items-center gap-2 [touch-action:manipulation]">
                       <button
                         type="button"
-                        className="btn-secondary h-9 w-9 p-0 text-lg"
-                        onClick={() => {
+                        className="btn-secondary h-10 min-h-10 w-10 min-w-10 flex-shrink-0 p-0 text-lg"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
                           const isLastUnitInCart = cartItems.length === 1 && item.quantity <= 1;
                           dispatch(decrementCartItemQuantity(item.id));
                           if (isLastUnitInCart) {
@@ -308,15 +313,24 @@ export const PreviewPage = () => {
                       >
                         -
                       </button>
-                      <span className="w-8 text-center text-sm font-bold text-lavender-900">{item.quantity}</span>
-                        <button
-                          type="button"
-                          className="btn-secondary h-9 w-9 p-0 text-lg"
-                          disabled={reachedMax}
-                          onClick={() => dispatch(incrementCartItemQuantity({ id: item.id, cap: maxQtyForLine }))}
-                        >
-                          +
-                        </button>
+                      <span className="min-w-8 shrink-0 text-center text-sm font-bold tabular-nums text-lavender-900">
+                        {item.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-secondary h-10 min-h-10 w-10 min-w-10 flex-shrink-0 p-0 text-lg"
+                        disabled={reachedMax}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          if (reachedMax) {
+                            return;
+                          }
+                          dispatch(incrementCartItemQuantity({ id: item.id, cap: maxQtyForLine }));
+                        }}
+                      >
+                        +
+                      </button>
                       <button
                         type="button"
                         className="btn-secondary px-3 py-2 text-xs"
@@ -335,7 +349,7 @@ export const PreviewPage = () => {
                   );
                 })}
               </div>
-              <div className="mt-4 rounded-2xl border border-lavender-200/80 bg-lavender-50/60 p-4">
+              <div className="mt-4 rounded-2xl border border-lavender-200/80 bg-gradient-to-br from-lavender-50/80 to-white/90 p-4 shadow-sm">
                 <p className="text-sm font-semibold text-lavender-900">Want to add more products?</p>
                 <p className="mt-1 text-xs text-lavender-700 sm:text-sm">
                   Continue shopping to add more items to the same cart. Your current cart is preserved.
@@ -354,7 +368,7 @@ export const PreviewPage = () => {
               </div>
             </div>
           ) : (
-            <div className="rounded-3xl border border-lavender-200/80 bg-white p-4 text-sm text-lavender-700 sm:p-5">
+            <div className="rounded-3xl border border-lavender-200/80 bg-white/95 p-6 text-center text-sm leading-relaxed text-lavender-700 shadow-inner shadow-lavender-100/80 sm:p-8">
               No items in cart yet.
             </div>
           )}
@@ -362,7 +376,7 @@ export const PreviewPage = () => {
         </div>
 
         <div className="space-y-4">
-          <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/75 p-4 sm:p-5">
+          <section className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 shadow-md shadow-lavender-200/20 backdrop-blur-sm sm:p-5">
             <h2 className="font-['Sora'] text-lg font-bold text-lavender-900">Customer Details</h2>
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
@@ -385,8 +399,8 @@ export const PreviewPage = () => {
               <label className="block space-y-1.5">
                 <span className="text-sm font-semibold text-lavender-800">Contact Number *</span>
                 <div
-                  className={`flex items-center overflow-hidden rounded-2xl border bg-white/95 ${
-                    fieldErrors.contactNumber ? 'border-red-400 ring-1 ring-red-200' : 'border-lavender-200'
+                  className={`flex items-center overflow-hidden rounded-2xl border bg-white/95 shadow-sm transition-shadow focus-within:border-lavender-500 focus-within:shadow-md focus-within:shadow-lavender-500/15 focus-within:ring-2 focus-within:ring-lavender-200/80 ${
+                    fieldErrors.contactNumber ? 'border-red-400 ring-1 ring-red-200' : 'border-lavender-200/90'
                   }`}
                 >
                   <span className="border-r border-lavender-200 bg-lavender-50 px-3 py-2.5 text-sm font-semibold text-lavender-700">
@@ -434,8 +448,8 @@ export const PreviewPage = () => {
               <label className="block space-y-1.5">
                 <span className="text-sm font-semibold text-lavender-800">Alternative Number</span>
                 <div
-                  className={`flex items-center overflow-hidden rounded-2xl border bg-white/95 ${
-                    fieldErrors.alternateNumber ? 'border-red-400 ring-1 ring-red-200' : 'border-lavender-200'
+                  className={`flex items-center overflow-hidden rounded-2xl border bg-white/95 shadow-sm transition-shadow focus-within:border-lavender-500 focus-within:shadow-md focus-within:shadow-lavender-500/15 focus-within:ring-2 focus-within:ring-lavender-200/80 ${
+                    fieldErrors.alternateNumber ? 'border-red-400 ring-1 ring-red-200' : 'border-lavender-200/90'
                   }`}
                 >
                   <span className="border-r border-lavender-200 bg-lavender-50 px-3 py-2.5 text-sm font-semibold text-lavender-700">

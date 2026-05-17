@@ -294,7 +294,7 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
 
   return (
     <div
-      className={`group w-full overflow-hidden rounded-3xl border border-lavender-200 bg-white text-left transition duration-200 hover:-translate-y-1 hover:border-lavender-400 hover:shadow-soft ${
+      className={`group w-full overflow-hidden rounded-3xl border border-lavender-200/90 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-lavender-400 hover:shadow-lg hover:shadow-lavender-200/35 ${
         isSoldOut ? 'opacity-70' : ''
       }`}
     >
@@ -380,9 +380,9 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
         </div>
       </div>
 
-      <div className="space-y-2.5 p-4">
-        <h3 className="font-['Sora'] text-base font-bold text-lavender-900">{product.name}</h3>
-        <p className="text-sm text-lavender-700">{product.description}</p>
+      <div className="space-y-2.5 border-t border-lavender-100/90 bg-gradient-to-b from-white to-lavender-50/30 p-4">
+        <h3 className="font-['Sora'] text-base font-bold tracking-tight text-lavender-900">{product.name}</h3>
+        <p className="text-sm leading-relaxed text-lavender-700">{product.description}</p>
       </div>
 
       <div className="space-y-3 border-t border-lavender-100 px-4 pb-4 pt-3">
@@ -422,9 +422,10 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
             Customize candle options
           </button>
         ) : null}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between rounded-xl border border-lavender-100/80 bg-white/90 px-3 py-2">
           <div>
-            <p className="text-base font-bold text-lavender-800">{formatRupee(product.basePrice)}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-lavender-500">From</p>
+            <p className="text-base font-bold tabular-nums text-lavender-900">{formatRupee(product.basePrice)}</p>
           </div>
         </div>
       </div>
