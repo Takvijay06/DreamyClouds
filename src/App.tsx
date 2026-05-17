@@ -8,6 +8,7 @@ import { fetchProducts, selectProductsStatus } from './features/products/product
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminDesignsPage } from './pages/AdminDesignsPage';
 import { AdminProductsPage } from './pages/AdminProductsPage';
+import { AnalyticsListeners } from './components/AnalyticsListeners';
 import { ContactUsPage } from './pages/ContactUsPage';
 import { DesignSelectionPage } from './pages/DesignSelectionPage';
 import { PreviewPage } from './pages/PreviewPage';
@@ -83,6 +84,7 @@ const App = () => {
 
       <div className="relative z-10">
         <ScrollToTop />
+        <AnalyticsListeners />
         <Routes>
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />

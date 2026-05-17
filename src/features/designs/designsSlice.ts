@@ -3,6 +3,7 @@ import { RootState } from '../../app/store';
 import { buildStickerProductsFromDesigns } from '../../data/designs';
 import { Design } from '../order/orderTypes';
 import { createDesignInApi, DesignMutationInput, fetchDesignsFromApi, updateDesignInApi } from './designsApi';
+import { trackApiFailure } from '../../services/analytics';
 
 type DesignsState = {
   items: Design[];
@@ -81,6 +82,10 @@ const designsSlice = createSlice({
       .addCase(fetchDesigns.rejected, (state, action) => {
         state.status = 'failed';
         state.error = typeof action.payload === 'string' ? action.payload : 'Failed to load designs';
+        trackApiFailure(
+          'fetch_designs',
+          typeof action.payload === 'string' ? action.payload : 'Failed to load designs'
+        );
       })
       .addCase(createDesign.pending, (state) => {
         state.saveStatus = 'saving';
@@ -95,6 +100,10 @@ const designsSlice = createSlice({
       .addCase(createDesign.rejected, (state, action) => {
         state.saveStatus = 'failed';
         state.saveError = typeof action.payload === 'string' ? action.payload : 'Failed to create design';
+        trackApiFailure(
+          'create_design',
+          typeof action.payload === 'string' ? action.payload : 'Failed to create design'
+        );
       })
       .addCase(updateDesign.pending, (state) => {
         state.saveStatus = 'saving';
@@ -109,6 +118,10 @@ const designsSlice = createSlice({
       .addCase(updateDesign.rejected, (state, action) => {
         state.saveStatus = 'failed';
         state.saveError = typeof action.payload === 'string' ? action.payload : 'Failed to update design';
+        trackApiFailure(
+          'update_design',
+          typeof action.payload === 'string' ? action.payload : 'Failed to update design'
+        );
       });
   }
 });

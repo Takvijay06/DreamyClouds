@@ -294,9 +294,9 @@ export const selectPricing = (state: RootState): Pricing => {
     cartItems.length > 0
       ? cartItems
           .filter((item) => item.product.category === 'candles')
-          .reduce((sum, item) => sum + item.lineTotal, 0)
+          .reduce((sum, item) => sum + item.lineTotal + item.candleScentedCharge + item.candleNoteCharge, 0)
       : product?.category === 'candles'
-        ? fallbackUnitPrice * billableQuantity
+        ? fallbackUnitPrice * billableQuantity + fallbackCandleScentedCharge + fallbackCandleNoteCharge
         : 0;
   const shippingLines =
     cartItems.length > 0

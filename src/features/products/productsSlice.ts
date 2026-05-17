@@ -7,6 +7,7 @@ import {
   ProductMutationInput,
   updateProductInApi
 } from './productsApi';
+import { trackApiFailure } from '../../services/analytics';
 
 type ProductsState = {
   items: Product[];
@@ -85,6 +86,10 @@ const productsSlice = createSlice({
       .addCase(fetchProducts.rejected, (state, action) => {
         state.status = 'failed';
         state.error = typeof action.payload === 'string' ? action.payload : 'Failed to load products';
+        trackApiFailure(
+          'fetch_products',
+          typeof action.payload === 'string' ? action.payload : 'Failed to load products'
+        );
       })
       .addCase(createProduct.pending, (state) => {
         state.saveStatus = 'saving';
@@ -99,6 +104,10 @@ const productsSlice = createSlice({
       .addCase(createProduct.rejected, (state, action) => {
         state.saveStatus = 'failed';
         state.saveError = typeof action.payload === 'string' ? action.payload : 'Failed to create product';
+        trackApiFailure(
+          'create_product',
+          typeof action.payload === 'string' ? action.payload : 'Failed to create product'
+        );
       })
       .addCase(updateProduct.pending, (state) => {
         state.saveStatus = 'saving';
@@ -113,6 +122,10 @@ const productsSlice = createSlice({
       .addCase(updateProduct.rejected, (state, action) => {
         state.saveStatus = 'failed';
         state.saveError = typeof action.payload === 'string' ? action.payload : 'Failed to update product';
+        trackApiFailure(
+          'update_product',
+          typeof action.payload === 'string' ? action.payload : 'Failed to update product'
+        );
       });
   }
 });

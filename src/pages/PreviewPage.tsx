@@ -1,10 +1,11 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { FormInput } from '../components/FormInput';
 import { Layout } from '../components/Layout';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { PriceBreakdown } from '../components/PriceBreakdown';
+import { ANALYTICS_EVENTS } from '../constants/analyticsEvents';
 import {
   clearOrder,
   clearPersistedOrder,
@@ -30,6 +31,7 @@ import { Product } from '../features/order/orderTypes';
 import { remainingAvailableQuantity, toCartLineQuantity } from '../utils/cartQuantity';
 import { formatRupee } from '../utils/currency';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../utils/whatsapp';
+import { trackNamedEvent } from '../services/analytics';
 
 const BUSINESS_WHATSAPP_NUMBER = '6350422134';
 const BUSINESS_UPI_ID = 'Q725828237@ybl';
@@ -54,6 +56,7 @@ export const PreviewPage = () => {
   const [couponInput, setCouponInput] = useState('');
   const [fieldErrors, setFieldErrors] = useState<ValidationErrors>(EMPTY_VALIDATION_ERRORS);
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
+  const pricingViewTrackedRef = useRef(false);
 
   const order = useAppSelector(selectOrder);
   const product = useAppSelector(selectSelectedProduct);
@@ -85,6 +88,14 @@ export const PreviewPage = () => {
   useEffect(() => {
     setCouponInput(order.couponCode);
   }, [order.couponCode]);
+
+  useEffect(() => {
+    if (pricingViewTrackedRef.current) {
+      return;
+    }
+    pricingViewTrackedRef.current = true;
+    trackNamedEvent(ANALYTICS_EVENTS.PRICING_VIEW, { page: 'checkout_preview' });
+  }, []);
 
   const canSubmit = useMemo(() => {
     const details = order.customerDetails;
@@ -148,6 +159,15 @@ export const PreviewPage = () => {
     setFieldErrors(nextFieldErrors);
     const hasAnyFieldError = (Object.keys(nextFieldErrors) as ValidationField[]).some((field) => !!nextFieldErrors[field]);
     if (hasAnyFieldError) {
+      const invalidFields = (Object.keys(nextFieldErrors) as ValidationField[])
+        .filter((field) => !!nextFieldErrors[field])
+        .join(',')
+        .slice(0, 120);
+      trackNamedEvent(ANALYTICS_EVENTS.FORM_VALIDATION_ERROR, {
+        form: 'whatsapp_checkout',
+        invalid_fields: invalidFields,
+        error_count: (Object.keys(nextFieldErrors) as ValidationField[]).filter((f) => nextFieldErrors[f]).length
+      });
       const firstInvalid = (Object.keys(nextFieldErrors) as ValidationField[]).find((field) => !!nextFieldErrors[field]);
       if (firstInvalid) {
         const fieldMap: Record<ValidationField, string> = {
@@ -209,6 +229,12 @@ export const PreviewPage = () => {
     });
 
     const url = buildWhatsAppUrl(BUSINESS_WHATSAPP_NUMBER, message);
+    trackNamedEvent(ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT, {
+      form: 'whatsapp_checkout',
+      success: true,
+      cart_line_count: cartItems.length
+    });
+    trackNamedEvent(ANALYTICS_EVENTS.WHATSAPP_CLICK, { cta: 'proceed_to_buy' });
     clearPersistedOrder();
     dispatch(clearOrder());
     window.location.href = url;

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const OFFER_SLIDES = [
   {
     id: 'candle-shipping',
-    text: 'Free shipping on candle orders over ₹1000 (candle total before delivery).',
+    text: "Free shipping on candle's orders over ₹1000.",
     bar: 'from-amber-400 via-orange-500 to-rose-500',
     chip: 'from-amber-500/20 to-orange-500/15',
     chipText: 'text-amber-900',
@@ -11,7 +11,7 @@ const OFFER_SLIDES = [
   },
   {
     id: 'cart-shipping',
-    text: 'Free shipping on your whole cart when order total before delivery is over ₹2000.',
+    text: 'Free shipping on total cart value above ₹2000.',
     bar: 'from-violet-500 via-fuchsia-500 to-pink-500',
     chip: 'from-violet-500/20 to-fuchsia-500/15',
     chipText: 'text-violet-950',
@@ -19,7 +19,7 @@ const OFFER_SLIDES = [
   },
   {
     id: 'bookmark-pair',
-    text: 'Buy 2 bookmarks for ₹149 in the same order (~25% off vs two × ₹99; you save ₹49 per pair).',
+    text: 'You can save 25% when you buy two bookmarks.',
     bar: 'from-emerald-400 via-teal-500 to-cyan-500',
     chip: 'from-emerald-500/20 to-cyan-500/15',
     chipText: 'text-emerald-950',

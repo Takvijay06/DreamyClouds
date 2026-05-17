@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../app/hooks";
 import { Layout } from "../components/Layout";
 import { ProductCard } from "../components/ProductCard";
+import { ANALYTICS_EVENTS } from "../constants/analyticsEvents";
 import {
   addToCart,
   setCandleNote,
@@ -31,6 +32,7 @@ import {
 } from "../features/products/productsSlice";
 import { remainingAvailableQuantity, toCartLineQuantity } from "../utils/cartQuantity";
 import { formatRupee } from "../utils/currency";
+import { trackNamedEvent, trackOutboundLink, trackUserJourneyFunnel } from "../services/analytics";
 
 type ProductCategoryTab = ProductCategory | "trending" | "steel-tumblers" | "glass-tumblers";
 type SortOption = "high-to-low" | "low-to-high";
@@ -76,7 +78,6 @@ const normalizeStickerSubCategory = (value: unknown): StickerSubCategory => {
 };
 
 export const ProductSelectionPage = () => {
-  const INSTAGRAM_URL = "https://www.instagram.com/dreamycloudsbydaisy/";
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const order = useAppSelector(selectOrder);
@@ -116,8 +117,19 @@ export const ProductSelectionPage = () => {
   const hasStickerSubCategoryInitializedRef = useRef(false);
   const pendingCandleOptionsScrollRef = useRef(false);
   const DAISY_BOUQUET_CANDLE_ID = "candle-daisy-flower-bouquet";
+  const portfolioViewLoggedRef = useRef(false);
   const isDaisyBouquetCandle = selectedProduct?.id === DAISY_BOUQUET_CANDLE_ID;
   const showCandleOptionsPanel = selectedProduct?.category === "candles";
+
+  useEffect(() => {
+    if (portfolioViewLoggedRef.current) {
+      return;
+    }
+    portfolioViewLoggedRef.current = true;
+    trackNamedEvent(ANALYTICS_EVENTS.PORTFOLIO_VIEW, { source: "product_grid" });
+  }, []);
+
+  const INSTAGRAM_URL = "https://www.instagram.com/dreamycloudsbydaisy/";
 
   const filteredProducts = useMemo(
     () =>
@@ -410,16 +422,21 @@ export const ProductSelectionPage = () => {
     dispatch(setProduct(product.id));
     if (shouldUseCandleCustomizationStep(product)) {
       pendingCandleOptionsScrollRef.current = true;
+      trackUserJourneyFunnel("get_started_candle_customize", 2);
       if (order.productId === product.id) {
         scrollToCandleOptions();
       }
       return;
     }
     if (shouldUseDesignStep(product)) {
+      trackUserJourneyFunnel("get_started_design", 2);
+      trackNamedEvent(ANALYTICS_EVENTS.SCHEDULE_MEETING, { step: "navigate_design" });
       navigate("/design");
       return;
     }
     dispatch(addToCart(buildCartPayloadForProduct(product)));
+    trackNamedEvent(ANALYTICS_EVENTS.QUOTE_REQUEST, { cta: "buy_now_card" });
+    trackUserJourneyFunnel("get_started_cart", 3);
     navigate("/preview");
   };
 
@@ -429,11 +446,15 @@ export const ProductSelectionPage = () => {
     }
 
     if (shouldUseDesignStep(selectedProduct)) {
+      trackUserJourneyFunnel("get_started_design", 2);
+      trackNamedEvent(ANALYTICS_EVENTS.SCHEDULE_MEETING, { step: "primary_next_design" });
       navigate("/design");
       return;
     }
 
     dispatch(addToCart(buildCartPayloadForProduct(selectedProduct)));
+    trackNamedEvent(ANALYTICS_EVENTS.QUOTE_REQUEST, { cta: "primary_add_or_next" });
+    trackUserJourneyFunnel("get_started_cart", 3);
     navigate("/preview");
   };
 
@@ -456,6 +477,10 @@ export const ProductSelectionPage = () => {
               target="_blank"
               rel="noreferrer"
               className="rounded font-semibold text-lavender-700 underline decoration-lavender-300 underline-offset-4 transition hover:text-lavender-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-lavender-400 focus-visible:ring-offset-2"
+              onClick={() => {
+                trackOutboundLink(INSTAGRAM_URL, "instagram_shop_banner");
+                trackNamedEvent(ANALYTICS_EVENTS.PORTFOLIO_VIEW, { cta: "instagram_link" });
+              }}
             >
               @dreamycloudsbydaisy
             </a>
@@ -563,6 +588,7 @@ export const ProductSelectionPage = () => {
                 {filteredProducts.length} options
               </span>
             </div>
+            <form className="contents" onSubmit={(event) => event.preventDefault()}>
             <label className="flex items-center gap-2 text-sm font-semibold text-lavender-700">
               <select
                 className="input w-auto min-w-[150px] py-2"
@@ -575,6 +601,7 @@ export const ProductSelectionPage = () => {
                 <option value="low-to-high">Low to High</option>
               </select>
             </label>
+            </form>
           </div>
 
           {activeCategory === "stickers" &&

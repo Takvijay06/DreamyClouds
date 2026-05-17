@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
+import { ANALYTICS_EVENTS } from '../constants/analyticsEvents';
 import brandLogo from '../data/Logos/Logo_4.jpeg';
+import { trackNamedEvent, trackOutboundLink } from '../services/analytics';
 
 const BUSINESS_WHATSAPP_NUMBER = '6350422134';
 const BUSINESS_EMAIL = 'dreamycloudsbydaisy@gmail.com';
@@ -70,13 +72,25 @@ export const ContactUsPage = () => {
               href={`https://wa.me/91${BUSINESS_WHATSAPP_NUMBER}`}
               target="_blank"
               rel="noreferrer"
+              onClick={() => trackNamedEvent(ANALYTICS_EVENTS.WHATSAPP_CLICK, { cta: 'hero_whatsapp_now' })}
             >
               WhatsApp Now
             </a>
-            <a className="btn-secondary mt-1.5 w-full sm:mt-2" href={`mailto:${BUSINESS_EMAIL}`}>
+            <a
+              className="btn-secondary mt-1.5 w-full sm:mt-2"
+              href={`mailto:${BUSINESS_EMAIL}`}
+              onClick={() => {
+                trackNamedEvent(ANALYTICS_EVENTS.EMAIL_CLICK, { cta: 'hero_email' });
+                trackOutboundLink(`mailto:${BUSINESS_EMAIL}`, 'contact_email_hero');
+              }}
+            >
               Email Us
             </a>
-            <Link to="/" className="btn-primary mt-1.5 w-full gap-2 sm:mt-2">
+            <Link
+              to="/"
+              className="btn-primary mt-1.5 w-full gap-2 sm:mt-2"
+              onClick={() => trackNamedEvent(ANALYTICS_EVENTS.PORTFOLIO_VIEW, { cta: 'contact_back_to_shop' })}
+            >
               <span aria-hidden="true">←</span>
               <span>Back to Shop</span>
             </Link>
@@ -95,7 +109,18 @@ export const ContactUsPage = () => {
             {offerings.map((item, index) => (
               <div
                 key={item.title}
-                className="rounded-2xl border border-lavender-200/80 bg-gradient-to-br from-white to-lavender-50 p-3.5 shadow-[0_10px_20px_-16px_rgba(97,57,171,0.45)] sm:p-4"
+                role="button"
+                tabIndex={0}
+                onClick={() =>
+                  trackNamedEvent(ANALYTICS_EVENTS.SERVICE_CARD_CLICK, { service_key: item.title.slice(0, 60) })
+                }
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    trackNamedEvent(ANALYTICS_EVENTS.SERVICE_CARD_CLICK, { service_key: item.title.slice(0, 60) });
+                  }
+                }}
+                className="cursor-pointer rounded-2xl border border-lavender-200/80 bg-gradient-to-br from-white to-lavender-50 p-3.5 shadow-[0_10px_20px_-16px_rgba(97,57,171,0.45)] outline-none transition hover:border-lavender-300 hover:shadow-md focus-visible:ring-2 focus-visible:ring-lavender-400 sm:p-4"
               >
                 <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-lavender-600 px-2 text-xs font-bold text-white">
                   {index + 1}
@@ -114,9 +139,23 @@ export const ContactUsPage = () => {
             <p className="text-xs font-semibold uppercase tracking-wide text-lavender-500">WhatsApp</p>
             <span className="rounded-full bg-lavender-100 px-2 py-1 text-[11px] font-semibold text-lavender-700">Fast Reply</span>
           </div>
-          <p className="mt-1.5 font-['Sora'] text-base font-bold text-lavender-900 sm:mt-2 sm:text-lg">+91 {BUSINESS_WHATSAPP_NUMBER}</p>
+          <p className="mt-1.5 font-['Sora'] text-base font-bold text-lavender-900 sm:mt-2 sm:text-lg">
+            <a
+              href={`tel:+91${BUSINESS_WHATSAPP_NUMBER}`}
+              className="text-inherit underline decoration-lavender-300 underline-offset-2 hover:text-lavender-700"
+              onClick={() => trackNamedEvent(ANALYTICS_EVENTS.CALL_CLICK, { cta: 'whatsapp_section' })}
+            >
+              +91 {BUSINESS_WHATSAPP_NUMBER}
+            </a>
+          </p>
           <p className="mt-1 text-sm text-lavender-700">Best for order booking, price discussion, and quick updates.</p>
-          <a className="btn-secondary mt-3 w-full sm:mt-4" href={`https://wa.me/91${BUSINESS_WHATSAPP_NUMBER}`} target="_blank" rel="noreferrer">
+          <a
+            className="btn-secondary mt-3 w-full sm:mt-4"
+            href={`https://wa.me/91${BUSINESS_WHATSAPP_NUMBER}`}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => trackNamedEvent(ANALYTICS_EVENTS.WHATSAPP_CLICK, { cta: 'contact_card_chat' })}
+          >
             Chat on WhatsApp
           </a>
         </article>
@@ -128,7 +167,14 @@ export const ContactUsPage = () => {
           </div>
           <p className="mt-1.5 break-all font-['Sora'] text-sm font-bold text-lavender-900 sm:mt-2 sm:text-base">{BUSINESS_EMAIL}</p>
           <p className="mt-1 text-sm text-lavender-700">Best for corporate gifting, event stalls, and custom quotations.</p>
-          <a className="btn-secondary mt-3 w-full sm:mt-4" href={`mailto:${BUSINESS_EMAIL}`}>
+          <a
+            className="btn-secondary mt-3 w-full sm:mt-4"
+            href={`mailto:${BUSINESS_EMAIL}`}
+            onClick={() => {
+              trackNamedEvent(ANALYTICS_EVENTS.EMAIL_CLICK, { cta: 'contact_card' });
+              trackOutboundLink(`mailto:${BUSINESS_EMAIL}`, 'contact_email_card');
+            }}
+          >
             Send an Email
           </a>
         </article>

@@ -1,9 +1,11 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
+import { ANALYTICS_EVENTS } from '../constants/analyticsEvents';
 import brandLogo from '../data/Logos/Logo_4.jpeg';
 import { resetCurrentSelection } from '../features/order/orderSlice';
 import { selectCartItemCount } from '../features/order/selectors';
+import { trackNamedEvent, trackUserJourneyFunnel } from '../services/analytics';
 import { FestivalBanner } from './FestivalBanner';
 import { StepProgress } from './StepProgress';
 
@@ -68,7 +70,15 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
       </footer>
 
       <div className="contact-fab" aria-label="Contact">
-        <Link to="/contact-us" className="contact-fab-icon" aria-label="Go to Contact Us page">
+        <Link
+          to="/contact-us"
+          className="contact-fab-icon"
+          aria-label="Go to Contact Us page"
+          onClick={() => {
+            trackNamedEvent(ANALYTICS_EVENTS.QUOTE_REQUEST, { cta: 'contact_fab' });
+            trackUserJourneyFunnel('contact_us_click', 1);
+          }}
+        >
           <span aria-hidden="true">{'\u{1F964}'}</span>
         </Link>
         <span className="contact-fab-text">Contact Us</span>
@@ -83,6 +93,7 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
             onClick={() => {
               dispatch(resetCurrentSelection());
               window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+              trackUserJourneyFunnel('continue_shopping', 2);
             }}
           >
             <span aria-hidden="true">{'\u{1F6CD}'}</span>
@@ -91,7 +102,12 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
         </div>
       ) : (
         <div className="cart-fab" aria-label="Cart">
-          <Link to="/preview" className="cart-fab-icon" aria-label="Go to cart page">
+          <Link
+            to="/preview"
+            className="cart-fab-icon"
+            aria-label="Go to cart page"
+            onClick={() => trackUserJourneyFunnel('cart_open', 3)}
+          >
             <span aria-hidden="true">{'\u{1F6D2}'}</span>
             {cartItemCount > 0 ? <span className="cart-fab-badge">{cartItemCount}</span> : null}
           </Link>

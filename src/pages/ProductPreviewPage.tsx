@@ -3,9 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAppSelector } from '../app/hooks';
 import { Layout } from '../components/Layout';
 import { NoImageBanner } from '../components/NoImageBanner';
+import { ANALYTICS_EVENTS } from '../constants/analyticsEvents';
 import { selectStickerProducts } from '../features/designs/designsSlice';
 import { selectProducts } from '../features/products/productsSlice';
 import { formatRupee } from '../utils/currency';
+import { trackNamedEvent } from '../services/analytics';
 
 const IMAGE_SLIDE_MS = 260;
 
@@ -214,6 +216,12 @@ export const ProductPreviewPage = () => {
   const shareUrl = window.location.href;
 
   const handleShareWhatsApp = () => {
+    if (product) {
+      trackNamedEvent(ANALYTICS_EVENTS.WHATSAPP_CLICK, {
+        cta: 'product_detail_share',
+        product_category: product.category
+      });
+    }
     const message = `${shareText}\n${shareUrl}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer');

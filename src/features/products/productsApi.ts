@@ -53,11 +53,7 @@ const buildMutationPayload = (input: ProductMutationInput) => {
   const images = primaryImage ? [primaryImage, ...galleryImages] : galleryImages;
   const colorAvailable = sanitizeStringList(input.colors);
 
-  // Do not send shipping_quantity_mode or candle_jar_packaged until those columns exist on
-  // `products` in Supabase; otherwise PostgREST returns a schema cache error. Reads still
-  // accept them via buildProductsFromApi when the API returns them.
-
-  return {
+  const payload: Record<string, unknown> = {
     id: input.id.trim(),
     name: input.name.trim(),
     description: input.description.trim(),
@@ -71,6 +67,16 @@ const buildMutationPayload = (input: ProductMutationInput) => {
     color_available: colorAvailable,
     shipping: input.shippingCharge
   };
+
+  if (input.category !== 'stickers' && input.category !== 'accessories' && input.shippingQuantityMode) {
+    payload.shipping_quantity_mode = input.shippingQuantityMode;
+  }
+
+  if (input.category === 'candles' && input.candleJarPackaged !== null && input.candleJarPackaged !== undefined) {
+    payload.candle_jar_packaged = input.candleJarPackaged;
+  }
+
+  return payload;
 };
 
 const parseProductsResponse = async (response: Response): Promise<Product[]> => {

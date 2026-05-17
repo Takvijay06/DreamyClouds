@@ -21,6 +21,8 @@ import {
 } from '../features/order/selectors';
 import { Design } from '../features/order/orderTypes';
 import { selectDesignsError, selectDesignsStatus } from '../features/designs/designsSlice';
+import { ANALYTICS_EVENTS } from '../constants/analyticsEvents';
+import { trackNamedEvent, trackUserJourneyFunnel } from '../services/analytics';
 import { remainingAvailableQuantity, toCartLineQuantity } from '../utils/cartQuantity';
 
 export const DesignSelectionPage = () => {
@@ -355,6 +357,8 @@ export const DesignSelectionPage = () => {
                     replaceExisting: true
                   })
                 );
+                trackNamedEvent(ANALYTICS_EVENTS.QUOTE_REQUEST, { cta: 'design_step_add_to_cart' });
+                trackUserJourneyFunnel('design_add_to_cart', 4);
                 navigate('/preview');
             }}
           >
