@@ -47,7 +47,9 @@ export const buildWhatsAppMessage = ({
           '*Selected Product Details*',
           `- Product: ${product.name}`,
           ...(product.id === CUP_CAKE_CANDLE_ID ? [`- Design: ${selectedColor || 'HBD with teddy'}`] : []),
-          ...(product.id === 'candle-daisy-flower-bouquet' ? [`- Color: ${selectedColor || 'White'}`] : []),
+          ...(product.category === 'candles' && (product.colors?.length ?? 0) > 0
+            ? [`- Color: ${selectedColor || '—'}`]
+            : []),
           `- Design: ${design?.name ?? 'Not selected'}`,
           `- Placement: ${
             letDaisyDecide
@@ -58,8 +60,9 @@ export const buildWhatsAppMessage = ({
                   ? 'Random Placement'
                   : 'N/A'
           }`,
+          ...(product.category === 'candles' ? [`- Scented: ${candleScented ? 'Yes' : 'No'}`] : []),
           ...(product.id === 'candle-daisy-flower-bouquet'
-            ? [`- Scented: ${candleScented ? 'Yes' : 'No'}`, `- Candle Note: ${candleNote.trim() || 'N/A'}`]
+            ? [`- Candle Note: ${candleNote.trim() || 'N/A'}`]
             : []),
           `- Name: ${designCustomerName.trim() || 'N/A'}`,
           `- Quantity: ${quantity}`,

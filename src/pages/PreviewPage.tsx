@@ -170,11 +170,13 @@ export const PreviewPage = () => {
               `- Product: ${item.product.name}`,
               ...(item.sticker ? [`- Sticker: ${item.sticker.name}`] : []),
               ...(item.product.id === CUP_CAKE_CANDLE_ID ? [`- Design: ${item.selectedColor || 'HBD with teddy'}`] : []),
-              ...(item.product.id === 'candle-daisy-flower-bouquet'
+              ...(item.product.category === 'candles'
                 ? [
-                    `- Color: ${item.selectedColor || 'White'}`,
+                    ...((item.product.colors?.length ?? 0) > 0 ? [`- Color: ${item.selectedColor || '—'}`] : []),
                     `- Scented: ${item.candleScented ? 'Yes' : 'No'}`,
-                    ...(item.candleNote ? [`- Candle Note: ${item.candleNote}`] : [])
+                    ...(item.product.id === 'candle-daisy-flower-bouquet' && item.candleNote
+                      ? [`- Candle Note: ${item.candleNote}`]
+                      : [])
                   ]
                 : []),
               ...(item.personalizedNote ? [`- Name: ${item.personalizedNote}`] : []),
@@ -269,7 +271,7 @@ export const PreviewPage = () => {
                         {item.product.category === 'candles' ? (
                           <p className="text-xs text-lavender-700">Scented: {item.candleScented ? 'Yes' : 'No'}</p>
                         ) : null}
-                        {item.product.category === 'candles' && item.candleNote ? (
+                        {item.product.id === 'candle-daisy-flower-bouquet' && item.candleNote ? (
                           <p className="text-xs font-medium text-lavender-700">Note: {item.candleNote}</p>
                         ) : null}
                         {item.sticker ? (

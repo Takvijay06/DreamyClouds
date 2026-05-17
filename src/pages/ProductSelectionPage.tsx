@@ -41,6 +41,7 @@ const CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
   { key: "steel-tumblers", label: "Steel Tumbler" },
   { key: "glass-tumblers", label: "Glass Tumbler" },
   { key: "mugs", label: "Mugs" },
+  { key: "bookmarks", label: "Bookmarks" },
   { key: "candles", label: "Candles" },
   { key: "accessories", label: "Accessories" },
   { key: "stickers", label: "Stickers" },
@@ -94,6 +95,9 @@ export const ProductSelectionPage = () => {
           ? "glass-tumblers"
           : "steel-tumblers";
       }
+      if (selectedProduct?.category === "bookmarks") {
+        return "bookmarks";
+      }
       return (
         (selectedProduct?.category as ProductCategoryTab) ?? "steel-tumblers"
       );
@@ -112,8 +116,9 @@ export const ProductSelectionPage = () => {
   const hasMountedProductScrollRef = useRef(false);
   const hasStickerSubCategoryInitializedRef = useRef(false);
   const pendingCandleOptionsScrollRef = useRef(false);
-  const isDaisyBouquetCandle =
-    selectedProduct?.id === "candle-daisy-flower-bouquet";
+  const DAISY_BOUQUET_CANDLE_ID = "candle-daisy-flower-bouquet";
+  const isDaisyBouquetCandle = selectedProduct?.id === DAISY_BOUQUET_CANDLE_ID;
+  const showCandleOptionsPanel = selectedProduct?.category === "candles";
   const { label: alternatingTrendingLabel, isMothersDaySpecial } =
     useAlternatingTrendingTabLabel();
 
@@ -236,16 +241,12 @@ export const ProductSelectionPage = () => {
     hasStickerSubCategoryInitializedRef.current = true;
   }, [activeCategory, designsStatus, filteredProducts.length, stickerProducts]);
   const selectedColorOptions = useMemo(() => {
-    if (
-      !selectedProduct ||
-      selectedProduct.category !== "candles" ||
-      !isDaisyBouquetCandle
-    ) {
+    if (!selectedProduct || selectedProduct.category !== "candles") {
       return [];
     }
 
     return selectedProduct.colors ?? [];
-  }, [isDaisyBouquetCandle, selectedProduct]);
+  }, [selectedProduct]);
 
   const candleScentedAddonLabel = useMemo(() => {
     if (!selectedProduct || selectedProduct.category !== "candles") {
@@ -266,30 +267,41 @@ export const ProductSelectionPage = () => {
       return;
     }
 
-    if (selectedProduct.category !== "candles" || !isDaisyBouquetCandle) {
+    if (selectedProduct.category !== "candles") {
       if (order.selectedColor) {
         dispatch(setSelectedColor(""));
       }
       if (order.candleScented) {
         dispatch(setCandleScented(false));
       }
+      if (order.candleNote) {
+        dispatch(setCandleNote(""));
+      }
       return;
     }
 
-    const nextColor = selectedColorOptions[0] ?? "";
-    if (
-      !order.selectedColor ||
-      !selectedColorOptions.includes(order.selectedColor)
-    ) {
-      dispatch(setSelectedColor(nextColor));
+    if (selectedProduct.id !== DAISY_BOUQUET_CANDLE_ID && order.candleNote) {
+      dispatch(setCandleNote(""));
+    }
+
+    const colorList = selectedColorOptions.filter((c: string) => c.trim().length > 0);
+    if (colorList.length === 0) {
+      if (order.selectedColor) {
+        dispatch(setSelectedColor(""));
+      }
+      return;
+    }
+
+    if (!order.selectedColor || !colorList.includes(order.selectedColor)) {
+      dispatch(setSelectedColor(colorList[0] ?? ""));
     }
   }, [
     dispatch,
-    order.candleScented,
+    order.candleNote,
     order.selectedColor,
+    order.candleScented,
     selectedColorOptions,
     selectedProduct,
-    isDaisyBouquetCandle,
   ]);
 
   useEffect(() => {
@@ -337,12 +349,12 @@ export const ProductSelectionPage = () => {
   }, [order.productId]);
 
   useEffect(() => {
-    if (!pendingCandleOptionsScrollRef.current || !isDaisyBouquetCandle) {
+    if (!pendingCandleOptionsScrollRef.current || !showCandleOptionsPanel) {
       return;
     }
     pendingCandleOptionsScrollRef.current = false;
     scrollToCandleOptions();
-  }, [isDaisyBouquetCandle]);
+  }, [showCandleOptionsPanel]);
 
   const shouldUseDesignStep = (product: Product | null) => {
     if (!product) {
@@ -355,7 +367,7 @@ export const ProductSelectionPage = () => {
     if (!product) {
       return false;
     }
-    return product.id === "candle-daisy-flower-bouquet";
+    return product.category === "candles";
   };
 
   const scrollToCandleOptions = () => {
@@ -371,17 +383,19 @@ export const ProductSelectionPage = () => {
   };
 
   const buildCartPayloadForProduct = (product: Product) => {
-    const isDaisy = product.id === "candle-daisy-flower-bouquet";
+    const isCandle = product.category === "candles";
+    const isDaisy = product.id === DAISY_BOUQUET_CANDLE_ID;
     const colorList = product.colors?.filter((c) => c.trim().length > 0) ?? [];
-    const useOrderCandleOptions = isDaisy && order.productId === product.id;
-    const selectedColor = isDaisy
-      ? (useOrderCandleOptions ? order.selectedColor : "") || colorList[0] || ""
-      : "";
+    const useOrderCandleOptions = isCandle && order.productId === product.id;
+    const selectedColor =
+      isCandle && colorList.length > 0
+        ? (useOrderCandleOptions ? order.selectedColor : "") || colorList[0] || ""
+        : "";
     return {
       productId: product.id,
       quantity: order.quantity,
       selectedColor,
-      candleScented: isDaisy && useOrderCandleOptions ? order.candleScented : false,
+      candleScented: isCandle && useOrderCandleOptions ? order.candleScented : false,
       candleNote: isDaisy && useOrderCandleOptions ? order.candleNote : "",
       selectedStickerId: null as string | null,
       personalizedNote: "",
@@ -426,10 +440,10 @@ export const ProductSelectionPage = () => {
     navigate("/preview");
   };
 
-  const handleRequestCandleOptions = () => {
-    dispatch(setProduct("candle-daisy-flower-bouquet"));
+  const handleRequestCandleOptions = (productId: string) => {
+    dispatch(setProduct(productId));
     pendingCandleOptionsScrollRef.current = true;
-    if (order.productId === "candle-daisy-flower-bouquet") {
+    if (order.productId === productId) {
       scrollToCandleOptions();
     }
   };
@@ -591,8 +605,8 @@ export const ProductSelectionPage = () => {
                   onShare={(item) => navigate(`/product/${item.id}`)}
                   onBuyNow={handleBuyNow}
                   onRequestCandleOptions={
-                    product.id === "candle-daisy-flower-bouquet"
-                      ? handleRequestCandleOptions
+                    product.category === "candles"
+                      ? () => handleRequestCandleOptions(product.id)
                       : undefined
                   }
                 />
@@ -601,7 +615,7 @@ export const ProductSelectionPage = () => {
           )}
         </section>
 
-        {isDaisyBouquetCandle ? (
+        {showCandleOptionsPanel ? (
           <section
             ref={candleOptionsRef}
             className="space-y-4 rounded-3xl border border-lavender-200/80 bg-white/90 p-4 sm:p-5"
@@ -609,31 +623,28 @@ export const ProductSelectionPage = () => {
             <h3 className="font-['Sora'] text-sm font-bold uppercase tracking-wide text-lavender-800">
               Candle Options
             </h3>
-            <label className="block space-y-1.5">
-              <span className="text-sm font-semibold text-lavender-800">
-                Color
-              </span>
-              <select
-                className="input"
-                disabled={selectedColorOptions.length === 0}
-                value={order.selectedColor}
-                onChange={(event) =>
-                  dispatch(setSelectedColor(event.target.value))
-                }
-              >
-                {selectedColorOptions.length === 0 ? (
-                  <option value="">
-                    No colors listed for this product yet
-                  </option>
-                ) : (
-                  selectedColorOptions.map((color:any) => (
-                    <option key={color} value={color}>
-                      {color}
-                    </option>
-                  ))
-                )}
-              </select>
-            </label>
+            {selectedColorOptions.filter((c: string) => c.trim().length > 0).length > 0 ? (
+              <label className="block space-y-1.5">
+                <span className="text-sm font-semibold text-lavender-800">
+                  Color
+                </span>
+                <select
+                  className="input"
+                  value={order.selectedColor}
+                  onChange={(event) =>
+                    dispatch(setSelectedColor(event.target.value))
+                  }
+                >
+                  {selectedColorOptions
+                    .filter((c: string) => c.trim().length > 0)
+                    .map((color: string) => (
+                      <option key={color} value={color}>
+                        {color}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            ) : null}
 
             <label className="flex items-center gap-3 rounded-2xl border border-lavender-200/80 bg-white p-4">
               <input
@@ -674,7 +685,7 @@ export const ProductSelectionPage = () => {
         <div ref={buttonAreaRef} className="flex justify-end">
           <div className="flex flex-col items-end gap-1.5">
             <p className="text-right text-xs text-lavender-600">
-              For Daisy bouquet: Buy now opens candle options below. Use Next after customizing to continue.
+              For candles: Buy now opens customization below when needed. Use Next after choosing options to continue.
             </p>
             <button
               className="btn-primary"

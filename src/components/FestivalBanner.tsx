@@ -1,73 +1,119 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
-interface FestivalSlide {
-  title: string;
-  subtitle: string;
-  details: string;
-  gradient: string;
-  chip: string;
-}
-
-const FESTIVAL_SLIDES: FestivalSlide[] = [
+const OFFER_SLIDES = [
   {
-    title: 'Full Sticker Offer',
-    subtitle: 'With our tumblers, sticker charge is only INR 199.',
-    details: 'Sticker Only INR 299',
-    gradient: 'from-[#20bf55] via-[#01baef] to-[#0b4f6c]',
-    chip: 'Limited Offer'
+    id: 'candle-shipping',
+    text: 'Free shipping on candle orders over ₹1000 (candle total before delivery).'
   },
   {
-    title: 'Customisation',
-    subtitle: 'Start with Rs. 10',
-    details: 'Customisation Start with Rs. 10',
-    gradient: 'from-[#7b2ff7] via-[#f107a3] to-[#ff4d4d]',
-    chip: 'Start at 10'
+    id: 'cart-shipping',
+    text: 'Free shipping on your whole cart when order total before delivery is over ₹2000.'
+  },
+  {
+    id: 'bookmark-pair',
+    text: 'Buy 2 bookmarks for ₹149 in the same order (~25% off vs two × ₹99; you save ₹49 per pair).'
   }
-];
+] as const;
 
-const AUTO_ROTATE_MS = 6400;
+const ROTATE_MS = 6000;
 
 export const FestivalBanner = () => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const activeSlide = useMemo(() => FESTIVAL_SLIDES[activeIndex], [activeIndex]);
+  const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % FESTIVAL_SLIDES.length);
-    }, AUTO_ROTATE_MS);
-
-    return () => window.clearInterval(timer);
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const apply = () => setReduceMotion(mq.matches);
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
   }, []);
+
+  const goNext = useCallback(() => {
+    setIndex((i) => (i + 1) % OFFER_SLIDES.length);
+  }, []);
+
+  useEffect(() => {
+    if (reduceMotion || paused) {
+      return undefined;
+    }
+    const id = window.setInterval(goNext, ROTATE_MS);
+    return () => window.clearInterval(id);
+  }, [goNext, reduceMotion, paused, index]);
+
+  const slide = OFFER_SLIDES[index];
 
   return (
     <section
-      className={`relative mt-4 overflow-hidden rounded-2xl border border-lavender-300/70 bg-gradient-to-r ${activeSlide.gradient} px-4 py-3 shadow-soft transition-all duration-700`}
+      className="relative mt-5 overflow-hidden rounded-[1.35rem] border border-emerald-200/60 bg-gradient-to-br from-white via-emerald-50/90 to-teal-50/80 shadow-[0_24px_48px_-32px_rgba(13,148,136,0.45),0_0_0_1px_rgba(255,255,255,0.65)_inset] backdrop-blur-xl sm:rounded-3xl"
+      aria-label="Offers"
+      aria-roledescription="carousel"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
     >
-      <div className="pointer-events-none absolute -left-6 top-1/2 h-20 w-20 -translate-y-1/2 rounded-full bg-white/20 blur-md" />
-      <div className="pointer-events-none absolute -right-8 top-1/3 h-24 w-24 rounded-full bg-white/20 blur-md" />
+      <div
+        className="festival-offers-ambient pointer-events-none absolute inset-0 opacity-70 motion-reduce:opacity-50"
+        aria-hidden="true"
+        style={{
+          background:
+            'radial-gradient(120% 80% at 95% -10%, rgba(45, 212, 191, 0.32), transparent 45%), radial-gradient(100% 70% at -5% 110%, rgba(16, 185, 129, 0.22), transparent 48%), radial-gradient(ellipse 60% 40% at 50% 100%, rgba(6, 182, 212, 0.12), transparent 55%)'
+        }}
+      />
 
-      <div className="relative z-10 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="inline-flex rounded-full border border-white/35 bg-white/20 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.18em] text-white">
-            {activeSlide.chip}
+      <div
+        className="festival-offer-shimmer pointer-events-none absolute inset-x-6 top-0 h-[2px] rounded-full bg-gradient-to-r from-transparent via-emerald-400/90 to-transparent opacity-90 sm:inset-x-10"
+        aria-hidden="true"
+      />
+
+      <div
+        className="pointer-events-none absolute -right-16 top-1/2 h-56 w-56 -translate-y-1/2 rounded-full bg-gradient-to-br from-teal-300/25 to-cyan-200/15 blur-3xl motion-reduce:opacity-60"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute -left-12 bottom-0 h-40 w-52 rounded-full bg-emerald-200/25 blur-3xl motion-reduce:opacity-60"
+        aria-hidden="true"
+      />
+
+      <div className="relative z-10 p-4 sm:p-6">
+        <div className="inline-flex items-center rounded-full border border-emerald-200/70 bg-white/75 px-3 py-1.5 shadow-[0_4px_20px_-8px_rgba(5,150,105,0.35)] backdrop-blur-md">
+          <p className="bg-gradient-to-r from-emerald-800 via-teal-800 to-emerald-800 bg-clip-text font-['Sora'] text-[10px] font-extrabold uppercase tracking-[0.35em] text-transparent sm:text-[11px]">
+            Offers
           </p>
-          <h3 className="mt-1 font-['Sora'] text-lg font-extrabold uppercase tracking-[0.16em] text-white sm:text-xl">
-            {activeSlide.title}
-          </h3>
-          <p className="text-sm font-semibold text-white/95">{activeSlide.subtitle}</p>
-          <p className="text-xs text-white/85 sm:text-sm">{activeSlide.details}</p>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {FESTIVAL_SLIDES.map((slide, index) => (
+        <div
+          className="relative mt-4 overflow-hidden rounded-2xl border border-white/90 bg-white/55 p-4 shadow-[0_8px_30px_-18px_rgba(15,118,110,0.28)] backdrop-blur-md sm:mt-5 sm:p-5"
+          aria-live="polite"
+        >
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-teal-50/30"
+            aria-hidden="true"
+          />
+          <p
+            key={index}
+            id={`offer-slide-${slide.id}`}
+            className="festival-slide-enter relative z-[1] min-w-0 max-w-3xl font-['Sora'] text-[0.98rem] font-semibold leading-relaxed text-emerald-950 antialiased sm:text-[1.05rem] sm:leading-relaxed"
+            style={{ textShadow: '0 1px 0 rgba(255,255,255,0.85)' }}
+          >
+            {slide.text}
+          </p>
+        </div>
+
+        <div className="mt-5 flex items-center justify-center gap-2.5 sm:mt-6 sm:gap-3">
+          {OFFER_SLIDES.map((s, i) => (
             <button
-              key={slide.title}
+              key={s.id}
               type="button"
-              aria-label={`Show banner ${index + 1}`}
-              onClick={() => setActiveIndex(index)}
-              className={`h-2.5 rounded-full transition-all ${
-                index === activeIndex ? 'w-7 bg-white' : 'w-2.5 bg-white/55 hover:bg-white/80'
+              className={`relative h-2.5 rounded-full transition-[width,transform,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-50/80 ${
+                i === index
+                  ? 'w-10 scale-100 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 shadow-[0_4px_16px_-4px_rgba(13,148,136,0.55)]'
+                  : 'w-2.5 scale-95 bg-emerald-300/80 hover:scale-100 hover:bg-emerald-400 active:scale-95'
               }`}
+              aria-label={`Show offer ${i + 1}`}
+              aria-controls={`offer-slide-${s.id}`}
+              aria-current={i === index ? 'true' : undefined}
+              onClick={() => setIndex(i)}
             />
           ))}
         </div>
@@ -75,4 +121,3 @@ export const FestivalBanner = () => {
     </section>
   );
 };
-

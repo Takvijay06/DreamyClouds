@@ -27,6 +27,7 @@ const CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
   { key: 'steel-tumblers', label: 'Steel Tumbler' },
   { key: 'glass-tumblers', label: 'Glass Tumbler' },
   { key: 'mugs', label: 'Mugs' },
+  { key: 'bookmarks', label: 'Bookmarks' },
   { key: 'candles', label: 'Candles' },
   { key: 'accessories', label: 'Accessories' },
   { key: 'stickers', label: 'Stickers' }
@@ -211,11 +212,14 @@ export const AdminProductsPage = () => {
   };
 
   const handleCreateProduct = () => {
-    const nextCategory: ProductCategory = activeCategory === 'glass-tumblers' || activeCategory === 'steel-tumblers' || activeCategory === 'trending'
-      ? 'tumblers'
-      : activeCategory === 'stickers'
-        ? 'stickers'
-        : activeCategory;
+    const nextCategory: ProductCategory =
+      activeCategory === 'glass-tumblers' || activeCategory === 'steel-tumblers' || activeCategory === 'trending'
+        ? 'tumblers'
+        : activeCategory === 'stickers'
+          ? 'stickers'
+          : activeCategory === 'bookmarks'
+            ? 'bookmarks'
+            : activeCategory;
     const nextForm = createEmptyProductForm(nextCategory);
     nextForm.subCategory =
       activeCategory === 'glass-tumblers'

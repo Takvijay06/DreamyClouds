@@ -4,8 +4,6 @@ import { NoImageBanner } from './NoImageBanner';
 import { Product } from '../features/order/orderTypes';
 import { formatRupee } from '../utils/currency';
 
-const DAISY_BOUQUET_CANDLE_ID = 'candle-daisy-flower-bouquet';
-
 interface ProductCardProps {
   product: Product;
   onShare: (product: Product) => void;
@@ -412,7 +410,7 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
             </button>
           ) : null}
         </div>
-        {product.id === DAISY_BOUQUET_CANDLE_ID && onRequestCandleOptions ? (
+        {product.category === 'candles' && onRequestCandleOptions ? (
           <button
             type="button"
             className="btn-secondary w-full px-3 py-2 text-xs sm:text-sm"

@@ -8,6 +8,7 @@ import { selectDesigns, selectStickerProducts } from '../designs/designsSlice';
 import { selectProducts } from '../products/productsSlice';
 import { Pricing, ProductCategory, StickerSubCategory } from './orderTypes';
 import { evaluateCoupon } from './couponRules';
+import { bookmarkMerchandiseSubtotal } from '../../utils/bookmarkPricing';
 import { toCartLineQuantity } from '../../utils/cartQuantity';
 import { computeCartDeliveryCharge } from '../../utils/shipping';
 
@@ -45,6 +46,67 @@ const getStickerAddonCharge = (
   return stickerSubCategory === 'full_wrap' ? FULL_WRAP_STICKER_WITH_DRINKWARE_CHARGE : SINGLE_STICKER_WITH_DRINKWARE_CHARGE;
 };
 
+const allocateIntegerByWeights = (weights: number[], total: number): number[] => {
+  const sumW = weights.reduce((a, b) => a + b, 0);
+  if (sumW <= 0) {
+    return weights.map(() => 0);
+  }
+  const floors = weights.map((w) => Math.floor((w / sumW) * total));
+  let remainder = total - floors.reduce((a, b) => a + b, 0);
+  const order = weights
+    .map((w, i) => ({ i, frac: (w / sumW) * total - Math.floor((w / sumW) * total) }))
+    .sort((a, b) => b.frac - a.frac);
+  const result = [...floors];
+  let k = 0;
+  while (remainder > 0 && order.length > 0) {
+    result[order[k % order.length].i] += 1;
+    remainder -= 1;
+    k += 1;
+  }
+  return result;
+};
+
+const applyBookmarkBundleLineTotals = <
+  T extends {
+    quantity: number;
+    product: { category: ProductCategory };
+    lineTotal: number;
+    stickerLineTotal: number;
+    personalizedNameCharge: number;
+    candleScentedCharge: number;
+    candleNoteCharge: number;
+    lineTotalWithSticker: number;
+    lineTotalWithExtras: number;
+  }
+>(
+  items: T[]
+): T[] => {
+  const bookmarkIndexes = items
+    .map((item, index) => (item.product.category === 'bookmarks' ? index : -1))
+    .filter((index) => index >= 0);
+  if (bookmarkIndexes.length === 0) {
+    return items;
+  }
+  const totalQty = bookmarkIndexes.reduce((sum, i) => sum + items[i].quantity, 0);
+  const bundleTotal = bookmarkMerchandiseSubtotal(totalQty);
+  const weights = bookmarkIndexes.map((i) => items[i].quantity);
+  const allocated = allocateIntegerByWeights(weights, bundleTotal);
+  return items.map((item, i) => {
+    const pos = bookmarkIndexes.indexOf(i);
+    if (pos < 0) {
+      return item;
+    }
+    const lineTotal = allocated[pos];
+    return {
+      ...item,
+      lineTotal,
+      lineTotalWithSticker: lineTotal + item.stickerLineTotal,
+      lineTotalWithExtras:
+        lineTotal + item.stickerLineTotal + item.personalizedNameCharge + item.candleScentedCharge + item.candleNoteCharge
+    };
+  });
+};
+
 export const selectOrder = (state: RootState) => state.order;
 
 export const selectSelectedProduct = (state: RootState) =>
@@ -62,8 +124,8 @@ export const selectSelectedDesign = (state: RootState) =>
       }
     : selectDesigns(state).find((design) => design.id === state.order.designId) ?? null;
 
-export const selectResolvedCartItems = (state: RootState) =>
-  state.order.cartItems
+export const selectResolvedCartItems = (state: RootState) => {
+  const mapped = state.order.cartItems
     .map((item) => {
       const product =
         selectProducts(state).find((entry) => entry.id === item.productId) ??
@@ -104,6 +166,9 @@ export const selectResolvedCartItems = (state: RootState) =>
       };
     })
     .filter((item): item is NonNullable<typeof item> => !!item);
+
+  return applyBookmarkBundleLineTotals(mapped);
+};
 
 export const selectCartItemCount = (state: RootState) =>
   state.order.cartItems.reduce((sum, item) => sum + toCartLineQuantity(item.quantity), 0);
@@ -163,6 +228,7 @@ export const selectCouponEvaluation = (state: RootState) => {
   const personalizedNameCharge = cartPersonalizedNameChargeTotal > 0 ? cartPersonalizedNameChargeTotal : fallbackPersonalizedNameCharge;
   const cartCandleScentedChargeTotal = resolvedItems.reduce((sum, item) => sum + item.candleScentedCharge, 0);
   const cartCandleNoteChargeTotal = resolvedItems.reduce((sum, item) => sum + item.candleNoteCharge, 0);
+  const hasItemsInCart = state.order.cartItems.length > 0;
   const fallbackCandleScentedCharge =
     product?.category === 'candles' && state.order.candleScented && product
       ? candleScentedRatePerItem(product) * billableQuantity
@@ -171,8 +237,8 @@ export const selectCouponEvaluation = (state: RootState) => {
     product?.id === DAISY_BOUQUET_CANDLE_ID && state.order.candleNote.trim()
       ? CANDLE_DAISY_NOTE_CHARGE * billableQuantity
       : 0;
-  const candleScentedCharge = cartCandleScentedChargeTotal > 0 ? cartCandleScentedChargeTotal : fallbackCandleScentedCharge;
-  const candleNoteCharge = cartCandleNoteChargeTotal > 0 ? cartCandleNoteChargeTotal : fallbackCandleNoteCharge;
+  const candleScentedCharge = hasItemsInCart ? cartCandleScentedChargeTotal : fallbackCandleScentedCharge;
+  const candleNoteCharge = hasItemsInCart ? cartCandleNoteChargeTotal : fallbackCandleNoteCharge;
   const subtotalExcludingDelivery =
     quantityTotal + designCharge + giftWrapCharge + personalizedNameCharge + candleScentedCharge + candleNoteCharge;
 
@@ -208,6 +274,7 @@ export const selectPricing = (state: RootState): Pricing => {
   const personalizedNameCharge = cartPersonalizedNameChargeTotal > 0 ? cartPersonalizedNameChargeTotal : fallbackPersonalizedNameCharge;
   const cartCandleScentedChargeTotal = cartItems.reduce((sum, item) => sum + item.candleScentedCharge, 0);
   const cartCandleNoteChargeTotal = cartItems.reduce((sum, item) => sum + item.candleNoteCharge, 0);
+  const hasItemsInCart = state.order.cartItems.length > 0;
   const fallbackCandleScentedCharge =
     product?.category === 'candles' && state.order.candleScented && product
       ? candleScentedRatePerItem(product) * billableQuantity
@@ -216,8 +283,8 @@ export const selectPricing = (state: RootState): Pricing => {
     product?.id === DAISY_BOUQUET_CANDLE_ID && state.order.candleNote.trim()
       ? CANDLE_DAISY_NOTE_CHARGE * billableQuantity
       : 0;
-  const candleScentedCharge = cartCandleScentedChargeTotal > 0 ? cartCandleScentedChargeTotal : fallbackCandleScentedCharge;
-  const candleNoteCharge = cartCandleNoteChargeTotal > 0 ? cartCandleNoteChargeTotal : fallbackCandleNoteCharge;
+  const candleScentedCharge = hasItemsInCart ? cartCandleScentedChargeTotal : fallbackCandleScentedCharge;
+  const candleNoteCharge = hasItemsInCart ? cartCandleNoteChargeTotal : fallbackCandleNoteCharge;
   const subtotalBeforeDiscount =
     quantityTotal + designCharge + giftWrapCharge + personalizedNameCharge + candleScentedCharge + candleNoteCharge;
   const couponEvaluation = selectCouponEvaluation(state);

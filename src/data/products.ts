@@ -1,4 +1,5 @@
 import { Product, ProductCategory, ShippingQuantityMode, StickerSubCategory, TumblerSubCategory } from '../features/order/orderTypes';
+import { BOOKMARK_UNIT_PRICE } from '../utils/bookmarkPricing';
 import { toAvailableQuantityCap } from '../utils/cartQuantity';
 
 const DEFAULT_OVERLAY_BY_CATEGORY: Record<ProductCategory, string> = {
@@ -131,6 +132,7 @@ export const buildProductsFromApi = (apiProducts: ApiProduct[]): Product[] => {
       category === 'candles' ? colorList : colorList.length > 0 ? colorList : undefined;
     const scentedAddonPrice = normalizeScentedAddonPrice(apiProduct.scented_price);
     const shippingCharge = normalizeShippingCharge(apiProduct.shipping, DELIVERY_CHARGE);
+    const rawBasePrice = typeof apiProduct.base_price === 'number' ? apiProduct.base_price : 0;
     const isTrending = normalizeIsTrending(apiProduct.isTrending);
     const shippingQuantityMode = normalizeShippingQuantityMode(apiProduct.shipping_quantity_mode);
     const candleJarPackaged =
@@ -145,7 +147,7 @@ export const buildProductsFromApi = (apiProducts: ApiProduct[]): Product[] => {
       candleJarPackaged,
       name: apiProduct.name ?? '',
       description: apiProduct.description ?? '',
-      basePrice: typeof apiProduct.base_price === 'number' ? apiProduct.base_price : 0,
+      basePrice: category === 'bookmarks' ? BOOKMARK_UNIT_PRICE : rawBasePrice,
       availableQuantity: toAvailableQuantityCap(apiProduct.available_quantity),
       imageAvailable,
       image,

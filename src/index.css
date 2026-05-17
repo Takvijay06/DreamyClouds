@@ -640,7 +640,63 @@ body::before {
     0 0 22px rgba(253, 224, 255, 0.85);
 }
 
+/* Offers carousel (FestivalBanner) */
+@keyframes festivalOfferShimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes festivalSlideEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes festivalOffersGlow {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.festival-slide-enter {
+  animation: festivalSlideEnter 0.58s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.festival-offer-shimmer {
+  background-size: 200% auto;
+  animation: festivalOfferShimmer 7s linear infinite;
+}
+
+.festival-offers-ambient {
+  animation: festivalOffersGlow 5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .festival-slide-enter {
+    animation: none;
+  }
+
+  .festival-offer-shimmer {
+    animation: none;
+  }
+
+  .festival-offers-ambient {
+    animation: none;
+  }
+
   .trending-tab-border::after {
     animation: none;
   }
