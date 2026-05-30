@@ -63,7 +63,10 @@ export interface Pricing {
   candleScentedCharge: number;
   candleNoteCharge: number;
   subtotalBeforeDiscount: number;
+  couponDiscountAmount: number;
+  screamOfferDiscount: number;
   discountAmount: number;
+  screamOfferActive: boolean;
   totalBeforeDelivery: number;
   appliedCouponCode: string | null;
   deliveryCharge: number;

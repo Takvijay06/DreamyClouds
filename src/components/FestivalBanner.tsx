@@ -1,4 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { SCREAM_OFFER_BANNER, getScreamOfferSnapshot, isScreamOfferBannerVisible, subscribeScreamOffer } from '../utils/tumblerScreamOffer';
+
+type OfferSlide = {
+  id: string;
+  text: string;
+  bar: string;
+  chip: string;
+  chipText: string;
+  dotActive: string;
+};
 
 const OFFER_SLIDES = [
   {
@@ -25,9 +35,7 @@ const OFFER_SLIDES = [
     chipText: 'text-emerald-950',
     dotActive: 'from-emerald-500 via-teal-500 to-cyan-500'
   }
-] as const;
-
-type OfferSlide = (typeof OFFER_SLIDES)[number];
+] as const satisfies readonly OfferSlide[];
 
 const OfferSlideProgressTrack = ({
   placement,
@@ -63,6 +71,11 @@ const OfferSlideProgressTrack = ({
 const ROTATE_MS = 6000;
 
 export const FestivalBanner = () => {
+  const screamSnapshot = useSyncExternalStore(subscribeScreamOffer, getScreamOfferSnapshot, getScreamOfferSnapshot);
+  const offerSlides = useMemo(
+    () => (isScreamOfferBannerVisible() ? [...OFFER_SLIDES, SCREAM_OFFER_BANNER] : [...OFFER_SLIDES]),
+    [screamSnapshot.isWeekend, screamSnapshot.isActive, screamSnapshot.awaitingActivation, screamSnapshot.remainingMs]
+  );
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
@@ -85,8 +98,12 @@ export const FestivalBanner = () => {
   }, [paused, reduceMotion]);
 
   const goNext = useCallback(() => {
-    setIndex((i) => (i + 1) % OFFER_SLIDES.length);
-  }, []);
+    setIndex((i) => (i + 1) % offerSlides.length);
+  }, [offerSlides.length]);
+
+  useEffect(() => {
+    setIndex((current) => (current >= offerSlides.length ? 0 : current));
+  }, [offerSlides.length]);
 
   useEffect(() => {
     if (reduceMotion || paused) {
@@ -96,7 +113,7 @@ export const FestivalBanner = () => {
     return () => window.clearInterval(id);
   }, [goNext, reduceMotion, paused, index, resumeCycle]);
 
-  const slide = OFFER_SLIDES[index];
+  const slide = offerSlides[index];
 
   return (
     <div className="relative mt-5 rounded-3xl bg-gradient-to-r from-fuchsia-500 via-violet-500 to-emerald-500 p-[2.5px] shadow-[0_20px_50px_-20px_rgba(139,92,246,0.55),0_16px_40px_-24px_rgba(16,185,129,0.4)] sm:rounded-[1.65rem]">
@@ -205,7 +222,7 @@ export const FestivalBanner = () => {
           </div>
 
           <div className="mt-5 flex items-center justify-center gap-2.5 sm:mt-6 sm:gap-3">
-            {OFFER_SLIDES.map((s, i) => (
+            {offerSlides.map((s, i) => (
               <button
                 key={s.id}
                 type="button"

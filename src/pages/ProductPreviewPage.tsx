@@ -7,6 +7,7 @@ import { ANALYTICS_EVENTS } from '../constants/analyticsEvents';
 import { selectStickerProducts } from '../features/designs/designsSlice';
 import { selectProducts } from '../features/products/productsSlice';
 import { formatRupee } from '../utils/currency';
+import { openArrangeNotifyWhatsApp } from '../utils/whatsapp';
 import { trackNamedEvent } from '../services/analytics';
 
 const IMAGE_SLIDE_MS = 260;
@@ -255,6 +256,15 @@ export const ProductPreviewPage = () => {
     }
   };
 
+  const handleNotifyIfArrangeable = () => {
+    trackNamedEvent(ANALYTICS_EVENTS.WHATSAPP_CLICK, {
+      cta: 'notify_if_arrangeable',
+      product_id: product.id,
+      product_name: product.name
+    });
+    openArrangeNotifyWhatsApp(product);
+  };
+
   return (
     <Layout currentStep={1}>
       {toastMessage ? (
@@ -287,6 +297,15 @@ export const ProductPreviewPage = () => {
             </div>
 
             <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:flex-wrap">
+              {product.availableQuantity === 0 ? (
+                <button
+                  type="button"
+                  className="btn-primary col-span-2 px-4 py-2 sm:col-span-1 sm:flex-none"
+                  onClick={handleNotifyIfArrangeable}
+                >
+                  Notify If Arrangeable
+                </button>
+              ) : null}
               <button
                 type="button"
                 className={`px-4 py-2 sm:flex-none ${

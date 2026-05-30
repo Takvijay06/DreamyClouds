@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { FormInput } from '../components/FormInput';
@@ -31,6 +31,7 @@ import { Product } from '../features/order/orderTypes';
 import { remainingAvailableQuantity, toCartLineQuantity } from '../utils/cartQuantity';
 import { formatRupee } from '../utils/currency';
 import { buildWhatsAppMessage, buildWhatsAppUrl } from '../utils/whatsapp';
+import { redeemScreamOffer, getScreamOfferSnapshot, subscribeScreamOffer } from '../utils/tumblerScreamOffer';
 import { trackNamedEvent } from '../services/analytics';
 
 const BUSINESS_WHATSAPP_NUMBER = '6350422134';
@@ -57,6 +58,7 @@ export const PreviewPage = () => {
   const [fieldErrors, setFieldErrors] = useState<ValidationErrors>(EMPTY_VALIDATION_ERRORS);
   const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
   const pricingViewTrackedRef = useRef(false);
+  useSyncExternalStore(subscribeScreamOffer, getScreamOfferSnapshot, getScreamOfferSnapshot);
 
   const order = useAppSelector(selectOrder);
   const product = useAppSelector(selectSelectedProduct);
@@ -229,6 +231,9 @@ export const PreviewPage = () => {
     });
 
     const url = buildWhatsAppUrl(BUSINESS_WHATSAPP_NUMBER, message);
+    if (pricing.screamOfferDiscount > 0) {
+      redeemScreamOffer();
+    }
     trackNamedEvent(ANALYTICS_EVENTS.CONTACT_FORM_SUBMIT, {
       form: 'whatsapp_checkout',
       success: true,
@@ -570,6 +575,17 @@ export const PreviewPage = () => {
               <p className="text-xs font-semibold text-red-600">{couponEvaluation.message}</p>
             ) : null}
           </div>
+
+          {pricing.screamOfferActive ? (
+            <div className="rounded-2xl border border-indigo-200 bg-gradient-to-r from-sky-50 to-indigo-50 p-3 text-sm text-indigo-900">
+              <p className="font-bold">Tumbler Scream offer is active</p>
+              <p className="mt-1 text-xs font-medium text-indigo-800">
+                {pricing.screamOfferDiscount > 0
+                  ? `${formatRupee(pricing.screamOfferDiscount)} off applied to your product total. Complete checkout before the timer ends.`
+                  : 'Your scream unlock is live — finish checkout within 10 minutes to use it once.'}
+              </p>
+            </div>
+          ) : null}
 
           <PriceBreakdown pricing={pricing} quantity={cartTotalQuantity || order.quantity} />
 

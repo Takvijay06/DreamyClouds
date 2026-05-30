@@ -1,6 +1,49 @@
 import { Pricing, Product, Design, CustomerDetails } from '../features/order/orderTypes';
+import { BUSINESS_WHATSAPP_NUMBER } from '../config/business';
 
 const CUP_CAKE_CANDLE_ID = 'CUP_CAKE_CANDLE';
+
+export const getProductPrimaryImageUrl = (product: Product): string => {
+  if (product.imageAvailable === false) {
+    return 'No image available';
+  }
+  return product.images?.[0] ?? product.image;
+};
+
+const getImageFileName = (imageUrl: string): string => {
+  if (imageUrl === 'No image available') {
+    return imageUrl;
+  }
+  try {
+    const pathname = new URL(imageUrl).pathname;
+    const segment = pathname.split('/').filter(Boolean).pop();
+    return segment ? decodeURIComponent(segment) : imageUrl;
+  } catch {
+    return imageUrl.split('/').filter(Boolean).pop() ?? imageUrl;
+  }
+};
+
+export const buildArrangeNotifyWhatsAppMessage = (product: Product): string => {
+  const imageUrl = getProductPrimaryImageUrl(product);
+  const imageName = getImageFileName(imageUrl);
+
+  return [
+    '*Restock / Arrange Request - Dreamy Clouds By Daisy*',
+    '',
+    'Hi! This product is sold out on your website. Can you arrange it for me urgently?',
+    '',
+    `*Product:* ${product.name}`,
+    `*Image name:* ${imageName}`,
+    `*Image link:* ${imageUrl}`,
+    '',
+    'Please let me know if this can be arranged. Thank you!'
+  ].join('\n');
+};
+
+export const openArrangeNotifyWhatsApp = (product: Product): void => {
+  const url = buildWhatsAppUrl(BUSINESS_WHATSAPP_NUMBER, buildArrangeNotifyWhatsAppMessage(product));
+  window.open(url, '_blank', 'noopener,noreferrer');
+};
 
 interface WhatsAppPayload {
   product: Product;
@@ -78,7 +121,9 @@ export const buildWhatsAppMessage = ({
     ...(pricing.candleNoteCharge > 0 ? [`- Daisy Candle Note Charge: INR ${pricing.candleNoteCharge}`] : []),
     `- Subtotal (Excl. Delivery): INR ${pricing.subtotalBeforeDiscount}`,
     `- Coupon: ${pricing.appliedCouponCode ?? 'N/A'}`,
-    `- Discount: INR ${pricing.discountAmount}`,
+    `- Coupon Discount: INR ${pricing.couponDiscountAmount}`,
+    ...(pricing.screamOfferDiscount > 0 ? [`- Tumbler Scream Offer: INR ${pricing.screamOfferDiscount}`] : []),
+    `- Total Discount: INR ${pricing.discountAmount}`,
     `- Delivery Charge: INR ${pricing.deliveryCharge}`,
     `- Grand Total: INR ${pricing.grandTotal}`,
     '',

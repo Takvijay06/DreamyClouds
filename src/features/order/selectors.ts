@@ -11,6 +11,10 @@ import { evaluateCoupon } from './couponRules';
 import { bookmarkMerchandiseSubtotal } from '../../utils/bookmarkPricing';
 import { toCartLineQuantity } from '../../utils/cartQuantity';
 import { computeCartDeliveryCharge } from '../../utils/shipping';
+import {
+  calculateScreamOfferDiscount,
+  isScreamOfferActive
+} from '../../utils/tumblerScreamOffer';
 
 const resolveStickerSubCategory = (value: unknown): StickerSubCategory => {
   if (typeof value !== 'string') {
@@ -288,7 +292,10 @@ export const selectPricing = (state: RootState): Pricing => {
   const subtotalBeforeDiscount =
     quantityTotal + designCharge + giftWrapCharge + personalizedNameCharge + candleScentedCharge + candleNoteCharge;
   const couponEvaluation = selectCouponEvaluation(state);
-  const discountAmount = couponEvaluation.status === 'applied' ? couponEvaluation.discountAmount : 0;
+  const couponDiscountAmount = couponEvaluation.status === 'applied' ? couponEvaluation.discountAmount : 0;
+  const screamOfferActive = isScreamOfferActive();
+  const screamOfferDiscount = calculateScreamOfferDiscount(subtotalBeforeDiscount, screamOfferActive);
+  const discountAmount = Math.min(subtotalBeforeDiscount, couponDiscountAmount + screamOfferDiscount);
   const totalBeforeDelivery = Math.max(0, subtotalBeforeDiscount - discountAmount);
   const candleMerchandiseSubtotal =
     cartItems.length > 0
@@ -325,7 +332,10 @@ export const selectPricing = (state: RootState): Pricing => {
     candleScentedCharge,
     candleNoteCharge,
     subtotalBeforeDiscount,
+    couponDiscountAmount,
+    screamOfferDiscount,
     discountAmount,
+    screamOfferActive,
     totalBeforeDelivery,
     appliedCouponCode: couponEvaluation.status === 'applied' ? couponEvaluation.code : null,
     deliveryCharge,

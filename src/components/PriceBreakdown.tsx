@@ -1,5 +1,6 @@
 import { Pricing } from '../features/order/orderTypes';
 import { formatRupee } from '../utils/currency';
+import { SCREAM_OFFER_DISCOUNT_PERCENT } from '../utils/tumblerScreamOffer';
 
 interface PriceBreakdownProps {
   pricing: Pricing;
@@ -38,10 +39,16 @@ export const PriceBreakdown = ({ pricing, quantity }: PriceBreakdownProps) => {
         ) : null}
         <div className="my-2 border-t border-lavender-200/80" />
         <Row label="Subtotal (Excl. Delivery)" value={formatRupee(pricing.subtotalBeforeDiscount)} emphasize />
-        {pricing.discountAmount > 0 ? (
+        {pricing.couponDiscountAmount > 0 ? (
           <div className="flex justify-between gap-4 rounded-xl bg-emerald-50/80 px-2 py-2">
             <span className="font-semibold text-emerald-800">Coupon ({pricing.appliedCouponCode})</span>
-            <span className="tabular-nums font-semibold text-emerald-700">- {formatRupee(pricing.discountAmount)}</span>
+            <span className="tabular-nums font-semibold text-emerald-700">- {formatRupee(pricing.couponDiscountAmount)}</span>
+          </div>
+        ) : null}
+        {pricing.screamOfferDiscount > 0 ? (
+          <div className="flex justify-between gap-4 rounded-xl bg-sky-50/80 px-2 py-2">
+            <span className="font-semibold text-indigo-800">Tumbler Scream Offer ({SCREAM_OFFER_DISCOUNT_PERCENT}%)</span>
+            <span className="tabular-nums font-semibold text-indigo-700">- {formatRupee(pricing.screamOfferDiscount)}</span>
           </div>
         ) : null}
         <Row label="Delivery" value={formatRupee(pricing.deliveryCharge)} />

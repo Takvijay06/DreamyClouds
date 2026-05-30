@@ -2,7 +2,10 @@ import { KeyboardEvent, TouchEvent, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { NoImageBanner } from './NoImageBanner';
 import { Product } from '../features/order/orderTypes';
+import { ANALYTICS_EVENTS } from '../constants/analyticsEvents';
+import { trackNamedEvent } from '../services/analytics';
 import { formatRupee } from '../utils/currency';
+import { openArrangeNotifyWhatsApp } from '../utils/whatsapp';
 
 interface ProductCardProps {
   product: Product;
@@ -224,6 +227,15 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
 
   const previousImageClass = hasSlideStarted ? exitingEndClass : 'translate-x-0';
 
+  const handleNotifyIfArrangeable = () => {
+    trackNamedEvent(ANALYTICS_EVENTS.WHATSAPP_CLICK, {
+      cta: 'notify_if_arrangeable',
+      product_id: product.id,
+      product_name: product.name
+    });
+    openArrangeNotifyWhatsApp(product);
+  };
+
   const imageModal =
     imageModalOpen && typeof document !== 'undefined'
       ? createPortal(
@@ -386,7 +398,7 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
       </div>
 
       <div className="space-y-3 border-t border-lavender-100 px-4 pb-4 pt-3">
-        <div className={`grid gap-2 ${isSoldOut ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        <div className={`grid gap-2 ${isSoldOut ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-2'}`}>
           <button
             type="button"
             onClick={(event) => {
@@ -397,7 +409,18 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
           >
             Share
           </button>
-          {!isSoldOut ? (
+          {isSoldOut ? (
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleNotifyIfArrangeable();
+              }}
+              className="btn-primary px-2 py-2 text-xs sm:px-3 sm:text-sm"
+            >
+              Notify If Arrangeable
+            </button>
+          ) : (
             <button
               type="button"
               onClick={(event) => {
@@ -408,7 +431,7 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
             >
               Buy now
             </button>
-          ) : null}
+          )}
         </div>
         {product.category === 'candles' && onRequestCandleOptions ? (
           <button

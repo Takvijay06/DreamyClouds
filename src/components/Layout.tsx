@@ -8,6 +8,7 @@ import { selectCartItemCount } from '../features/order/selectors';
 import { trackNamedEvent, trackUserJourneyFunnel } from '../services/analytics';
 import { FestivalBanner } from './FestivalBanner';
 import { StepProgress } from './StepProgress';
+import { TumblerScreamOffer } from './TumblerScreamOffer';
 
 const VIJAY_TAK_PORTFOLIO_URL = 'https://portifilo-page.vercel.app';
 
@@ -56,6 +57,8 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
       </section>
 
       <FestivalBanner />
+
+      <TumblerScreamOffer />
 
       <section className="mt-5">
         <StepProgress currentStep={currentStep} crossedSteps={crossedSteps} />
