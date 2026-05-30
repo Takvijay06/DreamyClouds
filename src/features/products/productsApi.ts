@@ -148,3 +148,19 @@ export const updateProductInApi = async (id: string, input: ProductMutationInput
 
   return updated;
 };
+
+export const deleteProductInApi = async (id: string): Promise<string> => {
+  const url = new URL(PRODUCTS_API_URL);
+  url.searchParams.set('id', `eq.${id}`);
+
+  const response = await fetch(url.toString(), {
+    method: 'DELETE',
+    headers: buildHeaders(true)
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
+
+  return id;
+};

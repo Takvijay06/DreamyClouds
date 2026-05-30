@@ -95,3 +95,19 @@ export const updateDesignInApi = async (id: string, input: DesignMutationInput):
 
   return updated;
 };
+
+export const deleteDesignInApi = async (id: string): Promise<string> => {
+  const url = new URL(DESIGNS_API_URL);
+  url.searchParams.set('id', `eq.${id}`);
+
+  const response = await fetch(url.toString(), {
+    method: 'DELETE',
+    headers: buildHeaders(true)
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseErrorMessage(response));
+  }
+
+  return id;
+};

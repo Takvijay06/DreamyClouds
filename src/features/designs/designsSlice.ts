@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { buildStickerProductsFromDesigns } from '../../data/designs';
 import { Design } from '../order/orderTypes';
-import { createDesignInApi, DesignMutationInput, fetchDesignsFromApi, updateDesignInApi } from './designsApi';
+import { createDesignInApi, deleteDesignInApi, DesignMutationInput, fetchDesignsFromApi, updateDesignInApi } from './designsApi';
 import { trackApiFailure } from '../../services/analytics';
 
 type DesignsState = {
@@ -52,6 +52,18 @@ export const updateDesign = createAsyncThunk<Design, { id: string; input: Design
   async ({ id, input }, { rejectWithValue }) => {
     try {
       return await updateDesignInApi(id, input);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const deleteDesign = createAsyncThunk<string, string>(
+  'designs/delete',
+  async (id, { rejectWithValue }) => {
+    try {
+      return await deleteDesignInApi(id);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return rejectWithValue(message);
@@ -121,6 +133,24 @@ const designsSlice = createSlice({
         trackApiFailure(
           'update_design',
           typeof action.payload === 'string' ? action.payload : 'Failed to update design'
+        );
+      })
+      .addCase(deleteDesign.pending, (state) => {
+        state.saveStatus = 'saving';
+        state.saveError = null;
+      })
+      .addCase(deleteDesign.fulfilled, (state, action) => {
+        state.saveStatus = 'succeeded';
+        state.saveError = null;
+        state.items = state.items.filter((item) => item.id !== action.payload);
+        state.lastUpdated = new Date().toISOString();
+      })
+      .addCase(deleteDesign.rejected, (state, action) => {
+        state.saveStatus = 'failed';
+        state.saveError = typeof action.payload === 'string' ? action.payload : 'Failed to delete design';
+        trackApiFailure(
+          'delete_design',
+          typeof action.payload === 'string' ? action.payload : 'Failed to delete design'
         );
       });
   }

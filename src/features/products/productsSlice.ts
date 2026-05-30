@@ -3,6 +3,7 @@ import { RootState } from '../../app/store';
 import { Product } from '../order/orderTypes';
 import {
   createProductInApi,
+  deleteProductInApi,
   fetchProductsFromApi,
   ProductMutationInput,
   updateProductInApi
@@ -56,6 +57,18 @@ export const updateProduct = createAsyncThunk<Product, { id: string; input: Prod
   async ({ id, input }, { rejectWithValue }) => {
     try {
       return await updateProductInApi(id, input);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const deleteProduct = createAsyncThunk<string, string>(
+  'products/delete',
+  async (id, { rejectWithValue }) => {
+    try {
+      return await deleteProductInApi(id);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       return rejectWithValue(message);
@@ -125,6 +138,24 @@ const productsSlice = createSlice({
         trackApiFailure(
           'update_product',
           typeof action.payload === 'string' ? action.payload : 'Failed to update product'
+        );
+      })
+      .addCase(deleteProduct.pending, (state) => {
+        state.saveStatus = 'saving';
+        state.saveError = null;
+      })
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        state.saveStatus = 'succeeded';
+        state.saveError = null;
+        state.items = state.items.filter((item) => item.id !== action.payload);
+        state.lastUpdated = new Date().toISOString();
+      })
+      .addCase(deleteProduct.rejected, (state, action) => {
+        state.saveStatus = 'failed';
+        state.saveError = typeof action.payload === 'string' ? action.payload : 'Failed to delete product';
+        trackApiFailure(
+          'delete_product',
+          typeof action.payload === 'string' ? action.payload : 'Failed to delete product'
         );
       });
   }

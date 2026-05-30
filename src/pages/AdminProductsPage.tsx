@@ -1,12 +1,14 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { AdminAccessGate } from '../components/AdminAccessGate';
 import { FormInput } from '../components/FormInput';
+import { GalleryImageUrlField, ImageUrlField } from '../components/ImageUrlField';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { ProductCategory, Product, StickerSubCategory } from '../features/order/orderTypes';
 import { ProductMutationInput, ProductSubCategory } from '../features/products/productsApi';
 import {
   createProduct,
+  deleteProduct,
   fetchProducts,
   resetProductSaveState,
   selectProductSaveError,
@@ -16,7 +18,16 @@ import {
   selectProductsStatus,
   updateProduct
 } from '../features/products/productsSlice';
-import { selectDesignsError, selectDesignsStatus, selectStickerProducts } from '../features/designs/designsSlice';
+import {
+  deleteDesign,
+  fetchDesigns,
+  resetDesignSaveState,
+  selectDesignSaveError,
+  selectDesignSaveStatus,
+  selectDesignsError,
+  selectDesignsStatus,
+  selectStickerProducts
+} from '../features/designs/designsSlice';
 import { formatRupee } from '../utils/currency';
 
 type ProductCategoryTab = ProductCategory | 'trending' | 'steel-tumblers' | 'glass-tumblers';
@@ -146,6 +157,8 @@ export const AdminProductsPage = () => {
   const productSaveError = useAppSelector(selectProductSaveError);
   const designsStatus = useAppSelector(selectDesignsStatus);
   const designsError = useAppSelector(selectDesignsError);
+  const designSaveError = useAppSelector(selectDesignSaveError);
+  const designSaveStatus = useAppSelector(selectDesignSaveStatus);
 
   const [activeCategory, setActiveCategory] = useState<ProductCategoryTab>('steel-tumblers');
   const [activeStickerSubCategory, setActiveStickerSubCategory] = useState<StickerSubCategory>('full_wrap');
@@ -155,6 +168,9 @@ export const AdminProductsPage = () => {
   const [form, setForm] = useState<ProductFormState | null>(null);
   const [formErrors, setFormErrors] = useState<ProductFormErrors>({});
   const [successMessage, setSuccessMessage] = useState('');
+  const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+
+  const activeSaveError = activeCategory === 'stickers' ? designSaveError : productSaveError;
 
   useEffect(() => {
     if (productsStatus === 'idle') {
@@ -163,15 +179,16 @@ export const AdminProductsPage = () => {
   }, [dispatch, productsStatus]);
 
   useEffect(() => {
-    if (productSaveStatus === 'succeeded') {
+    if (productSaveStatus === 'succeeded' || designSaveStatus === 'succeeded') {
       const timerId = window.setTimeout(() => {
         setSuccessMessage('');
         dispatch(resetProductSaveState());
+        dispatch(resetDesignSaveState());
       }, 2500);
       return () => window.clearTimeout(timerId);
     }
     return undefined;
-  }, [dispatch, productSaveStatus]);
+  }, [dispatch, designSaveStatus, productSaveStatus]);
 
   const filteredProducts = useMemo(
     () =>
@@ -198,11 +215,50 @@ export const AdminProductsPage = () => {
 
   const handleEditProduct = (product: Product) => {
     dispatch(resetProductSaveState());
+    dispatch(resetDesignSaveState());
     setSuccessMessage('');
     setProductModalMode('edit');
     setEditingProduct(product);
     setForm(toFormState(product));
     setFormErrors({});
+  };
+
+  const handleDeleteProduct = async (product: Product) => {
+    const confirmed = window.confirm(
+      `Delete "${product.name}" (${product.id})?\n\nThis removes it from the live catalog and cannot be undone.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    dispatch(resetProductSaveState());
+    dispatch(resetDesignSaveState());
+    setSuccessMessage('');
+    setDeletingProductId(product.id);
+
+    try {
+      if (activeCategory === 'stickers') {
+        await dispatch(deleteDesign(product.id)).unwrap();
+        await dispatch(fetchDesigns()).unwrap();
+      } else {
+        await dispatch(deleteProduct(product.id)).unwrap();
+        await dispatch(fetchProducts()).unwrap();
+      }
+
+      if (editingProduct?.id === product.id) {
+        setEditingProduct(null);
+        setForm(null);
+      }
+      if (previewProduct?.id === product.id) {
+        setPreviewProduct(null);
+      }
+
+      setSuccessMessage(`Deleted "${product.name}" successfully.`);
+    } catch {
+      return;
+    } finally {
+      setDeletingProductId(null);
+    }
   };
 
   const handleCreateProduct = () => {
@@ -371,9 +427,9 @@ export const AdminProductsPage = () => {
             Could not load the latest sticker designs. {designsError ? `(${designsError})` : ''}
           </div>
         ) : null}
-        {productSaveError ? (
+        {activeSaveError ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50/80 p-3 text-xs font-semibold text-rose-700">
-            {productSaveError}
+            {activeSaveError}
           </div>
         ) : null}
         {successMessage ? (
@@ -493,6 +549,14 @@ export const AdminProductsPage = () => {
                   </button>
                   <button className="btn-primary flex-1 px-3 py-2 text-xs sm:text-sm" type="button" onClick={() => handleEditProduct(product)}>
                     Update
+                  </button>
+                  <button
+                    className="inline-flex flex-1 items-center justify-center rounded-2xl border border-rose-300 bg-white/90 px-3 py-2 text-xs font-semibold text-rose-700 transition duration-200 hover:border-rose-400 hover:bg-rose-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-300 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
+                    type="button"
+                    disabled={deletingProductId === product.id}
+                    onClick={() => void handleDeleteProduct(product)}
+                  >
+                    {deletingProductId === product.id ? 'Deleting...' : 'Delete'}
                   </button>
                 </div>
               </div>
@@ -638,7 +702,15 @@ export const AdminProductsPage = () => {
               </label>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <FormInput id="product-image" label="Primary Image URL" value={form.image} onChange={(value) => setForm((current) => (current ? { ...current, image: value } : current))} error={formErrors.image} />
+                <ImageUrlField
+                  id="product-image"
+                  label="Primary Image URL"
+                  value={form.image}
+                  productId={form.id}
+                  onChange={(value) => setForm((current) => (current ? { ...current, image: value } : current))}
+                  error={formErrors.image}
+                  placeholder="Upload an image or paste a URL"
+                />
                 <label className="flex items-center gap-3 rounded-2xl border border-lavender-200 bg-lavender-50/70 px-4 py-3 text-sm font-medium text-lavender-900">
                   <input type="checkbox" checked={form.isTrending} onChange={(event) => setForm((current) => (current ? { ...current, isTrending: event.target.checked } : current))} />
                   Mark as trending
@@ -646,10 +718,13 @@ export const AdminProductsPage = () => {
               </div>
 
               <div className="grid gap-4 lg:grid-cols-2">
-                <label className="block space-y-1.5">
-                  <span className="text-sm font-semibold text-lavender-800">Gallery Images</span>
-                  <textarea className="input min-h-32 resize-y" value={form.imagesText} onChange={(event) => setForm((current) => (current ? { ...current, imagesText: event.target.value } : current))} placeholder="One image URL per line or comma-separated" />
-                </label>
+                <GalleryImageUrlField
+                  id="product-gallery-images"
+                  label="Gallery Images"
+                  value={form.imagesText}
+                  productId={form.id}
+                  onChange={(value) => setForm((current) => (current ? { ...current, imagesText: value } : current))}
+                />
                 <label className="block space-y-1.5">
                   <span className="text-sm font-semibold text-lavender-800">Color Options</span>
                   <textarea className="input min-h-32 resize-y" value={form.colorsText} onChange={(event) => setForm((current) => (current ? { ...current, colorsText: event.target.value } : current))} placeholder="One color per line or comma-separated" />
