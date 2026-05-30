@@ -133,6 +133,18 @@ export const AdminAccessGate = ({ title, description, children }: AdminAccessGat
           >
             Designs
           </NavLink>
+          <NavLink
+            to="/admin/offers"
+            className={({ isActive }) =>
+              `rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+                isActive
+                  ? 'border-lavender-600 bg-gradient-to-r from-lavender-700 to-lavender-500 text-white shadow-lg shadow-lavender-300/50'
+                  : 'border-lavender-300 bg-white text-lavender-700 hover:border-lavender-500 hover:bg-lavender-50'
+              }`
+            }
+          >
+            Offers
+          </NavLink>
         </div>
       </div>
 

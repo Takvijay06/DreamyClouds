@@ -7,6 +7,7 @@ import { fetchDesigns, selectDesignsStatus } from './features/designs/designsSli
 import { fetchProducts, selectProductsStatus } from './features/products/productsSlice';
 import { AdminDashboardPage } from './pages/AdminDashboardPage';
 import { AdminDesignsPage } from './pages/AdminDesignsPage';
+import { AdminOffersPage } from './pages/AdminOffersPage';
 import { AdminProductsPage } from './pages/AdminProductsPage';
 import { AnalyticsListeners } from './components/AnalyticsListeners';
 import { ContactUsPage } from './pages/ContactUsPage';
@@ -14,6 +15,7 @@ import { DesignSelectionPage } from './pages/DesignSelectionPage';
 import { PreviewPage } from './pages/PreviewPage';
 import { ProductPreviewPage } from './pages/ProductPreviewPage';
 import { ProductSelectionPage } from './pages/ProductSelectionPage';
+import { loadScreamOfferVisibility } from './utils/tumblerScreamOffer';
 
 const App = () => {
   const [showIntro, setShowIntro] = useState(true);
@@ -42,6 +44,10 @@ const App = () => {
       dispatch(fetchDesigns());
     }
   }, [dispatch, designsStatus]);
+
+  useEffect(() => {
+    void loadScreamOfferVisibility();
+  }, []);
 
   return (
     <div className="relative min-h-screen overflow-x-hidden">
@@ -89,6 +95,7 @@ const App = () => {
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/products" element={<AdminProductsPage />} />
           <Route path="/admin/designs" element={<AdminDesignsPage />} />
+          <Route path="/admin/offers" element={<AdminOffersPage />} />
           <Route path="/" element={<ProductSelectionPage />} />
           <Route path="/product/:productId" element={<ProductPreviewPage />} />
           <Route path="/design" element={<DesignSelectionPage />} />

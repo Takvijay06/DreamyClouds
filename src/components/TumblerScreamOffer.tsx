@@ -145,6 +145,10 @@ export const TumblerScreamOffer = () => {
     setOpen(false);
   };
 
+  if (!snapshot.isOfferVisible) {
+    return null;
+  }
+
   if (!snapshot.isWeekend && !snapshot.isActive && !snapshot.awaitingActivation) {
     return null;
   }

@@ -74,7 +74,7 @@ export const FestivalBanner = () => {
   const screamSnapshot = useSyncExternalStore(subscribeScreamOffer, getScreamOfferSnapshot, getScreamOfferSnapshot);
   const offerSlides = useMemo(
     () => (isScreamOfferBannerVisible() ? [...OFFER_SLIDES, SCREAM_OFFER_BANNER] : [...OFFER_SLIDES]),
-    [screamSnapshot.isWeekend, screamSnapshot.isActive, screamSnapshot.awaitingActivation, screamSnapshot.remainingMs]
+    [screamSnapshot.isOfferVisible, screamSnapshot.isWeekend, screamSnapshot.isActive, screamSnapshot.awaitingActivation, screamSnapshot.remainingMs]
   );
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);

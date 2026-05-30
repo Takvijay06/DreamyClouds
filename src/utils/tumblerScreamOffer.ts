@@ -1,3 +1,5 @@
+import { fetchScreamOfferVisibility } from '../features/offers/offersApi';
+
 export const SCREAM_OFFER_STORAGE_KEY = 'dreamyclouds-tumbler-scream-offer';
 export const SCREAM_OFFER_VALID_MS = 10 * 60 * 1000;
 export const SCREAM_INTERACTION_MS = 5000;
@@ -16,6 +18,7 @@ export type ScreamOfferRecord = {
 
 export type ScreamOfferSnapshot = {
   isWeekend: boolean;
+  isOfferVisible: boolean;
   hasScreamedToday: boolean;
   discountRevealed: boolean;
   awaitingActivation: boolean;
@@ -35,6 +38,8 @@ const EMPTY_RECORD: ScreamOfferRecord = {
 const listeners = new Set<() => void>();
 let cachedSnapshot: ScreamOfferSnapshot | undefined;
 let activeTickInterval: number | null = null;
+let screamOfferApiVisible = false;
+let screamOfferVisibilityLoaded = false;
 
 export const getLocalDayKey = (date = new Date()): string => {
   const year = date.getFullYear();
@@ -45,6 +50,7 @@ export const getLocalDayKey = (date = new Date()): string => {
 
 const snapshotsEqual = (left: ScreamOfferSnapshot, right: ScreamOfferSnapshot): boolean =>
   left.isWeekend === right.isWeekend &&
+  left.isOfferVisible === right.isOfferVisible &&
   left.hasScreamedToday === right.hasScreamedToday &&
   left.discountRevealed === right.discountRevealed &&
   left.awaitingActivation === right.awaitingActivation &&
@@ -162,7 +168,20 @@ export const getScreamOfferRemainingMs = (record = readRecord(), now = Date.now(
 };
 
 export const isScreamOfferActive = (record = readRecord(), now = Date.now()): boolean =>
-  !record.redeemed && getScreamOfferRemainingMs(record, now) > 0;
+  screamOfferApiVisible && !record.redeemed && getScreamOfferRemainingMs(record, now) > 0;
+
+export const isScreamOfferConfiguredVisible = (): boolean => screamOfferApiVisible;
+
+export const isScreamOfferVisibilityLoaded = (): boolean => screamOfferVisibilityLoaded;
+
+export const setScreamOfferApiVisibility = (visible: boolean): void => {
+  screamOfferVisibilityLoaded = true;
+  if (screamOfferApiVisible === visible) {
+    return;
+  }
+  screamOfferApiVisible = visible;
+  notifyScreamOfferChange();
+};
 
 export const isScreamOfferAwaitingActivation = (record = readRecord()): boolean =>
   record.discountRevealed && record.unlockedAt === null && !record.redeemed;
@@ -174,6 +193,7 @@ const computeScreamOfferSnapshot = (now = Date.now()): ScreamOfferSnapshot => {
 
   return {
     isWeekend: isWeekend(new Date(now)),
+    isOfferVisible: screamOfferApiVisible,
     hasScreamedToday: hasScreamedToday(record, now),
     discountRevealed: record.discountRevealed,
     awaitingActivation: isScreamOfferAwaitingActivation(record),
@@ -264,5 +284,14 @@ export const SCREAM_OFFER_BANNER = {
 
 export const isScreamOfferBannerVisible = (): boolean => {
   const snapshot = getScreamOfferSnapshot();
-  return snapshot.isWeekend || snapshot.isActive || snapshot.awaitingActivation;
+  return (
+    snapshot.isOfferVisible &&
+    (snapshot.isWeekend || snapshot.isActive || snapshot.awaitingActivation)
+  );
+};
+
+export const loadScreamOfferVisibility = async (): Promise<boolean> => {
+  const visible = await fetchScreamOfferVisibility();
+  setScreamOfferApiVisibility(visible);
+  return visible;
 };

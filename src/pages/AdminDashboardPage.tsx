@@ -35,6 +35,20 @@ export const AdminDashboardPage = () => {
             Open design manager
           </span>
         </Link>
+
+        <Link
+          to="/admin/offers"
+          className="rounded-[2rem] border border-lavender-200/80 bg-white/90 p-6 shadow-soft transition hover:-translate-y-1 hover:border-lavender-400 md:col-span-2"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-lavender-500">Promotions</p>
+          <h2 className="mt-2 font-['Sora'] text-2xl font-bold text-lavender-950">Offers</h2>
+          <p className="mt-3 text-sm text-lavender-700">
+            View all storefront offers and toggle visibility — for example, show or hide the weekend Tumbler Scream promotion.
+          </p>
+          <span className="mt-5 inline-flex rounded-2xl bg-lavender-100 px-4 py-2 text-sm font-semibold text-lavender-800">
+            Open offers manager
+          </span>
+        </Link>
       </div>
     </AdminAccessGate>
   );
