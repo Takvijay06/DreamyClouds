@@ -1,5 +1,5 @@
 import { ApiProduct, buildProductsFromApi } from '../../data/products';
-import { Product, ProductCategory, ShippingQuantityMode, StickerSubCategory, TumblerSubCategory } from '../order/orderTypes';
+import { Product, ProductCategory, StickerSubCategory, TumblerSubCategory } from '../order/orderTypes';
 
 export const PRODUCTS_API_URL = 'https://ftyqsddrhhqodlytyyca.supabase.co/rest/v1/products';
 export const PRODUCTS_API_KEY = 'sb_publishable_11G_1zZ-Uv55Jdw15gdaSQ_8yHltBRH';
@@ -20,7 +20,6 @@ export type ProductMutationInput = {
   scentedAddonPrice: number | null;
   colors: string[];
   shippingCharge: number | null;
-  shippingQuantityMode: ShippingQuantityMode | null;
   candleJarPackaged: boolean | null;
 };
 
@@ -47,7 +46,7 @@ const parseErrorMessage = async (response: Response): Promise<string> => {
 const sanitizeStringList = (values: string[]): string[] =>
   values.map((value) => value.trim()).filter((value) => value.length > 0);
 
-const buildMutationPayload = (input: ProductMutationInput) => {
+const buildMutationPayload = (input: ProductMutationInput, includeExtendedShippingFields = true) => {
   const primaryImage = input.image?.trim() ?? '';
   const galleryImages = sanitizeStringList(input.images).filter((value) => value !== primaryImage);
   const images = primaryImage ? [primaryImage, ...galleryImages] : galleryImages;
@@ -68,15 +67,47 @@ const buildMutationPayload = (input: ProductMutationInput) => {
     shipping: input.shippingCharge
   };
 
-  if (input.category !== 'stickers' && input.category !== 'accessories' && input.shippingQuantityMode) {
-    payload.shipping_quantity_mode = input.shippingQuantityMode;
-  }
-
-  if (input.category === 'candles' && input.candleJarPackaged !== null && input.candleJarPackaged !== undefined) {
+  if (
+    includeExtendedShippingFields &&
+    input.category === 'candles' &&
+    input.candleJarPackaged !== null &&
+    input.candleJarPackaged !== undefined
+  ) {
     payload.candle_jar_packaged = input.candleJarPackaged;
   }
 
   return payload;
+};
+
+const isMissingProductsColumnError = (message: string): boolean =>
+  message.includes("column of 'products'") && message.includes('schema cache');
+
+const mutateProductInApi = async (
+  method: 'POST' | 'PATCH',
+  url: string,
+  input: ProductMutationInput
+): Promise<Product[]> => {
+  const attemptMutation = (includeExtendedShippingFields: boolean) =>
+    fetch(url, {
+      method,
+      headers: buildHeaders(true),
+      body: JSON.stringify(buildMutationPayload(input, includeExtendedShippingFields))
+    });
+
+  let response = await attemptMutation(true);
+  if (!response.ok) {
+    const message = await parseErrorMessage(response);
+    if (isMissingProductsColumnError(message)) {
+      response = await attemptMutation(false);
+      if (!response.ok) {
+        throw new Error(await parseErrorMessage(response));
+      }
+    } else {
+      throw new Error(message);
+    }
+  }
+
+  return parseProductsResponse(response);
 };
 
 const parseProductsResponse = async (response: Response): Promise<Product[]> => {
@@ -96,13 +127,7 @@ export const fetchProductsFromApi = async (): Promise<Product[]> => {
 };
 
 export const createProductInApi = async (input: ProductMutationInput): Promise<Product> => {
-  const response = await fetch(PRODUCTS_API_URL, {
-    method: 'POST',
-    headers: buildHeaders(true),
-    body: JSON.stringify(buildMutationPayload(input))
-  });
-
-  const products = await parseProductsResponse(response);
+  const products = await mutateProductInApi('POST', PRODUCTS_API_URL, input);
   const created = products[0];
   if (!created) {
     throw new Error('Product was created but no product data was returned.');
@@ -115,13 +140,7 @@ export const updateProductInApi = async (id: string, input: ProductMutationInput
   const url = new URL(PRODUCTS_API_URL);
   url.searchParams.set('id', `eq.${id}`);
 
-  const response = await fetch(url.toString(), {
-    method: 'PATCH',
-    headers: buildHeaders(true),
-    body: JSON.stringify(buildMutationPayload(input))
-  });
-
-  const products = await parseProductsResponse(response);
+  const products = await mutateProductInApi('PATCH', url.toString(), input);
   const updated = products[0];
   if (!updated) {
     throw new Error('Product was updated but no product data was returned.');

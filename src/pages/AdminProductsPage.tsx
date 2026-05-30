@@ -3,7 +3,7 @@ import { AdminAccessGate } from '../components/AdminAccessGate';
 import { FormInput } from '../components/FormInput';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
-import { ProductCategory, Product, StickerSubCategory, ShippingQuantityMode } from '../features/order/orderTypes';
+import { ProductCategory, Product, StickerSubCategory } from '../features/order/orderTypes';
 import { ProductMutationInput, ProductSubCategory } from '../features/products/productsApi';
 import {
   createProduct,
@@ -51,7 +51,6 @@ type ProductFormState = {
   scentedAddonPrice: string;
   colorsText: string;
   shippingCharge: string;
-  shippingQuantityMode: ShippingQuantityMode;
   candleJarPackaged: boolean;
 };
 
@@ -88,7 +87,6 @@ const createEmptyProductForm = (category: ProductCategory = 'tumblers'): Product
   scentedAddonPrice: '',
   colorsText: '',
   shippingCharge: '',
-  shippingQuantityMode: 'per_item',
   candleJarPackaged: true
 });
 
@@ -115,7 +113,6 @@ const toFormState = (product: Product): ProductFormState => ({
     typeof product.shippingCharge === 'number' && Number.isFinite(product.shippingCharge)
       ? String(product.shippingCharge)
       : '',
-  shippingQuantityMode: product.shippingQuantityMode === 'per_line' ? 'per_line' : 'per_item',
   candleJarPackaged: product.category === 'candles' ? product.candleJarPackaged !== false : true
 });
 
@@ -292,8 +289,6 @@ export const AdminProductsPage = () => {
       scentedAddonPrice: form.scentedAddonPrice.trim() === '' ? null : Number(form.scentedAddonPrice),
       colors: parseListInput(form.colorsText),
       shippingCharge: form.shippingCharge.trim() === '' ? null : Number(form.shippingCharge),
-      shippingQuantityMode:
-        form.category === 'stickers' || form.category === 'accessories' ? null : form.shippingQuantityMode,
       candleJarPackaged: form.category === 'candles' ? form.candleJarPackaged : null
     };
   };
@@ -621,28 +616,6 @@ export const AdminProductsPage = () => {
                 <FormInput id="base-price" label="Base Price" type="number" value={form.basePrice} onChange={(value) => setForm((current) => (current ? { ...current, basePrice: value } : current))} error={formErrors.basePrice} required />
                 <FormInput id="available-quantity" label="Available Quantity" type="number" value={form.availableQuantity} onChange={(value) => setForm((current) => (current ? { ...current, availableQuantity: value } : current))} error={formErrors.availableQuantity} placeholder="Leave blank for unlimited" />
                 <FormInput id="shipping-charge" label="Shipping Charge" type="number" value={form.shippingCharge} onChange={(value) => setForm((current) => (current ? { ...current, shippingCharge: value } : current))} error={formErrors.shippingCharge} />
-                {form.category !== 'stickers' && form.category !== 'accessories' ? (
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-lavender-900" htmlFor="shipping-qty-mode">
-                      Shipping basis
-                    </label>
-                    <select
-                      id="shipping-qty-mode"
-                      className="input"
-                      value={form.shippingQuantityMode}
-                      onChange={(event) =>
-                        setForm((current) =>
-                          current
-                            ? { ...current, shippingQuantityMode: event.target.value as ShippingQuantityMode }
-                            : current
-                        )
-                      }
-                    >
-                      <option value="per_item">Per item (multiply charge by line quantity)</option>
-                      <option value="per_line">Per line / set (charge once per cart line)</option>
-                    </select>
-                  </div>
-                ) : null}
                 {form.category === 'candles' ? (
                   <label className="flex items-center gap-3 rounded-2xl border border-lavender-200 bg-lavender-50/70 px-4 py-3 text-sm font-medium text-lavender-900">
                     <input
