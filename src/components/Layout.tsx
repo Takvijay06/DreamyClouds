@@ -9,6 +9,8 @@ import { trackNamedEvent, trackUserJourneyFunnel } from '../services/analytics';
 import { FestivalBanner } from './FestivalBanner';
 import { StepProgress } from './StepProgress';
 
+const VIJAY_TAK_PORTFOLIO_URL = 'https://portifilo-page.vercel.app';
+
 interface LayoutProps {
   children: ReactNode;
   currentStep: 1 | 2 | 3;
@@ -66,7 +68,16 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
       </section>
 
       <footer className="mt-8 rounded-2xl border border-lavender-200/70 bg-white/85 px-4 py-4 text-center text-xs leading-relaxed text-lavender-700 shadow-soft backdrop-blur-sm sm:py-3.5 sm:text-sm">
-        © {new Date().getFullYear()} Dreamy Clouds By Daisy. Crafted by Vijay Tak.
+        © {new Date().getFullYear()} Dreamy Clouds By Daisy. Crafted by{' '}
+        <a
+          href={VIJAY_TAK_PORTFOLIO_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-semibold text-lavender-800 underline decoration-lavender-300 underline-offset-2 transition hover:text-lavender-950 hover:decoration-lavender-500"
+        >
+          Vijay Tak
+        </a>
+        .
       </footer>
 
       <div className="contact-fab" aria-label="Contact">
