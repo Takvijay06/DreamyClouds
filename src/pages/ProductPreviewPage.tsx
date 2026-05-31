@@ -7,7 +7,7 @@ import { ANALYTICS_EVENTS } from '../constants/analyticsEvents';
 import { selectStickerProducts } from '../features/designs/designsSlice';
 import { selectProducts } from '../features/products/productsSlice';
 import { formatRupee } from '../utils/currency';
-import { openArrangeNotifyWhatsApp } from '../utils/whatsapp';
+import { buildProductShareUrl, openArrangeNotifyWhatsApp } from '../utils/whatsapp';
 import { trackNamedEvent } from '../services/analytics';
 
 const IMAGE_SLIDE_MS = 260;
@@ -194,7 +194,7 @@ export const ProductPreviewPage = () => {
   };
 
   const handleCopyLink = async () => {
-    const shareUrl = window.location.href;
+    const shareUrl = buildProductShareUrl(product.id);
     try {
       if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
         await navigator.clipboard.writeText(shareUrl);
@@ -214,7 +214,7 @@ export const ProductPreviewPage = () => {
   };
 
   const shareText = `Check out this product from Dreamy Clouds By Daisy: ${product.name} - ${formatRupee(product.basePrice)}.`;
-  const shareUrl = window.location.href;
+  const shareUrl = buildProductShareUrl(product.id);
 
   const handleShareWhatsApp = () => {
     if (product) {

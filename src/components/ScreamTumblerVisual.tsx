@@ -166,9 +166,11 @@ export const ScreamTumblerVisual = ({
           ? `${finalDiscountPercent}% OFF`
           : isUnlocked
             ? 'Unlocked'
-            : showcasePercent !== undefined
-              ? `Up to ${showcasePercent}%`
-              : `${level}%`}
+            : showcasePercent !== undefined && showcasePercent > 0
+              ? `${showcasePercent}%`
+              : isListening
+                ? '0%'
+                : `${level}%`}
       </p>
     </div>
   );

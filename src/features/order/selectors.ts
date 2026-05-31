@@ -305,6 +305,14 @@ export const selectPricing = (state: RootState): Pricing => {
       : product?.category === 'candles'
         ? fallbackUnitPrice * billableQuantity + fallbackCandleScentedCharge + fallbackCandleNoteCharge
         : 0;
+  const tumblerMerchandiseSubtotal =
+    cartItems.length > 0
+      ? cartItems
+          .filter((item) => item.product.category === 'tumblers' || item.product.category === 'mugs')
+          .reduce((sum, item) => sum + item.lineTotal + item.stickerLineTotal, 0)
+      : product?.category === 'tumblers' || product?.category === 'mugs'
+        ? fallbackUnitPrice * billableQuantity + fallbackDesignCharge
+        : 0;
   const shippingLines =
     cartItems.length > 0
       ? cartItems.map((item) => ({ product: item.product, quantity: toCartLineQuantity(item.quantity) }))
@@ -316,8 +324,8 @@ export const selectPricing = (state: RootState): Pricing => {
       ? 0
       : shippingLines.length > 0
         ? computeCartDeliveryCharge(shippingLines, {
-            candleMerchandiseSubtotal,
-            orderTotalBeforeDelivery: totalBeforeDelivery
+            tumblerMerchandiseSubtotal,
+            candleMerchandiseSubtotal
           })
         : 0;
   const grandTotal = totalBeforeDelivery + deliveryCharge;

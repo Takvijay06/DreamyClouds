@@ -21,7 +21,7 @@ const OFFER_SLIDES = [
   },
   {
     id: 'cart-shipping',
-    text: 'Free shipping on total cart value above ₹2000.',
+    text: 'Free shipping on tumbler & mug orders over ₹2000.',
     bar: 'from-violet-500 via-fuchsia-500 to-pink-500',
     chip: 'from-violet-500/20 to-fuchsia-500/15',
     chipText: 'text-violet-950',

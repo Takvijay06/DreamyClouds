@@ -8,9 +8,14 @@ import {
   SCREAM_INTERACTION_MS,
   SCREAM_INTERACTION_SECONDS,
   SCREAM_OFFER_DISCOUNT_PERCENT,
-  SCREAM_OFFER_SHOWCASE_DISCOUNT_PERCENT,
   subscribeScreamOffer
 } from '../utils/tumblerScreamOffer';
+import {
+  readScreamHighFrequencyLevel,
+  ScreamMicSession,
+  startScreamMicrophone,
+  stopScreamMicrophone
+} from '../utils/screamAudioAnalysis';
 import { ScreamTumblerVisual } from './ScreamTumblerVisual';
 
 type ModalPhase = 'screaming' | 'revealed' | 'active' | 'expired';
@@ -64,8 +69,26 @@ export const TumblerScreamOffer = () => {
   const [phase, setPhase] = useState<ModalPhase | 'start-scream'>('start-scream');
   const [secondsLeft, setSecondsLeft] = useState(SCREAM_INTERACTION_SECONDS);
   const [fillPercent, setFillPercent] = useState(12);
+  const [liveDiscountPercent, setLiveDiscountPercent] = useState(0);
   const screamTimerRef = useRef<number | null>(null);
+  const screamRafRef = useRef<number | null>(null);
+  const screamMicRef = useRef<ScreamMicSession | null>(null);
+  const screamLevelRef = useRef(0);
   const screamStartedAtRef = useRef<number | null>(null);
+
+  const stopScreamMicrophoneSession = useCallback(() => {
+    stopScreamMicrophone(screamMicRef.current);
+    screamMicRef.current = null;
+  }, []);
+
+  const clearScreamAnimation = useCallback(() => {
+    if (screamRafRef.current !== null) {
+      cancelAnimationFrame(screamRafRef.current);
+      screamRafRef.current = null;
+    }
+    stopScreamMicrophoneSession();
+    screamLevelRef.current = 0;
+  }, [stopScreamMicrophoneSession]);
 
   const clearScreamTimer = useCallback(() => {
     if (screamTimerRef.current !== null) {
@@ -73,7 +96,8 @@ export const TumblerScreamOffer = () => {
       screamTimerRef.current = null;
     }
     screamStartedAtRef.current = null;
-  }, []);
+    clearScreamAnimation();
+  }, [clearScreamAnimation]);
 
   useEffect(() => () => clearScreamTimer(), [clearScreamTimer]);
 
@@ -88,12 +112,48 @@ export const TumblerScreamOffer = () => {
     };
   }, [open]);
 
+  const startScreamAudioLoop = useCallback(() => {
+    const tick = () => {
+      const session = screamMicRef.current;
+      if (!session) {
+        screamRafRef.current = requestAnimationFrame(tick);
+        return;
+      }
+
+      const rawLevel = readScreamHighFrequencyLevel(session);
+      const smoothed = screamLevelRef.current * 0.72 + rawLevel * 0.28;
+      screamLevelRef.current = smoothed;
+
+      const visualFill = 12 + smoothed * 88;
+      const discountPercent = Math.min(
+        SCREAM_OFFER_DISCOUNT_PERCENT,
+        Math.round(smoothed * SCREAM_OFFER_DISCOUNT_PERCENT)
+      );
+
+      setFillPercent((current) => Math.max(current, visualFill));
+      setLiveDiscountPercent((current) => Math.max(current, discountPercent));
+
+      screamRafRef.current = requestAnimationFrame(tick);
+    };
+
+    screamRafRef.current = requestAnimationFrame(tick);
+  }, []);
+
   const startScreamCountdown = useCallback(() => {
     clearScreamTimer();
     setPhase('screaming');
     setSecondsLeft(SCREAM_INTERACTION_SECONDS);
     setFillPercent(12);
+    setLiveDiscountPercent(0);
+    screamLevelRef.current = 0;
     screamStartedAtRef.current = Date.now();
+
+    void startScreamMicrophone().then((session) => {
+      screamMicRef.current = session;
+      if (session) {
+        startScreamAudioLoop();
+      }
+    });
 
     screamTimerRef.current = window.setInterval(() => {
       const startedAt = screamStartedAtRef.current;
@@ -104,21 +164,20 @@ export const TumblerScreamOffer = () => {
       const elapsed = Date.now() - startedAt;
       const remainingMs = Math.max(0, SCREAM_INTERACTION_MS - elapsed);
       const remainingSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
-      const progress = Math.min(100, (elapsed / SCREAM_INTERACTION_MS) * 100);
 
       setSecondsLeft(remainingSeconds);
-      setFillPercent(Math.min(100, 12 + progress * 0.88));
 
       if (remainingMs <= 0) {
         clearScreamTimer();
         setPhase('revealed');
         setFillPercent(100);
+        setLiveDiscountPercent(SCREAM_OFFER_DISCOUNT_PERCENT);
         window.setTimeout(() => {
           revealScreamOfferDiscount();
         }, 0);
       }
     }, 100);
-  }, [clearScreamTimer]);
+  }, [clearScreamTimer, startScreamAudioLoop]);
 
   const handleOpen = () => {
     const nextPhase = resolvePhaseFromSnapshot(snapshot);
@@ -154,10 +213,6 @@ export const TumblerScreamOffer = () => {
   }
 
   const offerCountdown = formatScreamOfferCountdown(snapshot.remainingMs);
-  const showcaseFillPercent = Math.min(
-    SCREAM_OFFER_SHOWCASE_DISCOUNT_PERCENT,
-    Math.round(fillPercent * (SCREAM_OFFER_SHOWCASE_DISCOUNT_PERCENT / 100))
-  );
 
   const pillLabel = snapshot.isActive
     ? `${SCREAM_OFFER_DISCOUNT_PERCENT}% off expires in ${offerCountdown}, Order Fast`
@@ -185,14 +240,24 @@ export const TumblerScreamOffer = () => {
     ) : (
       <>
         <p className="scream-offer-copy">
-          Scream into your mic — your discount unlocks automatically in{' '}
-          <strong>{secondsLeft}s</strong> (up to {SCREAM_OFFER_SHOWCASE_DISCOUNT_PERCENT}% showcase).
+          Scream into your mic — high-pitched screams fill the tumbler (up to{' '}
+          <strong>{SCREAM_OFFER_DISCOUNT_PERCENT}%</strong>) before the timer ends in{' '}
+          <strong>{secondsLeft}s</strong>.
         </p>
-        <ScreamTumblerVisual fillPercent={fillPercent} isListening isUnlocked={false} showcasePercent={showcaseFillPercent} />
+        <ScreamTumblerVisual
+          fillPercent={fillPercent}
+          isListening
+          isUnlocked={false}
+          showcasePercent={liveDiscountPercent}
+        />
         <p className="scream-offer-scream-countdown" aria-live="polite">
           {secondsLeft}
         </p>
-        <p className="scream-offer-meter-label">Keep screaming… discount reveals when the timer hits zero</p>
+        <p className="scream-offer-meter-label">
+          {liveDiscountPercent > 0
+            ? `${liveDiscountPercent}% — keep screaming to max out!`
+            : 'Scream sharply — low air and breath sounds won\u2019t fill the tumbler'}
+        </p>
         <div className="scream-offer-meter" aria-hidden="true">
           <div className="scream-offer-meter-fill" style={{ width: `${fillPercent}%` }} />
         </div>

@@ -3,29 +3,17 @@ import { BUSINESS_WHATSAPP_NUMBER } from '../config/business';
 
 const CUP_CAKE_CANDLE_ID = 'CUP_CAKE_CANDLE';
 
-export const getProductPrimaryImageUrl = (product: Product): string => {
-  if (product.imageAvailable === false) {
-    return 'No image available';
+/** Same canonical URL used by the product preview share / copy-link actions. */
+export const buildProductShareUrl = (productId: string): string => {
+  const path = `/product/${productId}`;
+  if (typeof window !== 'undefined') {
+    return `${window.location.origin}${path}`;
   }
-  return product.images?.[0] ?? product.image;
-};
-
-const getImageFileName = (imageUrl: string): string => {
-  if (imageUrl === 'No image available') {
-    return imageUrl;
-  }
-  try {
-    const pathname = new URL(imageUrl).pathname;
-    const segment = pathname.split('/').filter(Boolean).pop();
-    return segment ? decodeURIComponent(segment) : imageUrl;
-  } catch {
-    return imageUrl.split('/').filter(Boolean).pop() ?? imageUrl;
-  }
+  return path;
 };
 
 export const buildArrangeNotifyWhatsAppMessage = (product: Product): string => {
-  const imageUrl = getProductPrimaryImageUrl(product);
-  const imageName = getImageFileName(imageUrl);
+  const shareUrl = buildProductShareUrl(product.id);
 
   return [
     '*Restock / Arrange Request - Dreamy Clouds By Daisy*',
@@ -33,8 +21,7 @@ export const buildArrangeNotifyWhatsAppMessage = (product: Product): string => {
     'Hi! This product is sold out on your website. Can you arrange it for me urgently?',
     '',
     `*Product:* ${product.name}`,
-    `*Image name:* ${imageName}`,
-    `*Image link:* ${imageUrl}`,
+    `*Product link:* ${shareUrl}`,
     '',
     'Please let me know if this can be arranged. Thank you!'
   ].join('\n');
