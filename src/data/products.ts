@@ -9,7 +9,9 @@ const DEFAULT_OVERLAY_BY_CATEGORY: Record<ProductCategory, string> = {
   candles: 'left-[24%] top-[34%] h-[30%] w-[45%]',
   'gift-hampers': 'left-[24%] top-[34%] h-[30%] w-[45%]',
   accessories: 'left-[26%] top-[30%] h-[36%] w-[46%]',
-  stickers: 'left-[20%] top-[20%] h-[60%] w-[60%]'
+  stickers: 'left-[20%] top-[20%] h-[60%] w-[60%]',
+  gifting: 'left-[24%] top-[34%] h-[30%] w-[45%]',
+  'wax-melters-sachets': 'left-[24%] top-[34%] h-[30%] w-[45%]'
 };
 
 export type ApiProduct = {

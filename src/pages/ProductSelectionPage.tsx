@@ -44,6 +44,8 @@ const CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
   { key: "mugs", label: "Mugs" },
   { key: "bookmarks", label: "Bookmarks" },
   { key: "candles", label: "Candles" },
+  { key: "gifting", label: "Gifting" },
+  { key: "wax-melters-sachets", label: "Wax Melters & Sachets" },
   { key: "accessories", label: "Accessories" },
   { key: "stickers", label: "Stickers" },
 ];
@@ -510,7 +512,7 @@ export const ProductSelectionPage = () => {
               {designsError ? `(${designsError})` : ""}
             </div>
           ) : null}
-          <div className="flex flex-wrap gap-2">
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1.5 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
             {CATEGORY_TABS.map((tab) => {
               const isActive = tab.key === activeCategory;
               const isTrendingTab = tab.key === "trending";
@@ -521,7 +523,7 @@ export const ProductSelectionPage = () => {
                   onClick={() => {
                     setActiveCategory(tab.key);
                   }}
-                  className={`${isTrendingTab ? "trending-tab-border" : ""} ${isTrendingTab && isActive ? "trending-tab-border-active" : ""} rounded-2xl border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${
+                  className={`${isTrendingTab ? "trending-tab-border" : ""} ${isTrendingTab && isActive ? "trending-tab-border-active" : ""} shrink-0 whitespace-nowrap rounded-2xl border px-4 py-2 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ${
                     isTrendingTab
                       ? isActive
                         ? "border-fuchsia-500 bg-gradient-to-r from-fuchsia-600 via-violet-600 to-lavender-600 text-white shadow-lg shadow-fuchsia-300/40 focus-visible:ring-fuchsia-300"

@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AdminAccessGate } from '../components/AdminAccessGate';
 import { FormInput } from '../components/FormInput';
+import { QuantityField } from '../components/QuantityField';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
 import { Design, ProductCategory, StickerSubCategory } from '../features/order/orderTypes';
 import {
@@ -430,10 +431,9 @@ export const AdminDesignsPage = () => {
                   error={formErrors.basePrice}
                   placeholder="Optional"
                 />
-                <FormInput
+                <QuantityField
                   id="available-quantity"
                   label="Available Quantity"
-                  type="number"
                   value={form.availableQuantity}
                   onChange={(value) => setForm((current) => (current ? { ...current, availableQuantity: value } : current))}
                   error={formErrors.availableQuantity}

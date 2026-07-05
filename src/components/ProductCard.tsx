@@ -46,7 +46,7 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
       ? product.subCategory === 'glass-tumbler'
         ? 'glass tumbler'
         : 'steel tumbler'
-      : product.category.replace('-', ' ');
+      : product.category.replace(/-/g, ' ');
 
   useEffect(() => {
     return () => {
@@ -306,7 +306,7 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
 
   return (
     <div
-      className={`group w-full overflow-hidden rounded-3xl border border-lavender-200/90 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-lavender-400 hover:shadow-lg hover:shadow-lavender-200/35 ${
+      className={`group flex h-full w-full flex-col overflow-hidden rounded-3xl border border-lavender-200/90 bg-white text-left shadow-sm transition duration-300 hover:-translate-y-1 hover:border-lavender-400 hover:shadow-lg hover:shadow-lavender-200/35 ${
         isSoldOut ? 'opacity-70' : ''
       }`}
     >
@@ -392,9 +392,9 @@ export const ProductCard = ({ product, onShare, onBuyNow, onRequestCandleOptions
         </div>
       </div>
 
-      <div className="space-y-2.5 border-t border-lavender-100/90 bg-gradient-to-b from-white to-lavender-50/30 p-4">
-        <h3 className="font-['Sora'] text-base font-bold tracking-tight text-lavender-900">{product.name}</h3>
-        <p className="text-sm leading-relaxed text-lavender-700">{product.description}</p>
+      <div className="flex-1 space-y-2.5 border-t border-lavender-100/90 bg-gradient-to-b from-white to-lavender-50/30 p-4">
+        <h3 className="font-['Sora'] line-clamp-2 text-base font-bold tracking-tight text-lavender-900">{product.name}</h3>
+        <p className="line-clamp-2 text-sm leading-relaxed text-lavender-700">{product.description}</p>
       </div>
 
       <div className="space-y-3 border-t border-lavender-100 px-4 pb-4 pt-3">

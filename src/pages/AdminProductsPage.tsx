@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { AdminAccessGate } from '../components/AdminAccessGate';
 import { FormInput } from '../components/FormInput';
+import { QuantityField } from '../components/QuantityField';
 import { GalleryImageUrlField, ImageUrlField } from '../components/ImageUrlField';
 import { ProductPreviewModal } from '../components/ProductPreviewModal';
 import { useAppDispatch, useAppSelector } from '../app/hooks';
@@ -19,6 +20,7 @@ import {
   updateProduct
 } from '../features/products/productsSlice';
 import {
+  createDesign,
   deleteDesign,
   fetchDesigns,
   resetDesignSaveState,
@@ -26,8 +28,11 @@ import {
   selectDesignSaveStatus,
   selectDesignsError,
   selectDesignsStatus,
-  selectStickerProducts
+  selectStickerProducts,
+  updateDesign
 } from '../features/designs/designsSlice';
+import { DesignMutationInput } from '../features/designs/designsApi';
+import { buildStickerProductsFromDesigns } from '../data/designs';
 import { formatRupee } from '../utils/currency';
 
 type ProductCategoryTab = ProductCategory | 'trending' | 'steel-tumblers' | 'glass-tumblers';
@@ -39,6 +44,8 @@ const CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
   { key: 'mugs', label: 'Mugs' },
   { key: 'bookmarks', label: 'Bookmarks' },
   { key: 'candles', label: 'Candles' },
+  { key: 'gifting', label: 'Gifting' },
+  { key: 'wax-melters-sachets', label: 'Wax Melters & Sachets' },
   { key: 'accessories', label: 'Accessories' },
   { key: 'stickers', label: 'Stickers' }
 ];
@@ -147,6 +154,36 @@ const normalizeSubCategory = (category: ProductCategory, subCategory: ProductSub
   return '';
 };
 
+const buildDesignPayload = (form: ProductFormState): DesignMutationInput => ({
+  id: form.id.trim(),
+  name: form.name.trim(),
+  productCategory: 'stickers',
+  stickerSubCategory: normalizeSubCategory('stickers', form.subCategory) as StickerSubCategory,
+  image: form.image.trim() || parseListInput(form.imagesText)[0] || '',
+  basePrice: form.basePrice.trim() === '' ? null : Number(form.basePrice),
+  availableQuantity: form.availableQuantity.trim() === '' ? null : Number(form.availableQuantity)
+});
+
+const buildDesignPayloadFromProduct = (product: Product, availableQuantity: number | null): DesignMutationInput => ({
+  id: product.id,
+  name: product.name,
+  productCategory: 'stickers',
+  stickerSubCategory: normalizeStickerSubCategory(product.subCategory) as StickerSubCategory,
+  image: product.image,
+  basePrice: Number.isFinite(product.basePrice) ? product.basePrice : null,
+  availableQuantity
+});
+
+const formatStockLabel = (quantity: number | null | undefined): string => {
+  if (quantity === null || quantity === undefined) {
+    return 'Unlimited';
+  }
+  if (quantity === 0) {
+    return 'Sold out';
+  }
+  return `${quantity} in stock`;
+};
+
 export const AdminProductsPage = () => {
   const dispatch = useAppDispatch();
   const products = useAppSelector(selectProducts);
@@ -169,8 +206,11 @@ export const AdminProductsPage = () => {
   const [formErrors, setFormErrors] = useState<ProductFormErrors>({});
   const [successMessage, setSuccessMessage] = useState('');
   const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
+  const [adjustingQuantityId, setAdjustingQuantityId] = useState<string | null>(null);
 
-  const activeSaveError = activeCategory === 'stickers' ? designSaveError : productSaveError;
+  const isStickerAdminView = activeCategory === 'stickers';
+  const activeSaveStatus = isStickerAdminView ? designSaveStatus : productSaveStatus;
+  const activeSaveError = isStickerAdminView ? designSaveError : productSaveError;
 
   useEffect(() => {
     if (productsStatus === 'idle') {
@@ -288,10 +328,57 @@ export const AdminProductsPage = () => {
     setFormErrors({});
   };
 
+  const handleAdjustStickerQuantity = async (product: Product, delta: number) => {
+    const current =
+      typeof product.availableQuantity === 'number' && Number.isFinite(product.availableQuantity)
+        ? product.availableQuantity
+        : null;
+
+    if (delta < 0 && current === null) {
+      return;
+    }
+
+    const nextQuantity =
+      delta > 0 ? (current === null ? 1 : current + 1) : current === null ? null : Math.max(0, current - 1);
+
+    if (nextQuantity === current) {
+      return;
+    }
+
+    dispatch(resetDesignSaveState());
+    setSuccessMessage('');
+    setAdjustingQuantityId(product.id);
+
+    try {
+      const updatedDesign = await dispatch(
+        updateDesign({
+          id: product.id,
+          input: buildDesignPayloadFromProduct(product, nextQuantity)
+        })
+      ).unwrap();
+      await dispatch(fetchDesigns()).unwrap();
+
+      if (editingProduct?.id === product.id) {
+        const refreshed = buildStickerProductsFromDesigns([updatedDesign])[0];
+        if (refreshed) {
+          setEditingProduct(refreshed);
+          setForm(toFormState(refreshed));
+        }
+      }
+
+      setSuccessMessage(`Updated stock for "${product.name}" to ${formatStockLabel(nextQuantity).toLowerCase()}.`);
+    } catch {
+      return;
+    } finally {
+      setAdjustingQuantityId(null);
+    }
+  };
+
   const validateForm = (): ProductFormErrors => {
     if (!form) {
       return {};
     }
+    const isStickerForm = form.category === 'stickers';
     const nextErrors: ProductFormErrors = {};
     if (!form.id.trim()) {
       nextErrors.id = 'Product ID is required.';
@@ -299,12 +386,22 @@ export const AdminProductsPage = () => {
     if (!form.name.trim()) {
       nextErrors.name = 'Product name is required.';
     }
-    if (!form.description.trim()) {
+    if (!isStickerForm && !form.description.trim()) {
       nextErrors.description = 'Description is required.';
     }
-    const basePrice = Number(form.basePrice);
-    if (form.basePrice.trim() === '' || !Number.isFinite(basePrice) || basePrice < 0) {
-      nextErrors.basePrice = 'Enter a valid base price.';
+    if (isStickerForm && !form.image.trim() && parseListInput(form.imagesText).length === 0) {
+      nextErrors.image = 'Image URL is required for stickers.';
+    }
+    if (!isStickerForm) {
+      const basePrice = Number(form.basePrice);
+      if (form.basePrice.trim() === '' || !Number.isFinite(basePrice) || basePrice < 0) {
+        nextErrors.basePrice = 'Enter a valid base price.';
+      }
+    } else if (form.basePrice.trim() !== '') {
+      const basePrice = Number(form.basePrice);
+      if (!Number.isFinite(basePrice) || basePrice < 0) {
+        nextErrors.basePrice = 'Base price must be a positive number or blank.';
+      }
     }
     if (form.availableQuantity.trim() !== '') {
       const availableQuantity = Number(form.availableQuantity);
@@ -312,16 +409,16 @@ export const AdminProductsPage = () => {
         nextErrors.availableQuantity = 'Available quantity must be a whole number or blank.';
       }
     }
-    if (form.scentedAddonPrice.trim() !== '') {
-      const scentedAddonPrice = Number(form.scentedAddonPrice);
-      if (!Number.isFinite(scentedAddonPrice) || scentedAddonPrice < 0) {
-        nextErrors.scentedAddonPrice = 'Scented add-on must be a positive number or blank.';
-      }
-    }
     if (form.shippingCharge.trim() !== '') {
       const shippingCharge = Number(form.shippingCharge);
       if (!Number.isFinite(shippingCharge) || shippingCharge < 0) {
         nextErrors.shippingCharge = 'Shipping charge must be a positive number or blank.';
+      }
+    }
+    if (!isStickerForm && form.scentedAddonPrice.trim() !== '') {
+      const scentedAddonPrice = Number(form.scentedAddonPrice);
+      if (!Number.isFinite(scentedAddonPrice) || scentedAddonPrice < 0) {
+        nextErrors.scentedAddonPrice = 'Scented add-on must be a positive number or blank.';
       }
     }
     return nextErrors;
@@ -368,7 +465,37 @@ export const AdminProductsPage = () => {
       return;
     }
 
+    const isStickerForm = form.category === 'stickers';
+
     try {
+      if (isStickerForm) {
+        const designPayload = buildDesignPayload(form);
+        if (productModalMode === 'create') {
+          const created = await dispatch(createDesign(designPayload)).unwrap();
+          await dispatch(fetchDesigns()).unwrap();
+          const createdProduct = buildStickerProductsFromDesigns([created])[0];
+          setSuccessMessage(`Created "${created.name}" successfully.`);
+          setEditingProduct(createdProduct ?? null);
+          if (createdProduct) {
+            setForm(toFormState(createdProduct));
+            setProductModalMode('edit');
+          } else {
+            setForm(null);
+          }
+          setFormErrors({});
+        } else if (editingProduct) {
+          const updated = await dispatch(updateDesign({ id: editingProduct.id, input: designPayload })).unwrap();
+          await dispatch(fetchDesigns()).unwrap();
+          const updatedProduct = buildStickerProductsFromDesigns([updated])[0];
+          setSuccessMessage(`Updated "${updated.name}" successfully.`);
+          if (updatedProduct) {
+            setEditingProduct(updatedProduct);
+            setForm(toFormState(updatedProduct));
+          }
+        }
+        return;
+      }
+
       if (productModalMode === 'create') {
         const created = await dispatch(createProduct(payload)).unwrap();
         await dispatch(fetchProducts()).unwrap();
@@ -438,7 +565,7 @@ export const AdminProductsPage = () => {
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1.5 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
           {CATEGORY_TABS.map((tab) => {
             const isActive = tab.key === activeCategory;
             const isTrendingTab = tab.key === 'trending';
@@ -447,7 +574,7 @@ export const AdminProductsPage = () => {
                 key={tab.key}
                 type="button"
                 onClick={() => setActiveCategory(tab.key)}
-                className={`${isTrendingTab ? 'trending-tab-border' : ''} ${isTrendingTab && isActive ? 'trending-tab-border-active' : ''} rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
+                className={`${isTrendingTab ? 'trending-tab-border' : ''} ${isTrendingTab && isActive ? 'trending-tab-border-active' : ''} shrink-0 whitespace-nowrap rounded-2xl border px-4 py-2 text-sm font-semibold transition ${
                   isTrendingTab
                     ? isActive
                       ? 'border-fuchsia-500 bg-gradient-to-r from-fuchsia-600 via-violet-600 to-lavender-600 text-white shadow-lg shadow-fuchsia-300/40'
@@ -543,6 +670,41 @@ export const AdminProductsPage = () => {
                   {product.subCategory ? <span className="rounded-full bg-lavender-50 px-2.5 py-1">{product.subCategory}</span> : null}
                   {product.isTrending ? <span className="rounded-full bg-fuchsia-50 px-2.5 py-1 text-fuchsia-700">Trending</span> : null}
                 </div>
+                {isStickerAdminView ? (
+                  <div className="rounded-2xl border border-lavender-200 bg-lavender-50/70 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-lavender-500">Stock</p>
+                        <p className="mt-1 text-sm font-bold text-lavender-900">{formatStockLabel(product.availableQuantity)}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          aria-label={`Decrease stock for ${product.name}`}
+                          disabled={
+                            adjustingQuantityId === product.id ||
+                            product.availableQuantity === 0 ||
+                            product.availableQuantity === null ||
+                            product.availableQuantity === undefined
+                          }
+                          onClick={() => void handleAdjustStickerQuantity(product, -1)}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-lavender-300 bg-white text-base font-bold text-lavender-700 transition hover:border-lavender-500 hover:bg-lavender-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          −
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Increase stock for ${product.name}`}
+                          disabled={adjustingQuantityId === product.id}
+                          onClick={() => void handleAdjustStickerQuantity(product, 1)}
+                          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-lavender-300 bg-white text-base font-bold text-lavender-700 transition hover:border-lavender-500 hover:bg-lavender-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
                 <div className="flex gap-2">
                   <button className="btn-secondary flex-1 px-3 py-2 text-xs sm:text-sm" type="button" onClick={() => setPreviewProduct(product)}>
                     Preview
@@ -651,6 +813,8 @@ export const AdminProductsPage = () => {
                     <option value="bookmarks">Bookmarks</option>
                     <option value="candles">Candles</option>
                     <option value="gift-hampers">Gift Hampers</option>
+                    <option value="gifting">Gifting</option>
+                    <option value="wax-melters-sachets">Wax Melters &amp; Sachets</option>
                     <option value="accessories">Accessories</option>
                     <option value="stickers">Stickers</option>
                   </select>
@@ -677,8 +841,8 @@ export const AdminProductsPage = () => {
                     )}
                   </select>
                 </div>
-                <FormInput id="base-price" label="Base Price" type="number" value={form.basePrice} onChange={(value) => setForm((current) => (current ? { ...current, basePrice: value } : current))} error={formErrors.basePrice} required />
-                <FormInput id="available-quantity" label="Available Quantity" type="number" value={form.availableQuantity} onChange={(value) => setForm((current) => (current ? { ...current, availableQuantity: value } : current))} error={formErrors.availableQuantity} placeholder="Leave blank for unlimited" />
+                <FormInput id="base-price" label="Base Price" type="number" value={form.basePrice} onChange={(value) => setForm((current) => (current ? { ...current, basePrice: value } : current))} error={formErrors.basePrice} required={form.category !== 'stickers'} placeholder={form.category === 'stickers' ? 'Optional' : undefined} />
+                <QuantityField id="available-quantity" label="Available Quantity" value={form.availableQuantity} onChange={(value) => setForm((current) => (current ? { ...current, availableQuantity: value } : current))} error={formErrors.availableQuantity} placeholder="Leave blank for unlimited" />
                 <FormInput id="shipping-charge" label="Shipping Charge" type="number" value={form.shippingCharge} onChange={(value) => setForm((current) => (current ? { ...current, shippingCharge: value } : current))} error={formErrors.shippingCharge} />
                 {form.category === 'candles' ? (
                   <label className="flex items-center gap-3 rounded-2xl border border-lavender-200 bg-lavender-50/70 px-4 py-3 text-sm font-medium text-lavender-900">
@@ -742,8 +906,18 @@ export const AdminProductsPage = () => {
                 >
                   Cancel
                 </button>
-                <button className="btn-primary" type="submit" disabled={productSaveStatus === 'saving'}>
-                  {productSaveStatus === 'saving' ? (productModalMode === 'create' ? 'Creating...' : 'Updating...') : productModalMode === 'create' ? 'Create Product' : 'Update Product'}
+                <button className="btn-primary" type="submit" disabled={activeSaveStatus === 'saving'}>
+                  {activeSaveStatus === 'saving'
+                    ? productModalMode === 'create'
+                      ? 'Creating...'
+                      : 'Updating...'
+                    : productModalMode === 'create'
+                      ? form.category === 'stickers'
+                        ? 'Create Sticker'
+                        : 'Create Product'
+                      : form.category === 'stickers'
+                        ? 'Update Sticker'
+                        : 'Update Product'}
                 </button>
               </div>
             </form>

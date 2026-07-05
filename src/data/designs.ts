@@ -90,7 +90,12 @@ export const buildStickerProductsFromDesigns = (designs: Design[]): Product[] =>
         subCategory: resolvedSubCategory,
         name: design.name,
         description: 'Sticker design',
-        basePrice: resolvedSubCategory === 'full_wrap' ? FULL_WRAP_STICKER_BASE_PRICE : SINGLE_STICKER_BASE_PRICE,
+        basePrice:
+          typeof design.basePrice === 'number' && Number.isFinite(design.basePrice)
+            ? design.basePrice
+            : resolvedSubCategory === 'full_wrap'
+              ? FULL_WRAP_STICKER_BASE_PRICE
+              : SINGLE_STICKER_BASE_PRICE,
         availableQuantity: toAvailableQuantityCap(design.availableQuantity),
         image: design.image,
         images: design.image ? [design.image] : [],

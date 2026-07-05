@@ -12,7 +12,9 @@ const CATEGORY_THEME: Record<ProductCategory, string> = {
   candles: 'from-[#fdba74] via-[#fed7aa] to-[#ffedd5]',
   'gift-hampers': 'from-[#86efac] via-[#bbf7d0] to-[#dcfce7]',
   accessories: 'from-[#93c5fd] via-[#bfdbfe] to-[#dbeafe]',
-  stickers: 'from-[#f9a8d4] via-[#fbcfe8] to-[#fde2f3]'
+  stickers: 'from-[#f9a8d4] via-[#fbcfe8] to-[#fde2f3]',
+  gifting: 'from-[#f9a8d4] via-[#fecdd3] to-[#ffe4e6]',
+  'wax-melters-sachets': 'from-[#fcd34d] via-[#fde68a] to-[#fef3c7]'
 };
 
 export const NoImageBanner = ({ category, className = '' }: NoImageBannerProps) => (
@@ -20,7 +22,7 @@ export const NoImageBanner = ({ category, className = '' }: NoImageBannerProps) 
     <div className="rounded-2xl border border-white/70 bg-white/70 px-4 py-3 text-center shadow-sm backdrop-blur-sm">
       <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-lavender-700">Dreamy Clouds</p>
       <p className="mt-1 text-sm font-bold text-lavender-900">No Image Available</p>
-      <p className="text-xs font-medium capitalize text-lavender-700">{category.replace('-', ' ')}</p>
+      <p className="text-xs font-medium capitalize text-lavender-700">{category.replace(/-/g, ' ')}</p>
     </div>
   </div>
 );
