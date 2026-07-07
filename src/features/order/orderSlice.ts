@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../app/store';
 import { toAvailableQuantityCap, toCartLineQuantity } from '../../utils/cartQuantity';
 import { normalizeCouponCode } from './couponRules';
-import { CustomerDetails, CartItem, OrderState } from './orderTypes';
+import { CustomerDetails, CartItem, OrderState, PaymentMethod } from './orderTypes';
 
 export const STORAGE_KEY = 'dreamyclouds-order';
 
@@ -45,6 +45,7 @@ const defaultState: OrderState = {
   designCustomerName: '',
   giftWrap: false,
   personalizedNote: '',
+  paymentMethod: 'upi',
   customerDetails: initialCustomerDetails
 };
 
@@ -77,10 +78,12 @@ const hydrateState = (): OrderState => {
   try {
     const parsed = JSON.parse(raw) as Partial<OrderState>;
     const nextQuantity = toCartLineQuantity(parsed.quantity ?? defaultState.quantity);
+    const paymentMethod = parsed.paymentMethod === 'cod' ? 'cod' : 'upi';
     return {
       ...defaultState,
       ...parsed,
       quantity: nextQuantity,
+      paymentMethod,
       cartItems: normalizeCartItemsQuantities(
         (parsed as { cartItems?: unknown }).cartItems ?? defaultState.cartItems
       ),
@@ -277,6 +280,9 @@ const orderSlice = createSlice({
     setPersonalizedNote(state, action: PayloadAction<string>) {
       state.personalizedNote = action.payload;
     },
+    setPaymentMethod(state, action: PayloadAction<PaymentMethod>) {
+      state.paymentMethod = action.payload;
+    },
     resetCurrentSelection(state) {
       state.productId = null;
       state.selectedColor = '';
@@ -321,6 +327,7 @@ export const {
   setDesignCustomerName,
   setGiftWrap,
   setPersonalizedNote,
+  setPaymentMethod,
   resetCurrentSelection,
   setCustomerDetails,
   clearOrder

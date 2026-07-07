@@ -42,6 +42,8 @@ export interface CustomerDetails {
   email: string;
 }
 
+export type PaymentMethod = 'upi' | 'cod';
+
 export interface CartItem {
   id: string;
   productId: string;
@@ -88,5 +90,6 @@ export interface OrderState {
   designCustomerName: string;
   giftWrap: boolean;
   personalizedNote: string;
+  paymentMethod: PaymentMethod;
   customerDetails: CustomerDetails;
 }

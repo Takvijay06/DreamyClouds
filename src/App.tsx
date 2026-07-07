@@ -12,9 +12,11 @@ import { AdminProductsPage } from './pages/AdminProductsPage';
 import { AnalyticsListeners } from './components/AnalyticsListeners';
 import { ContactUsPage } from './pages/ContactUsPage';
 import { DesignSelectionPage } from './pages/DesignSelectionPage';
+import { PolicyPage } from './pages/PolicyPage';
 import { PreviewPage } from './pages/PreviewPage';
 import { ProductPreviewPage } from './pages/ProductPreviewPage';
 import { ProductSelectionPage } from './pages/ProductSelectionPage';
+import { POLICIES } from './constants/policies';
 import { loadScreamOfferVisibility } from './utils/tumblerScreamOffer';
 
 const App = () => {
@@ -101,6 +103,13 @@ const App = () => {
           <Route path="/design" element={<DesignSelectionPage />} />
           <Route path="/preview" element={<PreviewPage />} />
           <Route path="/contact-us" element={<ContactUsPage />} />
+          {POLICIES.map((policy) => (
+            <Route
+              key={policy.slug}
+              path={policy.path}
+              element={<PolicyPage policySlug={policy.slug} />}
+            />
+          ))}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

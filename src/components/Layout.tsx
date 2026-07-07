@@ -7,6 +7,7 @@ import { resetCurrentSelection } from '../features/order/orderSlice';
 import { selectCartItemCount } from '../features/order/selectors';
 import { trackNamedEvent, trackUserJourneyFunnel } from '../services/analytics';
 import { FestivalBanner } from './FestivalBanner';
+import { PolicyFooter } from './PolicyFooter';
 import { StepProgress } from './StepProgress';
 import { TumblerScreamOffer } from './TumblerScreamOffer';
 
@@ -70,7 +71,9 @@ export const Layout = ({ children, currentStep, crossedSteps }: LayoutProps) => 
         {children}
       </section>
 
-      <footer className="mt-8 rounded-2xl border border-lavender-200/70 bg-white/85 px-4 py-4 text-center text-xs leading-relaxed text-lavender-700 shadow-soft backdrop-blur-sm sm:py-3.5 sm:text-sm">
+      <PolicyFooter />
+
+      <footer className="mt-4 rounded-2xl border border-lavender-200/70 bg-white/85 px-4 py-4 text-center text-xs leading-relaxed text-lavender-700 shadow-soft backdrop-blur-sm sm:py-3.5 sm:text-sm">
         © {new Date().getFullYear()} Dreamy Clouds By Daisy. Crafted by{' '}
         <a
           href={VIJAY_TAK_PORTFOLIO_URL}

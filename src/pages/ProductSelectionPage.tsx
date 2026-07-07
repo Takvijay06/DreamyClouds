@@ -37,7 +37,10 @@ import { trackNamedEvent, trackOutboundLink, trackUserJourneyFunnel } from "../s
 type ProductCategoryTab = ProductCategory | "trending" | "steel-tumblers" | "glass-tumblers";
 type SortOption = "high-to-low" | "low-to-high";
 
-const CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
+const SHOW_STEEL_TUMBLER_SECTION = false;
+const DEFAULT_PRODUCT_CATEGORY: ProductCategoryTab = "trending";
+
+const ALL_CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
   { key: "trending", label: "Trending" },
   { key: "steel-tumblers", label: "Steel Tumbler" },
   { key: "glass-tumblers", label: "Glass Tumbler" },
@@ -49,6 +52,10 @@ const CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [
   { key: "accessories", label: "Accessories" },
   { key: "stickers", label: "Stickers" },
 ];
+
+const CATEGORY_TABS = ALL_CATEGORY_TABS.filter(
+  (tab) => SHOW_STEEL_TUMBLER_SECTION || tab.key !== "steel-tumblers",
+);
 
 const STICKER_SUBCATEGORY_TABS: Array<{
   key: StickerSubCategory;
@@ -93,15 +100,16 @@ export const ProductSelectionPage = () => {
   const [activeCategory, setActiveCategory] = useState<ProductCategoryTab>(
     () => {
       if (selectedProduct?.category === "tumblers") {
-        return selectedProduct.subCategory === "glass-tumbler"
-          ? "glass-tumblers"
-          : "steel-tumblers";
+        if (selectedProduct.subCategory === "glass-tumbler") {
+          return "glass-tumblers";
+        }
+        return SHOW_STEEL_TUMBLER_SECTION ? "steel-tumblers" : DEFAULT_PRODUCT_CATEGORY;
       }
       if (selectedProduct?.category === "bookmarks") {
         return "bookmarks";
       }
       return (
-        (selectedProduct?.category as ProductCategoryTab) ?? "steel-tumblers"
+        (selectedProduct?.category as ProductCategoryTab) ?? DEFAULT_PRODUCT_CATEGORY
       );
     },
   );
@@ -122,6 +130,12 @@ export const ProductSelectionPage = () => {
   const portfolioViewLoggedRef = useRef(false);
   const isDaisyBouquetCandle = selectedProduct?.id === DAISY_BOUQUET_CANDLE_ID;
   const showCandleOptionsPanel = selectedProduct?.category === "candles";
+
+  useEffect(() => {
+    if (!SHOW_STEEL_TUMBLER_SECTION && activeCategory === "steel-tumblers") {
+      setActiveCategory(DEFAULT_PRODUCT_CATEGORY);
+    }
+  }, [activeCategory]);
 
   useEffect(() => {
     if (portfolioViewLoggedRef.current) {

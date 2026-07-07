@@ -17,6 +17,7 @@ import {
   setCouponCode,
   setCustomerDetails,
   setGiftWrap,
+  setPaymentMethod,
 } from '../features/order/orderSlice';
 import {
   selectCartTotalQuantity,
@@ -227,6 +228,7 @@ export const PreviewPage = () => {
       personalizedNote: cartItems.length > 0 ? 'Per item (see order details)' : order.personalizedNote,
       customerDetails: details,
       pricing,
+      paymentMethod: order.paymentMethod,
       upiId: BUSINESS_UPI_ID
     });
 
@@ -239,7 +241,10 @@ export const PreviewPage = () => {
       success: true,
       cart_line_count: cartItems.length
     });
-    trackNamedEvent(ANALYTICS_EVENTS.WHATSAPP_CLICK, { cta: 'proceed_to_buy' });
+    trackNamedEvent(ANALYTICS_EVENTS.WHATSAPP_CLICK, {
+      cta: 'proceed_to_buy',
+      payment_method: order.paymentMethod
+    });
     clearPersistedOrder();
     dispatch(clearOrder());
     window.location.href = url;
@@ -589,12 +594,83 @@ export const PreviewPage = () => {
 
           <PriceBreakdown pricing={pricing} quantity={cartTotalQuantity || order.quantity} />
 
+          <section className="space-y-3 rounded-2xl border border-lavender-200/80 bg-white p-4">
+            <div>
+              <p className="font-['Sora'] text-base font-bold text-lavender-900">Payment Method</p>
+              <p className="mt-1 text-xs text-lavender-600">Choose how you would like to pay for this order.</p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-2">
+              <label
+                className={`cursor-pointer rounded-2xl border p-3 transition ${
+                  order.paymentMethod === 'upi'
+                    ? 'border-lavender-500 bg-lavender-50 shadow-sm ring-2 ring-lavender-200'
+                    : 'border-lavender-200/80 bg-white hover:border-lavender-300'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <input
+                    type="radio"
+                    name="payment-method"
+                    value="upi"
+                    checked={order.paymentMethod === 'upi'}
+                    onChange={() => dispatch(setPaymentMethod('upi'))}
+                    className="mt-1 h-4 w-4 accent-lavender-600"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-lavender-900">Pay via UPI</p>
+                    <p className="mt-1 text-xs leading-relaxed text-lavender-700">
+                      Pay now using UPI and share the payment screenshot on WhatsApp.
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              <label
+                className={`cursor-pointer rounded-2xl border p-3 transition ${
+                  order.paymentMethod === 'cod'
+                    ? 'border-lavender-500 bg-lavender-50 shadow-sm ring-2 ring-lavender-200'
+                    : 'border-lavender-200/80 bg-white hover:border-lavender-300'
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <input
+                    type="radio"
+                    name="payment-method"
+                    value="cod"
+                    checked={order.paymentMethod === 'cod'}
+                    onChange={() => dispatch(setPaymentMethod('cod'))}
+                    className="mt-1 h-4 w-4 accent-lavender-600"
+                  />
+                  <div>
+                    <p className="text-sm font-semibold text-lavender-900">Cash on Delivery (COD)</p>
+                    <p className="mt-1 text-xs leading-relaxed text-lavender-700">
+                      Pay in cash when your order is delivered to your address.
+                    </p>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </section>
+
           <div className="rounded-2xl border border-lavender-200/80 bg-gradient-to-r from-lavender-50 to-white p-4 text-sm text-lavender-800">
-            <p className="font-bold text-lavender-900">Manual Payment Flow</p>
-            <p className="mt-1">
-              Transfer payment using UPI ID: <span className="font-semibold">{BUSINESS_UPI_ID}</span>
-            </p>
-            <p className="mt-1">After payment, share screenshot in WhatsApp for manual verification.</p>
+            {order.paymentMethod === 'cod' ? (
+              <>
+                <p className="font-bold text-lavender-900">Cash on Delivery</p>
+                <p className="mt-1">
+                  Your order will be placed with COD. Pay the grand total of{' '}
+                  <span className="font-semibold">{formatRupee(pricing.grandTotal)}</span> in cash at delivery.
+                </p>
+                <p className="mt-1">We will confirm your order after reviewing your details on WhatsApp.</p>
+              </>
+            ) : (
+              <>
+                <p className="font-bold text-lavender-900">UPI Payment Flow</p>
+                <p className="mt-1">
+                  Transfer payment using UPI ID: <span className="font-semibold">{BUSINESS_UPI_ID}</span>
+                </p>
+                <p className="mt-1">After payment, share screenshot in WhatsApp for manual verification.</p>
+              </>
+            )}
           </div>
 
           <div className="flex justify-between gap-3">

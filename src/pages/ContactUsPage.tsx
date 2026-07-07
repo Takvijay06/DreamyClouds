@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { PolicyFooter } from '../components/PolicyFooter';
 import { ANALYTICS_EVENTS } from '../constants/analyticsEvents';
 import brandLogo from '../data/Logos/Logo_4.jpeg';
 import { trackNamedEvent, trackOutboundLink } from '../services/analytics';
@@ -179,6 +180,8 @@ export const ContactUsPage = () => {
           </a>
         </article>
       </section>
+
+      <PolicyFooter />
     </main>
   );
 };

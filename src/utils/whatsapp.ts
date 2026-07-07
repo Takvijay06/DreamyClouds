@@ -1,4 +1,4 @@
-import { Pricing, Product, Design, CustomerDetails } from '../features/order/orderTypes';
+import { Pricing, Product, Design, CustomerDetails, PaymentMethod } from '../features/order/orderTypes';
 import { BUSINESS_WHATSAPP_NUMBER } from '../config/business';
 
 const CUP_CAKE_CANDLE_ID = 'CUP_CAKE_CANDLE';
@@ -47,6 +47,7 @@ interface WhatsAppPayload {
   personalizedNote: string;
   customerDetails: CustomerDetails;
   pricing: Pricing;
+  paymentMethod: PaymentMethod;
   upiId: string;
 }
 
@@ -65,9 +66,28 @@ export const buildWhatsAppMessage = ({
   personalizedNote,
   customerDetails,
   pricing,
+  paymentMethod,
   upiId
 }: WhatsAppPayload): string => {
   const hasOrderDetails = !!orderDetails && orderDetails.length > 0;
+  const isCod = paymentMethod === 'cod';
+  const paymentInstructions = isCod
+    ? [
+        '*Payment Instructions*',
+        '- Payment Method: Cash on Delivery (COD)',
+        '- Pay in cash when your order is delivered.',
+        '- Please keep the exact amount ready if possible.',
+        '- We will confirm your order after reviewing your details on WhatsApp.'
+      ]
+    : [
+        '*Payment Instructions*',
+        '- Payment Method: UPI (Prepaid)',
+        `- Please pay via UPI to: ${upiId}`,
+        `- UPI QR: ${product.qrImage ?? 'N/A'}`,
+        'After payment, share screenshot for manual verification.',
+        'Without payment screenshot, order will not be confirmed.'
+      ];
+
   return [
     '*New Order Request - Dreamy Clouds By Daisy*',
     '',
@@ -121,12 +141,7 @@ export const buildWhatsAppMessage = ({
     `- Alternative Number: ${customerDetails.alternateNumber ? `+91 ${customerDetails.alternateNumber}` : 'N/A'}`,
     `- Email: ${customerDetails.email}`,
     '',
-    '*Payment Instructions*',
-    `- Please pay via UPI to: ${upiId}`,
-    `- UPI QR: ${product.qrImage ?? 'N/A'}`,
-    `- Note - Cash on Delivery not available at this moment`,
-    'After payment, share screenshot for manual verification.',
-    `Without Payment screenshot order will not be confirmed.`
+    ...paymentInstructions
   ].join('\n');
 };
 
