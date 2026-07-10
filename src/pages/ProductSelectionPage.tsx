@@ -37,7 +37,7 @@ import { trackNamedEvent, trackOutboundLink, trackUserJourneyFunnel } from "../s
 type ProductCategoryTab = ProductCategory | "trending" | "steel-tumblers" | "glass-tumblers";
 type SortOption = "high-to-low" | "low-to-high";
 
-const SHOW_STEEL_TUMBLER_SECTION = false;
+const SHOW_STEEL_TUMBLER_SECTION = true;
 const DEFAULT_PRODUCT_CATEGORY: ProductCategoryTab = "trending";
 
 const ALL_CATEGORY_TABS: Array<{ key: ProductCategoryTab; label: string }> = [

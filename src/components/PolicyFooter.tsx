@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { BUSINESS_OWNER_NAME, BUSINESS_REGISTERED_ADDRESS } from '../config/business';
 import { POLICIES } from '../constants/policies';
 
 export const PolicyFooter = () => (
@@ -25,16 +24,6 @@ export const PolicyFooter = () => (
           </Link>
         ))}
       </nav>
-    </section>
-
-    <section
-      aria-label="Business identity"
-      className="mt-4 rounded-2xl border border-lavender-200/70 bg-white/85 px-4 py-4 text-center shadow-soft backdrop-blur-sm sm:px-6 sm:py-5"
-    >
-      <p className="font-['Sora'] text-sm font-bold text-lavender-900 sm:text-base">{BUSINESS_OWNER_NAME}</p>
-      <p className="mt-2 text-xs leading-relaxed text-lavender-700 sm:text-sm">
-        Registered address. {BUSINESS_REGISTERED_ADDRESS}
-      </p>
     </section>
   </>
 );
